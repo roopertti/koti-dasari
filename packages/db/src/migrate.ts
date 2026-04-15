@@ -1,0 +1,37 @@
+import { type Kysely, type Migration, type MigrationProvider, Migrator } from 'kysely';
+import * as initial from './migrations/001_initial.js';
+import type { Database } from './types.js';
+
+const migrations: Record<string, Migration> = {
+  '001_initial': initial,
+};
+
+class StaticMigrationProvider implements MigrationProvider {
+  async getMigrations(): Promise<Record<string, Migration>> {
+    return migrations;
+  }
+}
+
+export async function runMigrations(db: Kysely<Database>): Promise<void> {
+  const migrator = new Migrator({
+    db,
+    provider: new StaticMigrationProvider(),
+  });
+
+  const { error, results } = await migrator.migrateToLatest();
+
+  if (results) {
+    for (const result of results) {
+      if (result.status === 'Success') {
+        console.log(`Migration "${result.migrationName}" executed successfully`);
+      } else if (result.status === 'Error') {
+        console.error(`Migration "${result.migrationName}" failed`);
+      }
+    }
+  }
+
+  if (error) {
+    console.error('Migration failed:', error);
+    throw error;
+  }
+}

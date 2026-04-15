@@ -1,0 +1,26 @@
+{
+  "name": "@home-dashboard/db",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.9.0",
+    "kysely": "^0.28.0"
+  },
+  "devDependencies": {
+    "@home-dashboard/tsconfig": "workspace:*",
+    "@types/better-sqlite3": "^7.6.13",
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@home-dashboard/shared",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@home-dashboard/tsconfig": "workspace:*",
+    "typescript": "^5.8.0"
+  }
+}

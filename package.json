@@ -16,7 +16,8 @@
   },
   "scripts": {
     "build": "pnpm -r run build",
-    "dev": "pnpm -r --parallel run dev",
+    "build:packages": "pnpm --filter './packages/*' build",
+    "dev": "pnpm run build:packages && pnpm --filter './apps/*' --parallel run dev",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",

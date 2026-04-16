@@ -31,7 +31,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter "@home-dashboard/tsconfig" --filter "@home-dashboard/shared" --filter "@home-dashboard/db" build
+      - run: pnpm --filter './packages/*' build
       - run: pnpm typecheck
 
   build:
@@ -60,7 +60,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter "@home-dashboard/tsconfig" --filter "@home-dashboard/shared" --filter "@home-dashboard/db" build
+      - run: pnpm --filter './packages/*' build
       - run: pnpm --filter @home-dashboard/api test
 
   test-e2e:

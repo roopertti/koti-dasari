@@ -50,22 +50,22 @@ Build the data-fetching worker services.
 ### Tasks
 
 #### worker-transport
-- [ ] Scaffold `apps/worker-transport/` with TypeScript
-- [ ] Implement Digitransit GraphQL client
-- [ ] Implement stop discovery query (`stopsByRadius`)
-- [ ] Implement departure fetching query (`stoptimesWithoutPatterns`)
-- [ ] Implement scheduling (configurable interval, e.g., node-cron or setInterval)
-- [ ] Implement data persistence (upsert stops, replace departures)
-- [ ] Implement stale data cleanup (remove past departures)
-- [ ] Add graceful shutdown handling
+- [x] Scaffold `apps/worker-transport/` with TypeScript
+- [x] Implement Digitransit GraphQL client
+- [x] Implement stop discovery query (`stopsByRadius`)
+- [x] Implement departure fetching query (`stoptimesWithoutPatterns`)
+- [x] Implement scheduling (configurable interval, e.g., node-cron or setInterval)
+- [x] Implement data persistence (upsert stops, replace departures)
+- [x] Implement stale data cleanup (remove past departures)
+- [x] Add graceful shutdown handling
 
 #### worker-weather
-- [ ] Scaffold `apps/worker-weather/` with TypeScript
-- [ ] Implement Open-Meteo API client (current + hourly forecast)
-- [ ] Implement scheduling (configurable interval)
-- [ ] Implement data persistence (upsert current weather, replace hourly forecast)
-- [ ] Implement stale data cleanup (remove past forecast hours)
-- [ ] Add graceful shutdown handling
+- [x] Scaffold `apps/worker-weather/` with TypeScript
+- [x] Implement Open-Meteo API client (current + hourly forecast)
+- [x] Implement scheduling (configurable interval)
+- [x] Implement data persistence (upsert current weather, replace hourly forecast)
+- [x] Implement stale data cleanup (remove past forecast hours)
+- [x] Add graceful shutdown handling
 
 **Dependency:** Phase 1 (needs `@home-dashboard/db`)
 
@@ -129,6 +129,8 @@ Final quality pass.
 
 ### Tasks
 
+- [ ] Add runtime validation for external API responses (Digitransit, Open-Meteo) before persisting to database
+- [ ] Extract business logic from API route files into service modules (routes handle validation + responses only)
 - [ ] Review and expand E2E test coverage
 - [ ] Review and expand API integration test coverage
 - [ ] Run Biome across entire codebase, fix any issues

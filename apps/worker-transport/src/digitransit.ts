@@ -1,4 +1,4 @@
-const DIGITRANSIT_URL = "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1";
+const DIGITRANSIT_URL = 'https://api.digitransit.fi/routing/v2/hsl/gtfs/v1';
 
 interface StopsByRadiusNode {
   stop: {
@@ -45,11 +45,11 @@ interface StoptimesResponse {
 }
 
 const VEHICLE_MODE_MAP = {
-  BUS: "BUS",
-  TRAM: "TRAM",
-  SUBWAY: "METRO",
-  RAIL: "TRAIN",
-  FERRY: "FERRY",
+  BUS: 'BUS',
+  TRAM: 'TRAM',
+  SUBWAY: 'METRO',
+  RAIL: 'TRAIN',
+  FERRY: 'FERRY',
 } as const;
 
 type VehicleType = (typeof VEHICLE_MODE_MAP)[keyof typeof VEHICLE_MODE_MAP];
@@ -58,7 +58,7 @@ export function mapVehicleMode(mode: string): VehicleType {
   if (mode in VEHICLE_MODE_MAP) {
     return VEHICLE_MODE_MAP[mode as keyof typeof VEHICLE_MODE_MAP];
   }
-  return "BUS";
+  return 'BUS';
 }
 
 async function query<T>(
@@ -67,18 +67,16 @@ async function query<T>(
   variables: Record<string, unknown>,
 ): Promise<T> {
   const response = await fetch(DIGITRANSIT_URL, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "digitransit-subscription-key": apiKey,
+      'Content-Type': 'application/json',
+      'digitransit-subscription-key': apiKey,
     },
     body: JSON.stringify({ query: graphql, variables }),
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Digitransit API error: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`Digitransit API error: ${response.status} ${response.statusText}`);
   }
 
   return response.json() as Promise<T>;
@@ -122,15 +120,11 @@ export async function fetchNearbyStops(
   lon: number,
   radius: number,
 ): Promise<NearbyStop[]> {
-  const result = await query<StopsByRadiusResponse>(
-    apiKey,
-    STOPS_BY_RADIUS_QUERY,
-    {
-      lat,
-      lon,
-      radius,
-    },
-  );
+  const result = await query<StopsByRadiusResponse>(apiKey, STOPS_BY_RADIUS_QUERY, {
+    lat,
+    lon,
+    radius,
+  });
 
   return result.data.stopsByRadius.edges.map(({ node }) => ({
     id: node.stop.gtfsId,
@@ -196,7 +190,7 @@ export async function fetchDepartures(
     // Adding 12h shifts it to noon local, so the UTC date always matches
     // the intended local date regardless of timezone offset.
     const noonEpochMs = Number(st.serviceDay) * 1000 + 12 * 3600_000;
-    const serviceDay = new Date(noonEpochMs).toISOString().split("T")[0];
+    const serviceDay = new Date(noonEpochMs).toISOString().split('T')[0];
 
     return {
       stopId,

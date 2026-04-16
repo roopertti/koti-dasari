@@ -11,6 +11,9 @@
       "esbuild"
     ]
   },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.0"
+  },
   "scripts": {
     "build": "pnpm -r run build",
     "dev": "pnpm -r --parallel run dev",

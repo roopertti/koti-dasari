@@ -17,7 +17,7 @@ export interface CalendarEventTable {
   location: string | null;
   start_time: string;
   end_time: string;
-  all_day: number;
+  all_day: Generated<number>;
   color: string | null;
   created_at: Generated<string>;
   updated_at: Generated<string>;
@@ -27,10 +27,10 @@ export interface TodoTable {
   id: Generated<string>;
   title: string;
   description: string | null;
-  completed: number;
-  priority: 'low' | 'medium' | 'high';
+  completed: Generated<number>;
+  priority: Generated<'low' | 'medium' | 'high'>;
   due_date: string | null;
-  sort_order: number;
+  sort_order: Generated<number>;
   created_at: Generated<string>;
   updated_at: Generated<string>;
 }
@@ -40,7 +40,7 @@ export interface ReminderTable {
   title: string;
   description: string | null;
   remind_at: string;
-  acknowledged: number;
+  acknowledged: Generated<number>;
   recurring: string | null;
   created_at: Generated<string>;
   updated_at: Generated<string>;
@@ -66,8 +66,8 @@ export interface TransportDepartureTable {
   headsign: string;
   scheduled_departure: number;
   realtime_departure: number | null;
-  departure_delay: number;
-  is_realtime: number;
+  departure_delay: Generated<number>;
+  is_realtime: Generated<number>;
   service_day: string;
   vehicle_type: 'BUS' | 'TRAM' | 'METRO' | 'TRAIN' | 'FERRY';
   fetched_at: Generated<string>;

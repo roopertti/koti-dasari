@@ -1,0 +1,30 @@
+{
+  "name": "@home-dashboard/api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@home-dashboard/db": "workspace:*",
+    "@home-dashboard/shared": "workspace:*",
+    "fastify": "^5.3.0",
+    "kysely": "^0.28.0",
+    "fastify-plugin": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@home-dashboard/tsconfig": "workspace:*",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}

@@ -6,14 +6,14 @@ Set up the monorepo structure, tooling, and shared packages.
 
 ### Tasks
 
-- [ ] Initialize pnpm workspace with `pnpm-workspace.yaml`
-- [ ] Create root `package.json` with shared scripts (`build`, `dev`, `lint`, `format`, `test`) and `engines: { "node": ">=24" }`
-- [ ] Create `.npmrc` with `engine-strict=true` to enforce Node 24+
-- [ ] Set up Biome config (`biome.json`) at root
-- [ ] Create `packages/tsconfig/` with base, node, and react configs
-- [ ] Create `packages/shared/` with shared TypeScript types (calendar, todo, reminder, transport, weather)
-- [ ] Create `packages/db/` with Kysely setup, table types, and initial migration
-- [ ] Verify all packages build and resolve cross-references
+- [x] Initialize pnpm workspace with `pnpm-workspace.yaml`
+- [x] Create root `package.json` with shared scripts (`build`, `dev`, `lint`, `format`, `test`) and `engines: { "node": ">=24" }`
+- [x] Create `.npmrc` with `engine-strict=true` to enforce Node 24+
+- [x] Set up Biome config (`biome.json`) at root
+- [x] Create `packages/tsconfig/` with base, node, and react configs
+- [x] Create `packages/shared/` with shared TypeScript types (calendar, todo, reminder, transport, weather)
+- [x] Create `packages/db/` with Kysely setup, table types, and initial migration
+- [x] Verify all packages build and resolve cross-references
 
 **Estimated scope:** Foundation only, no app logic.
 
@@ -25,19 +25,19 @@ Build the Fastify API server with full CRUD operations.
 
 ### Tasks
 
-- [ ] Scaffold `apps/api/` with Fastify + TypeScript
-- [ ] Create app factory (`app.ts`) with plugin registration
-- [ ] Implement CORS plugin
-- [ ] Implement API key auth plugin (optional, env-driven)
-- [ ] Implement health check route (`GET /api/health`)
-- [ ] Implement calendar events routes (full CRUD)
-- [ ] Implement todos routes (CRUD + toggle + reorder)
-- [ ] Implement reminders routes (CRUD + acknowledge)
-- [ ] Implement transport routes (read-only: stops, departures)
-- [ ] Implement weather routes (read-only: current, forecast)
-- [ ] Add request validation with Fastify schemas (or Zod via fastify-type-provider-zod)
-- [ ] Add snake_case <-> camelCase field mapping
-- [ ] Write integration tests for all API routes (Vitest)
+- [x] Scaffold `apps/api/` with Fastify + TypeScript
+- [x] Create app factory (`app.ts`) with plugin registration
+- [x] Implement CORS plugin
+- [x] Implement API key auth plugin (optional, env-driven)
+- [x] Implement health check route (`GET /api/health`)
+- [x] Implement calendar events routes (full CRUD)
+- [x] Implement todos routes (CRUD + toggle + reorder)
+- [x] Implement reminders routes (CRUD + acknowledge)
+- [x] Implement transport routes (read-only: stops, departures)
+- [x] Implement weather routes (read-only: current, forecast)
+- [x] Add request validation with Fastify schemas (or Zod via fastify-type-provider-zod)
+- [x] Add snake_case <-> camelCase field mapping
+- [x] Write integration tests for all API routes (Vitest)
 
 **Dependency:** Phase 1 (needs `@home-dashboard/db` and `@home-dashboard/shared`)
 

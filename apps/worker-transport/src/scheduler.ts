@@ -22,7 +22,9 @@ export function startScheduler(config: TransportSchedulerConfig): () => void {
   let running = false;
 
   async function tick() {
-    if (running) return;
+    if (running) {
+      return;
+    }
     running = true;
 
     try {
@@ -99,7 +101,9 @@ async function upsertStops(db: Kysely<Database>, stops: NearbyStop[]) {
 }
 
 async function replaceDepartures(db: Kysely<Database>, departures: Departure[]) {
-  if (departures.length === 0) return;
+  if (departures.length === 0) {
+    return;
+  }
 
   // Get unique stop IDs from the new data
   const stopIds = [...new Set(departures.map((d) => d.stopId))];

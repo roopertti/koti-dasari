@@ -28,7 +28,9 @@ export async function createDatabaseWithRetry(
       return db;
     } catch (err) {
       console.error(`[db] Connection attempt ${attempt}/${maxRetries} failed:`, err);
-      if (attempt === maxRetries) throw err;
+      if (attempt === maxRetries) {
+        throw err;
+      }
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }

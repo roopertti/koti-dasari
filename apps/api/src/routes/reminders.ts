@@ -120,10 +120,18 @@ export async function remindersRoutes(app: FastifyInstance) {
 
       const { title, description, remindAt, recurring } = request.body;
       const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-      if (title !== undefined) updates.title = title.trim();
-      if (description !== undefined) updates.description = description;
-      if (remindAt !== undefined) updates.remind_at = remindAt;
-      if (recurring !== undefined) updates.recurring = recurring;
+      if (title !== undefined) {
+        updates.title = title.trim();
+      }
+      if (description !== undefined) {
+        updates.description = description;
+      }
+      if (remindAt !== undefined) {
+        updates.remind_at = remindAt;
+      }
+      if (recurring !== undefined) {
+        updates.recurring = recurring;
+      }
 
       const row = await app.db
         .updateTable('reminders')

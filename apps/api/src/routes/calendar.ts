@@ -29,9 +29,9 @@ export async function calendarRoutes(app: FastifyInstance) {
       .executeTakeFirst();
 
     if (!row) {
-      return reply
-        .status(404)
-        .send({ error: { message: 'Calendar event not found', code: 'NOT_FOUND' } });
+      return reply.status(404).send({
+        error: { message: 'Calendar event not found', code: 'NOT_FOUND' },
+      });
     }
     return { data: mapEventRow(row) };
   });
@@ -71,7 +71,10 @@ export async function calendarRoutes(app: FastifyInstance) {
 
       if (new Date(endTime) <= new Date(startTime)) {
         return reply.status(400).send({
-          error: { message: 'endTime must be after startTime', code: 'VALIDATION_ERROR' },
+          error: {
+            message: 'endTime must be after startTime',
+            code: 'VALIDATION_ERROR',
+          },
         });
       }
 
@@ -133,19 +136,35 @@ export async function calendarRoutes(app: FastifyInstance) {
         .executeTakeFirst();
 
       if (!existing) {
-        return reply
-          .status(404)
-          .send({ error: { message: 'Calendar event not found', code: 'NOT_FOUND' } });
+        return reply.status(404).send({
+          error: { message: 'Calendar event not found', code: 'NOT_FOUND' },
+        });
       }
 
-      const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-      if (title !== undefined) updates.title = title.trim();
-      if (description !== undefined) updates.description = description;
-      if (location !== undefined) updates.location = location;
-      if (startTime !== undefined) updates.start_time = startTime;
-      if (endTime !== undefined) updates.end_time = endTime;
-      if (allDay !== undefined) updates.all_day = allDay ? 1 : 0;
-      if (color !== undefined) updates.color = color;
+      const updates: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (title !== undefined) {
+        updates.title = title.trim();
+      }
+      if (description !== undefined) {
+        updates.description = description;
+      }
+      if (location !== undefined) {
+        updates.location = location;
+      }
+      if (startTime !== undefined) {
+        updates.start_time = startTime;
+      }
+      if (endTime !== undefined) {
+        updates.end_time = endTime;
+      }
+      if (allDay !== undefined) {
+        updates.all_day = allDay ? 1 : 0;
+      }
+      if (color !== undefined) {
+        updates.color = color;
+      }
 
       const row = await app.db
         .updateTable('calendar_events')
@@ -165,9 +184,9 @@ export async function calendarRoutes(app: FastifyInstance) {
       .executeTakeFirst();
 
     if (result.numDeletedRows === 0n) {
-      return reply
-        .status(404)
-        .send({ error: { message: 'Calendar event not found', code: 'NOT_FOUND' } });
+      return reply.status(404).send({
+        error: { message: 'Calendar event not found', code: 'NOT_FOUND' },
+      });
     }
     return reply.status(204).send();
   });

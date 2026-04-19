@@ -15,7 +15,9 @@ export function startScheduler(config: WeatherSchedulerConfig): () => void {
   let running = false;
 
   async function tick() {
-    if (running) return;
+    if (running) {
+      return;
+    }
     running = true;
 
     try {

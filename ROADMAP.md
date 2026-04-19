@@ -77,19 +77,19 @@ Build the React touch-optimized dashboard UI.
 
 ### Tasks
 
-- [ ] Scaffold `apps/dashboard/` with Vite + React 19 + TypeScript
-- [ ] Create API client module (`src/api/`) with fetch wrapper
-- [ ] Design and implement dashboard layout (grid-based, touch-friendly)
-- [ ] Implement Calendar panel component (shows today's/upcoming events)
-- [ ] Implement Todos panel component (shows list, toggle completion via touch)
-- [ ] Implement Reminders panel component (shows active reminders, acknowledge via touch)
-- [ ] Implement Transport panel component (shows upcoming departures grouped by stop)
-- [ ] Implement Weather panel component (current conditions + hourly forecast chart/list)
-- [ ] Add auto-refresh polling (configurable intervals per panel)
-- [ ] Add clock/date display
-- [ ] Optimize for kiosk mode (no scrollbars, fixed viewport, touch targets >= 44px)
-- [ ] Add dark mode / light mode (or auto based on time)
-- [ ] Write Playwright E2E tests for core flows
+- [x] Scaffold `apps/dashboard/` with Vite + React 19 + TypeScript
+- [x] Create API client module (`src/api/`) with fetch wrapper
+- [x] Design and implement dashboard layout (grid-based, touch-friendly)
+- [x] Implement Calendar panel component (shows today's/upcoming events)
+- [x] Implement Todos panel component (shows list, toggle completion via touch)
+- [x] Implement Reminders panel component (shows active reminders, acknowledge via touch)
+- [x] Implement Transport panel component (shows upcoming departures grouped by stop)
+- [x] Implement Weather panel component (current conditions + hourly forecast chart/list)
+- [x] Add auto-refresh polling (configurable intervals per panel)
+- [x] Add clock/date display
+- [x] Optimize for kiosk mode (no scrollbars, fixed viewport, touch targets >= 44px)
+- [x] Add dark mode / light mode (or auto based on time)
+- [x] Write Playwright E2E tests for core flows
 
 **Dependency:** Phase 2 (needs running API to fetch data)
 

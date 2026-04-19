@@ -62,6 +62,8 @@ docker compose up --build # Build and run full stack
 ## Conventions
 
 - Node.js >= 24 (LTS) required — enforced via `engines` in root `package.json` and `engine-strict=true` in `.npmrc`
+- No nested ternaries — use a `renderContent()` helper or early returns instead (not enforceable by Biome 2.x)
+- All `if` statements must have curly braces — enforced by Biome (`style/useBlockStatements`)
 - Database columns: `snake_case`
 - API JSON fields: `camelCase`
 - Package names: `@home-dashboard/<name>`

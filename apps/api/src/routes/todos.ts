@@ -162,11 +162,21 @@ export async function todosRoutes(app: FastifyInstance) {
 
       const { title, description, priority, dueDate, sortOrder } = request.body;
       const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-      if (title !== undefined) updates.title = title.trim();
-      if (description !== undefined) updates.description = description;
-      if (priority !== undefined) updates.priority = priority;
-      if (dueDate !== undefined) updates.due_date = dueDate;
-      if (sortOrder !== undefined) updates.sort_order = sortOrder;
+      if (title !== undefined) {
+        updates.title = title.trim();
+      }
+      if (description !== undefined) {
+        updates.description = description;
+      }
+      if (priority !== undefined) {
+        updates.priority = priority;
+      }
+      if (dueDate !== undefined) {
+        updates.due_date = dueDate;
+      }
+      if (sortOrder !== undefined) {
+        updates.sort_order = sortOrder;
+      }
 
       const row = await app.db
         .updateTable('todos')

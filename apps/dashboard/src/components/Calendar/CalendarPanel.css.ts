@@ -1,12 +1,6 @@
 import { style } from '@vanilla-extract/css';
 import { vars } from '../../styles/theme.css.js';
 
-export const list = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '18px',
-});
-
 export const dayLabel = style({
   fontSize: '0.85rem',
   color: vars.color.fgMuted,

@@ -15,25 +15,25 @@ export const clock = style({
 });
 
 export const time = style({
-  fontSize: 'clamp(4rem, 10vw, 7rem)',
+  fontSize: 'clamp(5rem, 12vw, 8.5rem)',
   fontWeight: 500,
   fontVariantNumeric: 'tabular-nums',
   letterSpacing: '-0.03em',
   lineHeight: 1,
   '@media': {
     [mq.pi]: {
-      fontSize: '4.5rem',
+      fontSize: '5.5rem',
     },
   },
 });
 
 export const date = style({
-  fontSize: 'clamp(1rem, 1.5vw, 1.3rem)',
+  fontSize: 'clamp(1.15rem, 1.7vw, 1.5rem)',
   color: vars.color.fgMuted,
   textTransform: 'capitalize',
   '@media': {
     [mq.pi]: {
-      fontSize: '1.1rem',
+      fontSize: '1.25rem',
     },
   },
 });

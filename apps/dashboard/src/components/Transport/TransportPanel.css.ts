@@ -6,12 +6,6 @@ const blink = keyframes({
   '50%': { opacity: 0.2 },
 });
 
-export const list = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-});
-
 export const departure = style({
   display: 'grid',
   gridTemplateColumns: '40px 72px 1fr auto',

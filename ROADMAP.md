@@ -131,6 +131,7 @@ Final quality pass.
 
 - [ ] Add runtime validation for external API responses (Digitransit, Open-Meteo) before persisting to database
 - [ ] Extract business logic from API route files into service modules (routes handle validation + responses only)
+- [ ] Add Toast messages mostly for errors. Add a global error boundary (or find out if it is necessary)
 - [ ] Review and expand E2E test coverage
 - [ ] Review and expand API integration test coverage
 - [ ] Run Biome across entire codebase, fix any issues

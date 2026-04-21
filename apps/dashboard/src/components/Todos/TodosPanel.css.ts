@@ -1,12 +1,6 @@
 import { style, styleVariants } from '@vanilla-extract/css';
 import { vars } from '../../styles/theme.css.js';
 
-export const list = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-});
-
 export const todo = style({
   display: 'flex',
   alignItems: 'center',

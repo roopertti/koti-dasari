@@ -47,16 +47,15 @@ test.describe('dashboard', () => {
     await expect(page.getByTestId('panel-transport')).toBeVisible();
   });
 
-  test('hides optional panels when their data is empty', async ({ page }) => {
+  test('shows empty states on optional panels when their data is empty', async ({ page }) => {
     await stubReads(page);
     await page.goto('/');
 
-    // Wait for the weather panel (which always renders) so we know the app has mounted.
     await expect(page.getByTestId('panel-weather')).toBeVisible();
 
-    await expect(page.getByTestId('panel-calendar')).toHaveCount(0);
-    await expect(page.getByTestId('panel-todos')).toHaveCount(0);
-    await expect(page.getByTestId('panel-reminders')).toHaveCount(0);
+    await expect(page.getByTestId('panel-calendar')).toContainText('No upcoming events');
+    await expect(page.getByTestId('panel-todos')).toContainText('No todos');
+    await expect(page.getByTestId('panel-reminders')).toContainText('No reminders');
   });
 
   test('renders optional panels when they have data', async ({ page }) => {
@@ -81,8 +80,35 @@ test.describe('dashboard', () => {
 
     await expect(page.getByTestId('panel-todos')).toBeVisible();
     await expect(page.getByTestId('panel-todos')).toContainText('Buy bread');
-    await expect(page.getByTestId('panel-calendar')).toHaveCount(0);
-    await expect(page.getByTestId('panel-reminders')).toHaveCount(0);
+    await expect(page.getByTestId('panel-calendar')).toContainText('No upcoming events');
+    await expect(page.getByTestId('panel-reminders')).toContainText('No reminders');
+  });
+
+  test('swiping horizontally advances to the secondary page', async ({ page }) => {
+    await stubReads(page);
+    await page.goto('/');
+
+    await expect(page.getByTestId('panel-weather')).toBeVisible();
+
+    const dots = page.getByTestId('pagination').locator('span');
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page');
+
+    const box = await page.getByTestId('page-primary').boundingBox();
+    if (!box) {
+      throw new Error('primary page bounding box not found');
+    }
+    const y = box.y + box.height / 2;
+    const startX = box.x + box.width * 0.8;
+    const endX = box.x + box.width * 0.2;
+
+    // Flick left: fast, horizontal-dominant drag > 40px triggers the page advance.
+    await page.mouse.move(startX, y);
+    await page.mouse.down();
+    await page.mouse.move(startX - 20, y);
+    await page.mouse.move(endX, y);
+    await page.mouse.up();
+
+    await expect(dots.nth(1)).toHaveAttribute('aria-current', 'page');
   });
 
   test('toggling a todo calls the toggle endpoint', async ({ page }) => {

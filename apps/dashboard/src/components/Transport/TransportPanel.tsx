@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { listAllDepartures } from '../../api/transport.js';
 import { PanelMessage } from '../common/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell.js';
+import { Stack } from '../common/Stack.js';
 import { DepartureRow } from './DepartureRow.js';
-import * as styles from './TransportPanel.css.js';
 
 const REFRESH_MS = 30_000;
 const LIMIT = 10;
@@ -29,11 +29,11 @@ export function TransportPanel() {
     }
 
     return (
-      <ul className={styles.list}>
+      <Stack as="ul" gap="tight">
         {data.map((departure) => (
           <DepartureRow key={departure.id} departure={departure} />
         ))}
-      </ul>
+      </Stack>
     );
   }
 

@@ -1,24 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
-import { getCurrentWeather, getWeatherForecast } from "../../api/weather.js";
-import { PanelMessage } from "../common/PanelMessage.js";
-import { PanelShell } from "../common/PanelShell.js";
-import { WeatherCurrent } from "./WeatherCurrent.js";
-import { WeatherForecast } from "./WeatherForecast.js";
+import { useQuery } from '@tanstack/react-query';
+import { getCurrentWeather, getWeatherForecast } from '../../api/weather.js';
+import { PanelMessage } from '../common/PanelMessage.js';
+import { PanelShell } from '../common/PanelShell.js';
+import { WeatherCurrent } from './WeatherCurrent.js';
+import { WeatherForecast } from './WeatherForecast.js';
 
 const REFRESH_MS = 5 * 60_000;
 const FORECAST_HOURS = 12;
 
 export function WeatherPanel() {
   const current = useQuery({
-    queryKey: ["weather", "current"],
+    queryKey: ['weather', 'current'],
     queryFn: ({ signal }) => getCurrentWeather(signal),
     refetchInterval: REFRESH_MS,
   });
 
   const forecast = useQuery({
-    queryKey: ["weather", "forecast", { hours: FORECAST_HOURS }],
-    queryFn: ({ signal }) =>
-      getWeatherForecast({ hours: FORECAST_HOURS, signal }),
+    queryKey: ['weather', 'forecast', { hours: FORECAST_HOURS }],
+    queryFn: ({ signal }) => getWeatherForecast({ hours: FORECAST_HOURS, signal }),
     refetchInterval: REFRESH_MS,
   });
 
@@ -28,9 +27,7 @@ export function WeatherPanel() {
     }
 
     if (current.error && !current.data) {
-      return (
-        <PanelMessage variant="error">{current.error.message}</PanelMessage>
-      );
+      return <PanelMessage variant="error">{current.error.message}</PanelMessage>;
     }
 
     if (!current.data) {

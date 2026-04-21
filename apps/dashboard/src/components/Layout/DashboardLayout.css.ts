@@ -2,21 +2,26 @@ import { globalStyle, style } from '@vanilla-extract/css';
 import { mq, vars } from '../../styles/theme.css.js';
 
 export const dashboard = style({
-  minHeight: '100%',
+  position: 'relative',
+  zIndex: 1,
+  height: '100%',
   display: 'grid',
-  gridTemplateRows: 'auto 1fr auto',
-  gap: vars.space.lg,
-  padding: vars.space.lg,
+  gridTemplateRows: 'auto minmax(0, 1fr) auto',
+  gap: vars.space.md,
+  paddingTop: vars.space.lg,
+  paddingBottom: vars.space.sm,
+  paddingLeft: vars.space.lg,
+  paddingRight: vars.space.lg,
   '@media': {
     [mq.tablet]: {
-      height: 'auto',
-      minHeight: '100vh',
-      gridTemplateRows: 'none',
-      gridAutoRows: 'minmax(min-content, auto)',
+      height: '100vh',
     },
     [mq.pi]: {
-      padding: vars.space.md,
-      gap: vars.space.md,
+      paddingTop: vars.space.md,
+      paddingBottom: vars.space.xs,
+      paddingLeft: vars.space.md,
+      paddingRight: vars.space.md,
+      gap: vars.space.sm,
     },
   },
 });
@@ -25,42 +30,55 @@ export const header = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-});
-
-export const hero = style({
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.25fr)',
-  gap: '12px',
-  minHeight: 0,
-  '@media': {
-    [mq.tablet]: {
-      gridTemplateColumns: '1fr',
-      gridAutoRows: 'minmax(min-content, auto)',
-    },
-  },
-});
-
-export const heroItem = style({
-  minHeight: 0,
-  display: 'flex',
-});
-
-globalStyle(`${heroItem} > *`, {
-  flex: 1,
-});
-
-export const secondary = style({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
   gap: vars.space.lg,
-  selectors: {
-    '&:empty': {
-      display: 'none',
-    },
-  },
+  flexWrap: 'wrap',
+});
+
+export const pages = style({
+  display: 'flex',
+  flexDirection: 'row',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  scrollSnapType: 'x mandatory',
+  scrollbarWidth: 'none',
+  minHeight: 0,
+  overscrollBehaviorX: 'contain',
+  // Leave horizontal gestures to usePointerSwipe; let vertical panning fall
+  // through to the panel bodies that scroll natively.
+  touchAction: 'pan-y',
+});
+
+globalStyle(`${pages}::-webkit-scrollbar`, {
+  display: 'none',
+});
+
+export const page = style({
+  flex: '0 0 100%',
+  minWidth: 0,
+  height: '100%',
+  overflowY: 'auto',
+  scrollSnapAlign: 'start',
+  scrollSnapStop: 'always',
+  scrollbarWidth: 'none',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space.md,
   '@media': {
-    [mq.tablet]: {
-      gridTemplateColumns: '1fr',
+    [mq.pi]: {
+      gap: vars.space.sm,
     },
   },
+});
+
+globalStyle(`${page}::-webkit-scrollbar`, {
+  display: 'none',
+});
+
+globalStyle(`${page} > *`, {
+  flex: 1,
+  minHeight: 0,
+});
+
+globalStyle(`${page} > [data-testid="panel-weather"]`, {
+  flex: '0 0 auto',
 });

@@ -2,9 +2,9 @@ import type { Reminder } from '@home-dashboard/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { acknowledgeReminder, listReminders } from '../../api/reminders.js';
-import { PanelMessage } from '../common/PanelMessage.js';
-import { PanelShell } from '../common/PanelShell.js';
-import { Stack } from '../common/Stack.js';
+import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
+import { PanelShell } from '../common/PanelShell/PanelShell.js';
+import { Stack } from '../common/Stack/Stack.js';
 import { ReminderRow } from './ReminderRow.js';
 
 const REFRESH_MS = 30_000;

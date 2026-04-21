@@ -1,6 +1,6 @@
 import type { CalendarEvent } from '@home-dashboard/shared';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents.js';
-import { Stack } from '../common/Stack.js';
+import { Stack } from '../common/Stack/Stack.js';
 import * as styles from './TodayEvents.css.js';
 
 const VISIBLE = 2;

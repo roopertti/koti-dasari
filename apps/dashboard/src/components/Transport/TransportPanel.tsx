@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { listAllDepartures } from '../../api/transport.js';
-import { PanelMessage } from '../common/PanelMessage.js';
-import { PanelShell } from '../common/PanelShell.js';
-import { Stack } from '../common/Stack.js';
+import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
+import { PanelShell } from '../common/PanelShell/PanelShell.js';
+import { Stack } from '../common/Stack/Stack.js';
 import { DepartureRow } from './DepartureRow.js';
 
 const REFRESH_MS = 30_000;

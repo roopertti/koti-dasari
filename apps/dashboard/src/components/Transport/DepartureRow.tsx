@@ -2,8 +2,8 @@ import type { TransportDeparture } from '@home-dashboard/shared';
 import { departureToDate } from '@home-dashboard/shared';
 import { Bus, Ship, TrainFront, TramFront } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
-import { Badge } from '../common/Badge.js';
-import { MetroMark } from '../common/MetroMark.js';
+import { Badge } from '../common/Badge/Badge.js';
+import { MetroMark } from '../common/MetroMark/MetroMark.js';
 import * as styles from './TransportPanel.css.js';
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement> & { size?: string | number }>;

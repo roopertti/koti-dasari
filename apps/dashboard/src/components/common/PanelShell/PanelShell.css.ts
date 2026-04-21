@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css';
-import { mq, vars } from '../../styles/theme.css.js';
+import { mq, vars } from '../../../styles/theme.css.js';
 
 export const panel = style({
   background: vars.color.bgPanel,

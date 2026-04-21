@@ -1,7 +1,7 @@
 import { type ReactNode, useRef } from 'react';
 import { useActivePage } from '../../hooks/useActivePage.js';
 import { usePointerSwipe } from '../../hooks/usePointerSwipe.js';
-import { Pagination } from '../common/Pagination.js';
+import { Pagination } from '../common/Pagination/Pagination.js';
 import * as styles from './DashboardLayout.css.js';
 
 interface DashboardLayoutProps {

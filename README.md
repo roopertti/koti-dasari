@@ -1,0 +1,68 @@
+# Home Dashboard
+
+Touchscreen kiosk dashboard for a Raspberry Pi. Shows calendar events, todos, reminders, Helsinki public transport departures (HSL), and weather data. Runs entirely on the local network — no cloud services, all data persisted in SQLite.
+
+## Stack
+
+pnpm monorepo. React 19 + Vite frontend, Fastify + Kysely backend, SQLite (better-sqlite3), two Node workers (HSL Digitransit + Open-Meteo), NGINX reverse proxy. Docker Compose for deploy. Biome for lint/format. Playwright for E2E, Vitest for integration tests.
+
+## Quick start (local dev)
+
+Requires Node 24+ and pnpm 10+.
+
+```bash
+pnpm install
+pnpm dev          # runs all apps in parallel (api, workers, dashboard)
+```
+
+The dashboard dev server proxies `/api/*` to the local Fastify instance — see `apps/dashboard/vite.config.ts`.
+
+To run the full production stack locally:
+
+```bash
+cp .env.example .env   # fill in DIGITRANSIT_API_KEY at minimum
+HOST_PORT=8080 docker compose up --build
+# dashboard at http://localhost:8080
+```
+
+## Layout
+
+```
+apps/
+  dashboard/         React 19 + Vite frontend (built into the NGINX image)
+  api/               Fastify backend
+  worker-transport/  HSL Digitransit fetcher
+  worker-weather/    Open-Meteo fetcher
+packages/
+  db/                Kysely setup, types, migrations
+  shared/            Shared TypeScript types
+  tsconfig/          Shared TS configs
+infra/
+  nginx/             Reverse proxy Dockerfile + nginx.conf
+  setup-pi.sh        One-time Raspberry Pi setup
+```
+
+## Documentation
+
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — full architecture, Docker layout, deployment flow
+- [`API.md`](./API.md) — REST API specification
+- [`DATABASE.md`](./DATABASE.md) — table schemas, migration strategy
+- [`ROADMAP.md`](./ROADMAP.md) — phased implementation plan
+- [`CLAUDE.md`](./CLAUDE.md) — project notes for AI-assisted development
+
+## External APIs
+
+- **Digitransit (HSL)** — GraphQL public transport API. Free; requires registration at <https://portal-api.digitransit.fi/>.
+- **Open-Meteo** — free weather API, no key required.
+
+## Deployment
+
+Deploy by SSHing to the Pi, pulling, and rebuilding. Full instructions in [`ARCHITECTURE.md`](./ARCHITECTURE.md#deployment).
+
+```bash
+ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose up -d --build'
+```
+
+## License
+
+[MIT](./LICENSE)

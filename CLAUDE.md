@@ -18,8 +18,7 @@ packages/
   tsconfig/     - Shared TypeScript configurations
 infra/
   nginx/        - Reverse proxy Dockerfile + nginx.conf (builds dashboard + serves static + proxies API)
-  deploy.sh     - Deploy to Raspberry Pi via SSH (rsync + docker compose)
-  setup-pi.sh   - One-time Pi setup (Docker install, dirs, BuildKit)
+  setup-pi.sh   - One-time Pi setup (Docker, git, BuildKit, nightly backup cron); run from inside the already-cloned repo
 ```
 
 ## Tech Stack
@@ -85,4 +84,4 @@ docker compose up --build # Build and run full stack
 - All images must be ARM64 compatible for Raspberry Pi deployment
 - NGINX is the single entry point (port 80): serves dashboard static assets + proxies `/api/*` to Fastify
 - Dashboard has no dedicated container — built inside NGINX's multi-stage Dockerfile
-- Deploy via `./infra/deploy.sh [user@host]` — rsyncs project to Pi and builds on-device
+- Deploy via git pull on the Pi: `ssh pi@host 'cd ~/home-dashboard && git pull && docker compose up -d --build'`

@@ -1,0 +1,31 @@
+# Trim the build context — these are never needed in any image.
+**/node_modules
+**/dist
+**/.turbo
+**/*.tsbuildinfo
+**/test-results
+**/playwright-report
+
+.git
+.github
+.claude
+.vscode
+.idea
+
+# Local data and secrets
+/data
+/backups
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+
+# OS / editor cruft
+.DS_Store
+*.log
+
+# Docs not needed in any image
+*.md
+!apps/**/README.md

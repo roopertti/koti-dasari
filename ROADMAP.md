@@ -102,20 +102,19 @@ Containerize everything, set up NGINX reverse proxy, and automate Raspberry Pi d
 ### Tasks
 
 #### Docker & NGINX
-- [ ] Write Dockerfile for `apps/api/` (multi-stage, node:24-alpine)
-- [ ] Write Dockerfile for `apps/worker-transport/` (multi-stage, node:24-alpine)
-- [ ] Write Dockerfile for `apps/worker-weather/` (multi-stage, node:24-alpine)
-- [ ] Write `infra/nginx/Dockerfile` (multi-stage: build dashboard + serve via nginx:alpine)
-- [ ] Write `infra/nginx/nginx.conf` (reverse proxy: `/` static, `/api/*` to Fastify, SPA fallback, gzip)
-- [ ] Write `docker-compose.yml` with all 4 services (nginx, api, worker-transport, worker-weather)
-- [ ] Configure shared SQLite volume and restart policies
-- [ ] Add `.env.example` with all environment variables
-- [ ] Test full stack locally via Docker Compose
+- [x] Write Dockerfile for `apps/api/` (multi-stage, node:24-alpine)
+- [x] Write Dockerfile for `apps/worker-transport/` (multi-stage, node:24-alpine)
+- [x] Write Dockerfile for `apps/worker-weather/` (multi-stage, node:24-alpine)
+- [x] Write `infra/nginx/Dockerfile` (multi-stage: build dashboard + serve via nginx:alpine)
+- [x] Write `infra/nginx/nginx.conf` (reverse proxy: `/` static, `/api/*` to Fastify, SPA fallback, gzip)
+- [x] Write `docker-compose.yml` with all 4 services (nginx, api, worker-transport, worker-weather)
+- [x] Configure shared SQLite volume and restart policies
+- [x] Add `.env.example` with all environment variables
+- [x] Test full stack locally via Docker Compose
 
 #### Deployment Automation
-- [ ] Write `infra/setup-pi.sh` (one-time Pi setup: install Docker, create dirs, enable BuildKit)
-- [ ] Write `infra/deploy.sh` (rsync project, docker compose up --build, health check, prune)
-- [ ] Add rsync exclude list (node_modules, .git, dist, .env.local)
+- [x] Write `infra/setup-pi.sh` (one-time Pi setup: install Docker + git, enable BuildKit; run from inside the already-cloned repo)
+- [x] Document git-based deploy flow (clone → `git pull` → `docker compose up -d --build`) in `ARCHITECTURE.md`
 - [ ] Test deploy to Raspberry Pi
 - [ ] Verify health check and all services running on Pi
 

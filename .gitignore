@@ -5,5 +5,8 @@ dist
 *.db-shm
 .env
 .env.local
-.env.production
 *.tsbuildinfo
+test-results
+playwright-report
+data/
+backups/

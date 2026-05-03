@@ -37,8 +37,7 @@ home-dashboard/
 │   ├── nginx/
 │   │   ├── Dockerfile              # Multi-stage: builds dashboard + NGINX
 │   │   └── nginx.conf              # Reverse proxy config
-│   ├── deploy.sh                   # Deploy to Raspberry Pi via SSH
-│   └── setup-pi.sh                # One-time Pi setup (Docker, dirs)
+│   └── setup-pi.sh                # One-time Pi setup (Docker, git, BuildKit)
 ├── apps/
 │   ├── dashboard/                  # React frontend
 │   │   ├── package.json
@@ -275,37 +274,37 @@ SQLite supports concurrent reads but only one writer at a time. With WAL mode en
 
 ### Architecture
 
-Deployment is handled via a shell script (`infra/deploy.sh`) run from the dev machine. It connects to the Raspberry Pi over SSH and builds everything on-device (native ARM64, no cross-compilation).
+Deployment is git-based and runs entirely on the Pi: the Pi clones the repo, pulls updates, and rebuilds containers in place. Everything builds natively for ARM64 on-device — no cross-compilation, no image registry.
 
 ### One-time Pi Setup (`infra/setup-pi.sh`)
 
-Run once on a fresh Pi to prepare the environment:
-
-1. Install Docker and Docker Compose plugin (via official Docker apt repo)
-2. Add the current user to the `docker` group
-3. Enable Docker to start on boot (`systemctl enable docker`)
-4. Create the project directory (`~/home-dashboard`)
-5. Enable BuildKit for faster multi-stage builds
-
-### Deploy Script (`infra/deploy.sh`)
+Clone the repo on the Pi first, then run the script from inside it. The script installs git, Docker + Docker Compose plugin, enables Docker on boot, enables BuildKit, and adds the user to the `docker` group.
 
 ```bash
-# Usage: ./infra/deploy.sh [user@host]
-# Default: pi@raspberrypi.local
+# On the Pi
+ssh pi@raspberrypi.local
+git clone git@github.com:<you>/home-dashboard.git ~/home-dashboard
+cd ~/home-dashboard
+bash infra/setup-pi.sh
+# log out + back in if you were just added to the docker group
+
+cp .env.example .env
+# edit .env — at minimum set DIGITRANSIT_API_KEY
+chmod 600 .env   # restrict to current user only
+docker compose up -d --build
 ```
 
-The deploy script performs these steps:
-
-1. **Pre-flight checks** — verify SSH connectivity and Docker availability on the Pi
-2. **Sync project files** — `rsync` the project to the Pi (excludes `node_modules`, `.git`, `dist`)
-3. **Copy environment file** — copies `.env.production` to the Pi (if it exists locally)
-4. **Build and start** — runs `docker compose up -d --build` on the Pi
-5. **Health check** — waits for the API health endpoint to respond on port 80
-6. **Cleanup** — prunes unused Docker images to save SD card space
+The Pi needs read access to the repo. Easiest options: a [GitHub deploy key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys) (read-only SSH key for one repo), or making the repo public.
 
 ### Redeployment
 
-Subsequent deploys follow the same flow. Docker Compose only rebuilds images whose build context changed, so incremental deploys are fast.
+```bash
+ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose up -d --build'
+```
+
+Docker Compose only rebuilds images whose build context changed, so incremental deploys are fast. Push to the deployed branch first — only committed-and-pushed changes get deployed.
+
+To roll back, `git checkout <prev-sha> && docker compose up -d --build` on the Pi.
 
 ### Directory Structure on Pi
 
@@ -317,8 +316,21 @@ Subsequent deploys follow the same flow. Docker Compose only rebuilds images who
 │   └── nginx/
 ├── apps/
 ├── packages/
-└── data/                   # Docker volume mount point (SQLite DB lives here)
+├── data/                   # Bind-mounted into containers; SQLite DB lives here
+└── backups/                # Rotated SQLite snapshots (created by infra/backup.sh)
 ```
+
+### Backups
+
+`infra/backup.sh` takes an online SQLite snapshot via `sqlite3 .backup` (WAL-safe — no need to stop the API or workers) and writes it to `backups/dashboard-<timestamp>.db`, then prunes to the most recent `KEEP` files (default 14). `setup-pi.sh` installs a nightly cron entry at 03:00; logs go to `backups/backup.log`. To run manually or change retention:
+
+```bash
+bash infra/backup.sh              # one-off snapshot
+KEEP=30 bash infra/backup.sh      # keep last 30 instead of 14
+crontab -l                        # inspect the installed schedule
+```
+
+Restoring is a file copy: stop the stack, replace `data/dashboard.db` with the chosen snapshot, restart.
 
 ## Environment Variables
 
@@ -333,4 +345,4 @@ Subsequent deploys follow the same flow. Docker Compose only rebuilds images who
 | `TRANSPORT_INTERVAL_MS` | worker-transport | Fetch interval (default: `300000` / 5 min) |
 | `WEATHER_INTERVAL_MS` | worker-weather | Fetch interval (default: `1800000` / 30 min) |
 | `PORT` | api | API server port (default: `3001`) |
-| `DEPLOY_HOST` | deploy script | SSH target (default: `pi@raspberrypi.local`) |
+| `HOST_PORT` | nginx | Host port to bind nginx to (default: `80`) |

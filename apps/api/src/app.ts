@@ -2,7 +2,6 @@ import cors from '@fastify/cors';
 import type { Database } from '@home-dashboard/db';
 import Fastify, { type FastifyError } from 'fastify';
 import type { Kysely } from 'kysely';
-import authPlugin from './plugins/auth.js';
 import { calendarRoutes } from './routes/calendar.js';
 import { healthRoutes } from './routes/health.js';
 import { remindersRoutes } from './routes/reminders.js';
@@ -12,7 +11,6 @@ import { weatherRoutes } from './routes/weather.js';
 
 export interface AppOptions {
   db: Kysely<Database>;
-  apiKey?: string;
 }
 
 export async function buildApp(options: AppOptions) {
@@ -38,7 +36,6 @@ export async function buildApp(options: AppOptions) {
   });
 
   await app.register(cors, { origin: true });
-  await app.register(authPlugin, { apiKey: options.apiKey });
 
   app.decorate('db', options.db);
 

@@ -143,7 +143,7 @@ home-dashboard/
 - All CRUD operations for calendar events, todos, reminders
 - Read-only endpoints for weather and transport (data populated by workers)
 - Uses **Kysely** for type-safe SQL queries against SQLite
-- Optional API key authentication via `x-api-key` header
+- No authentication; reached same-origin via nginx on the local network (see Authentication Strategy)
 - CORS configured for local network access
 
 ### Workers
@@ -199,15 +199,9 @@ Two separate long-running services that fetch external data and persist it to SQ
 
 ## Authentication Strategy
 
-Since the API is on a local network, a lightweight API key approach:
+The API is unauthenticated. The dashboard reaches it same-origin through nginx on the local network, so no shared secret is needed (and a frontend-bundled key would be readable by anyone with devtools anyway).
 
-1. API key is configured via environment variable (`API_KEY`)
-2. Requests include `x-api-key` header
-3. Fastify plugin validates the key on protected routes
-4. Dashboard frontend includes the key in its API calls (configured at build time)
-5. If no `API_KEY` is set, auth is disabled (development mode)
-
-This keeps things simple while allowing you to lock down the API if needed.
+If a second client is added later — another browser app on a different origin, or a backend/script caller — introduce per-client API keys at that point, validated in Fastify. Each client gets its own key so they can be rotated or revoked independently. The dashboard itself stays unauthenticated.
 
 ## Docker Architecture
 
@@ -274,37 +268,41 @@ SQLite supports concurrent reads but only one writer at a time. With WAL mode en
 
 ### Architecture
 
-Deployment is git-based and runs entirely on the Pi: the Pi clones the repo, pulls updates, and rebuilds containers in place. Everything builds natively for ARM64 on-device — no cross-compilation, no image registry.
+Images are built in GitHub Actions on every push to `main` (`.github/workflows/build-and-push.yml`) and pushed to GHCR as `ghcr.io/roopertti/koti-dasari/{api,worker-transport,worker-weather,nginx}` tagged `:latest` and `:<short-sha>`. The Pi only ever pulls — it never builds — so the 1 GB Pi 3 has no trouble keeping up.
 
 ### One-time Pi Setup (`infra/setup-pi.sh`)
 
-Clone the repo on the Pi first, then run the script from inside it. The script installs git, Docker + Docker Compose plugin, enables Docker on boot, enables BuildKit, and adds the user to the `docker` group.
+Clone the repo on the Pi (it still needs `docker-compose.yml`, `.env`, and the backup script), then run the script from inside it. The script installs git, Docker + Docker Compose plugin, sqlite3, enables Docker on boot, enables BuildKit, adds the user to the `docker` group, and installs the nightly DB backup cron.
 
 ```bash
 # On the Pi
 ssh pi@raspberrypi.local
-git clone git@github.com:<you>/home-dashboard.git ~/home-dashboard
+git clone git@github.com:roopertti/koti-dasari.git ~/home-dashboard
 cd ~/home-dashboard
 bash infra/setup-pi.sh
 # log out + back in if you were just added to the docker group
 
+# Authenticate to GHCR — generate a fine-grained PAT with `read:packages` scope at
+# https://github.com/settings/tokens?type=beta and paste it as the password.
+docker login ghcr.io -u <your-github-username>
+
 cp .env.example .env
 # edit .env — at minimum set DIGITRANSIT_API_KEY
 chmod 600 .env   # restrict to current user only
-docker compose up -d --build
+
+docker compose pull
+docker compose up -d
 ```
 
-The Pi needs read access to the repo. Easiest options: a [GitHub deploy key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys) (read-only SSH key for one repo), or making the repo public.
+> **Tip:** if you'd rather skip the PAT entirely, on each GitHub package's settings page (Profile → Packages → `<image>` → Package settings) you can flip the package's visibility to public. The repo can stay private; the images become anonymously pullable. Then `docker login ghcr.io` is no longer needed.
 
 ### Redeployment
 
 ```bash
-ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose up -d --build'
+ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose pull && docker compose up -d'
 ```
 
-Docker Compose only rebuilds images whose build context changed, so incremental deploys are fast. Push to the deployed branch first — only committed-and-pushed changes get deployed.
-
-To roll back, `git checkout <prev-sha> && docker compose up -d --build` on the Pi.
+`git pull` only pulls compose/script updates; the new images come from GHCR. To pin a specific build instead of `:latest`, set `IMAGE_TAG=<short-sha>` in `.env` (or as a one-off env var) before `docker compose up -d`. Same mechanism for rollback.
 
 ### Directory Structure on Pi
 
@@ -337,7 +335,6 @@ Restoring is a file copy: stop the stack, replace `data/dashboard.db` with the c
 | Variable | Service | Description |
 |----------|---------|-------------|
 | `DATABASE_PATH` | api, workers | Path to SQLite database file |
-| `API_KEY` | api | Optional API authentication key |
 | `DIGITRANSIT_API_KEY` | worker-transport | Digitransit API subscription key |
 | `HOME_LATITUDE` | workers | Home location latitude (e.g., `60.1699`) |
 | `HOME_LONGITUDE` | workers | Home location longitude (e.g., `24.9384`) |

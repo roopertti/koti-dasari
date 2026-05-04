@@ -8,13 +8,7 @@ http://<raspberry-pi-ip>:3001
 
 ## Authentication
 
-Optional API key authentication via header:
-
-```
-x-api-key: <your-api-key>
-```
-
-When `API_KEY` environment variable is set, all routes require this header. When unset, auth is disabled.
+None. The API is unauthenticated and intended to be reached only via the same-origin nginx proxy on the local network. If a second client (different origin or backend caller) is added later, introduce per-client keys validated in Fastify at that point.
 
 ## Common Response Format
 
@@ -442,7 +436,6 @@ Health check endpoint (no auth required).
 | HTTP Status | Code | Description |
 |-------------|------|-------------|
 | 400 | `VALIDATION_ERROR` | Invalid request body or params |
-| 401 | `UNAUTHORIZED` | Missing or invalid API key |
 | 404 | `NOT_FOUND` | Resource not found |
 | 500 | `INTERNAL_ERROR` | Unexpected server error |
 

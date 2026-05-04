@@ -78,10 +78,9 @@ docker compose up --build # Build and run full stack
 ## Development Notes
 
 - SQLite in WAL mode for concurrent read/write from API + workers
-- API key auth is optional (disabled when `API_KEY` env var is not set)
 - Workers retry DB connection on startup (API runs migrations first)
 - Docker images use `node:24-alpine` with multi-stage builds for small size
 - All images must be ARM64 compatible for Raspberry Pi deployment
 - NGINX is the single entry point (port 80): serves dashboard static assets + proxies `/api/*` to Fastify
 - Dashboard has no dedicated container — built inside NGINX's multi-stage Dockerfile
-- Deploy via git pull on the Pi: `ssh pi@host 'cd ~/home-dashboard && git pull && docker compose up -d --build'`
+- Images are built in GitHub Actions (`.github/workflows/build-and-push.yml`) and pushed to GHCR on every merge to `main`. Pi deploy: `ssh pi@host 'cd ~/home-dashboard && git pull && docker compose pull && docker compose up -d'` — Pi never builds.

@@ -1,7 +1,6 @@
 import type { ApiError, ApiResponse } from '@home-dashboard/shared';
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api';
-const API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
 
 export class ApiRequestError extends Error {
   status: number;
@@ -49,10 +48,6 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (body !== undefined) {
     headers['content-type'] = 'application/json';
-  }
-
-  if (API_KEY) {
-    headers['x-api-key'] = API_KEY;
   }
 
   const response = await fetch(buildUrl(path, query), {

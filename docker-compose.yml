@@ -1,12 +1,9 @@
 services:
   nginx:
+    image: ghcr.io/roopertti/koti-dasari/nginx:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: infra/nginx/Dockerfile
-      args:
-        VITE_API_BASE: /api
-        VITE_API_KEY: ${API_KEY:-}
-    image: home-dashboard-nginx
     ports:
       - "${HOST_PORT:-80}:80"
     depends_on:
@@ -15,13 +12,12 @@ services:
     restart: unless-stopped
 
   api:
+    image: ghcr.io/roopertti/koti-dasari/api:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: home-dashboard-api
     environment:
       DATABASE_PATH: /data/dashboard.db
-      API_KEY: ${API_KEY:-}
       PORT: "3001"
       HOST: 0.0.0.0
     volumes:
@@ -39,10 +35,10 @@ services:
     restart: unless-stopped
 
   worker-transport:
+    image: ghcr.io/roopertti/koti-dasari/worker-transport:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/worker-transport/Dockerfile
-    image: home-dashboard-worker-transport
     environment:
       DATABASE_PATH: /data/dashboard.db
       DIGITRANSIT_API_KEY: ${DIGITRANSIT_API_KEY:?DIGITRANSIT_API_KEY is required}
@@ -58,10 +54,10 @@ services:
     restart: unless-stopped
 
   worker-weather:
+    image: ghcr.io/roopertti/koti-dasari/worker-weather:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: apps/worker-weather/Dockerfile
-    image: home-dashboard-worker-weather
     environment:
       DATABASE_PATH: /data/dashboard.db
       HOME_LATITUDE: ${HOME_LATITUDE:-60.1699}

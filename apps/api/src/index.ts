@@ -7,6 +7,6 @@ const db = createDatabase(config.databasePath);
 
 await runMigrations(db);
 
-const app = await buildApp({ db, apiKey: config.apiKey });
+const app = await buildApp({ db });
 
 await app.listen({ port: config.port, host: config.host });

@@ -1,0 +1,67 @@
+name: Build and push images
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.service }}
+    # ubuntu-latest + QEMU cross-builds linux/arm64 — works on Free plan + private repos.
+    # When the repo goes public (or this account upgrades to Team+), switch to
+    # `runs-on: ubuntu-24.04-arm` and drop the setup-qemu-action step for a ~3× speed-up.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            dockerfile: apps/api/Dockerfile
+          - service: worker-transport
+            dockerfile: apps/worker-transport/Dockerfile
+          - service: worker-weather
+            dockerfile: apps/worker-weather/Dockerfile
+          - service: nginx
+            dockerfile: infra/nginx/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          platforms: linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}

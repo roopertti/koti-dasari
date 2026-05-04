@@ -57,10 +57,10 @@ infra/
 
 ## Deployment
 
-Deploy by SSHing to the Pi, pulling, and rebuilding. Full instructions in [`ARCHITECTURE.md`](./ARCHITECTURE.md#deployment).
+Images are built in GitHub Actions and pushed to GHCR on every merge to `main`. The Pi only pulls and runs — it never builds. Full instructions in [`ARCHITECTURE.md`](./ARCHITECTURE.md#deployment).
 
 ```bash
-ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose up -d --build'
+ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose pull && docker compose up -d'
 ```
 
 ## License

@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 # Build context: repo root (so workspace deps resolve). See docker-compose.yml.
 
-FROM node:24-alpine AS build
-RUN corepack enable && apk add --no-cache python3 make g++
+FROM node:24-slim AS build
+RUN corepack enable
 WORKDIR /repo
 
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
@@ -23,7 +23,7 @@ RUN pnpm --filter './packages/*' build \
  && pnpm --filter @home-dashboard/api build \
  && pnpm --filter @home-dashboard/api deploy --legacy --prod /prod/api
 
-FROM node:24-alpine AS runtime
+FROM node:24-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --chown=node:node --from=build /prod/api .

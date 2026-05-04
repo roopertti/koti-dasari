@@ -226,7 +226,7 @@ docker-compose.yml
 - The browser connects to one origin, eliminating CORS issues and the need for a separate `API_URL` config
 - All backend services share a Docker volume for the SQLite database file
 - Workers and API access the same SQLite DB via the shared volume
-- All images use `node:24-alpine` as base (with multi-stage builds)
+- API and worker images use `node:24-slim` (debian) so better-sqlite3's prebuilt arm64 binary is used directly — alpine's musl forces a slow source compile under QEMU. NGINX still uses `node:24-alpine` for the dashboard build (no native deps) and `nginx:alpine` at runtime.
 - ARM64 compatible for Raspberry Pi
 - All services use `restart: unless-stopped` for automatic recovery
 

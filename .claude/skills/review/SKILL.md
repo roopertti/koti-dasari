@@ -61,7 +61,7 @@ For each changed file, check:
 - Stale data cleanup on each fetch cycle
 
 ### Docker / Infra
-- Multi-stage builds, `node:24-alpine` base (Node 24 LTS required)
+- Multi-stage builds; `node:24-slim` base for api/workers (better-sqlite3 prebuild compatibility), `node:24-alpine` for nginx build stage (Node 24 LTS required)
 - No unnecessary files in images
 - `engines` field in `package.json` must specify `>=24`
 

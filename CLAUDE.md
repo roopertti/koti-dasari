@@ -79,7 +79,7 @@ docker compose up --build # Build and run full stack
 
 - SQLite in WAL mode for concurrent read/write from API + workers
 - Workers retry DB connection on startup (API runs migrations first)
-- Docker images use `node:24-alpine` with multi-stage builds for small size
+- API and worker images use `node:24-slim` (so better-sqlite3's arm64 prebuild is used — alpine/musl would force a source compile under QEMU). NGINX uses alpine bases (no native deps).
 - All images must be ARM64 compatible for Raspberry Pi deployment
 - NGINX is the single entry point (port 80): serves dashboard static assets + proxies `/api/*` to Fastify
 - Dashboard has no dedicated container — built inside NGINX's multi-stage Dockerfile

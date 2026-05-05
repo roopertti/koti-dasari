@@ -112,6 +112,34 @@ describe('Todos API', () => {
     });
   });
 
+  describe('PUT /api/todos/:id', () => {
+    it('updates a todo and returns the new fields', async () => {
+      const created = await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
+      const { id } = created.json().data;
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/api/todos/${id}`,
+        payload: { title: 'Updated', priority: 'low', dueDate: null },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const { data } = res.json();
+      expect(data.title).toBe('Updated');
+      expect(data.priority).toBe('low');
+      expect(data.dueDate).toBeNull();
+    });
+
+    it('returns 404 for nonexistent id', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: '/api/todos/nonexistent',
+        payload: { title: 'Updated' },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
   describe('PUT /api/todos/reorder', () => {
     it('updates sort order for multiple todos', async () => {
       const first = await app.inject({

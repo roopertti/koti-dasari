@@ -128,16 +128,17 @@ Final quality pass.
 
 ### Tasks
 
-- [ ] Add runtime validation for external API responses (Digitransit, Open-Meteo) before persisting to database
-- [ ] Extract business logic from API route files into service modules (routes handle validation + responses only)
-- [ ] Add Toast messages mostly for errors. Add a global error boundary (or find out if it is necessary)
-- [ ] Review and expand E2E test coverage
-- [ ] Review and expand API integration test coverage
-- [ ] Run Biome across entire codebase, fix any issues
-- [ ] Verify GitHub Actions CI pipeline (`.github/workflows/ci.yml` — already scaffolded)
-- [ ] Performance test on Raspberry Pi hardware
-- [ ] Add auto-start on boot (systemd service or Docker restart policy)
-- [ ] Write project README
+- [x] Add runtime validation for external API responses (Digitransit, Open-Meteo) before persisting to database — Zod schemas at the worker fetch boundaries
+- [x] Add a global error boundary around the dashboard App (toasts skipped — kiosk has no operator to read them; per-panel states cover errors in-place)
+- [x] Review and expand E2E test coverage — added reminder-acknowledge spec
+- [x] Review and expand API integration test coverage — added PUT /todos/:id spec
+- [x] Run Biome across entire codebase, fix any issues
+- [x] Verify GitHub Actions CI pipeline (`.github/workflows/ci.yml` — lint, typecheck, build, API tests, E2E; plus `build-and-push.yml` for GHCR)
+- [x] Performance test on Raspberry Pi hardware
+- [x] Add auto-start on boot (`restart: unless-stopped` on every service in `docker-compose.yml`)
+- [x] Write project README
+
+**Skipped:** Extracting business logic from routes into service modules — routes are thin (Kysely + mapping inline) and the API has a single consumer, so layering would add indirection without payoff.
 
 ---
 

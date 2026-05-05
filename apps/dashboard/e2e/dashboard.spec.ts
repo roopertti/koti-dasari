@@ -111,6 +111,74 @@ test.describe('dashboard', () => {
     await expect(dots.nth(1)).toHaveAttribute('aria-current', 'page');
   });
 
+  test('acknowledging a reminder calls the acknowledge endpoint', async ({ page }) => {
+    const reminder = {
+      id: 'rem-1',
+      title: 'Take medication',
+      description: null,
+      remindAt: '2026-04-15T08:00:00Z',
+      acknowledged: false,
+      recurring: null,
+      createdAt: '2026-04-10T12:00:00Z',
+      updatedAt: '2026-04-10T12:00:00Z',
+    };
+
+    await stubReads(page, {
+      reminders: { data: [reminder] },
+    });
+
+    let acknowledged = false;
+    await page.route(/\/api\/reminders\/rem-1\/acknowledge$/, (route) => {
+      acknowledged = true;
+      return route.fulfill({ json: { data: { ...reminder, acknowledged: true } } });
+    });
+
+    await page.goto('/');
+
+    const ackButton = page.getByRole('button', {
+      name: 'Acknowledge "Take medication"',
+    });
+    await expect(ackButton).toBeVisible();
+    await ackButton.click();
+
+    await expect.poll(() => acknowledged, { timeout: 2000 }).toBe(true);
+  });
+
+  test('error boundary catches render-time crashes inside a panel', async ({ page }) => {
+    // Surface real render errors when they happen but suppress the noisy
+    // React StrictMode double-render console output for the expected throw.
+    page.on('pageerror', () => {});
+
+    // Calendar panel maps over events and calls startTime.slice(0, 10) — a
+    // malformed event with startTime: null forces a TypeError during render,
+    // which the ErrorBoundary should catch and replace with the fallback.
+    await stubReads(page, {
+      'calendar/events': {
+        data: [
+          {
+            id: 'bad',
+            title: 'Broken event',
+            description: null,
+            location: null,
+            startTime: null,
+            endTime: '2026-04-15T10:00:00Z',
+            allDay: false,
+            color: null,
+            createdAt: '2026-04-10T12:00:00Z',
+            updatedAt: '2026-04-10T12:00:00Z',
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    const fallback = page.getByTestId('error-boundary');
+    await expect(fallback).toBeVisible();
+    await expect(fallback).toContainText('Dashboard crashed');
+    await expect(page.getByRole('button', { name: 'Reload' })).toBeVisible();
+  });
+
   test('toggling a todo calls the toggle endpoint', async ({ page }) => {
     const todo = {
       id: 'todo-1',

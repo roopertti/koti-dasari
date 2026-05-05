@@ -1,30 +1,32 @@
+import { z } from 'zod';
+
 const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast';
 
-interface OpenMeteoResponse {
-  current: {
-    temperature_2m: number;
-    apparent_temperature: number;
-    relative_humidity_2m: number;
-    wind_speed_10m: number;
-    wind_direction_10m: number;
-    precipitation: number;
-    weather_code: number;
-    cloud_cover: number;
-    surface_pressure: number;
-  };
-  hourly: {
-    time: string[];
-    temperature_2m: number[];
-    apparent_temperature: number[];
-    relative_humidity_2m: number[];
-    wind_speed_10m: number[];
-    wind_direction_10m: number[];
-    precipitation: number[];
-    precipitation_probability: number[];
-    weather_code: number[];
-    cloud_cover: number[];
-  };
-}
+const OpenMeteoResponseSchema = z.object({
+  current: z.object({
+    temperature_2m: z.number(),
+    apparent_temperature: z.number(),
+    relative_humidity_2m: z.number(),
+    wind_speed_10m: z.number(),
+    wind_direction_10m: z.number(),
+    precipitation: z.number(),
+    weather_code: z.number(),
+    cloud_cover: z.number(),
+    surface_pressure: z.number(),
+  }),
+  hourly: z.object({
+    time: z.array(z.string()),
+    temperature_2m: z.array(z.number()),
+    apparent_temperature: z.array(z.number()),
+    relative_humidity_2m: z.array(z.number()),
+    wind_speed_10m: z.array(z.number()),
+    wind_direction_10m: z.array(z.number()),
+    precipitation: z.array(z.number()),
+    precipitation_probability: z.array(z.number()),
+    weather_code: z.array(z.number()),
+    cloud_cover: z.array(z.number()),
+  }),
+});
 
 export interface CurrentWeather {
   temperature: number;
@@ -92,7 +94,22 @@ export async function fetchWeather(latitude: number, longitude: number): Promise
     throw new Error(`Open-Meteo API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = (await response.json()) as OpenMeteoResponse;
+  const json = await response.json();
+  const parsed = OpenMeteoResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error(`Open-Meteo response validation failed: ${parsed.error.message}`);
+  }
+  const data = parsed.data;
+
+  // Hourly arrays must align by index — guard against API-side drift before
+  // mapping, since z.array doesn't enforce equal lengths.
+  const hourlyLength = data.hourly.time.length;
+  const aligned = Object.values(data.hourly).every(
+    (arr) => Array.isArray(arr) && arr.length === hourlyLength,
+  );
+  if (!aligned) {
+    throw new Error('Open-Meteo hourly arrays have mismatched lengths');
+  }
 
   const current: CurrentWeather = {
     temperature: data.current.temperature_2m,

@@ -1,48 +1,56 @@
+import { z } from 'zod';
+
 const DIGITRANSIT_URL = 'https://api.digitransit.fi/routing/v2/hsl/gtfs/v1';
 
-interface StopsByRadiusNode {
-  stop: {
-    gtfsId: string;
-    name: string;
-    code: string | null;
-    platformCode: string | null;
-    lat: number;
-    lon: number;
-    vehicleMode: string;
-  };
-  distance: number;
-}
+const StopsByRadiusSchema = z.object({
+  data: z.object({
+    stopsByRadius: z.object({
+      edges: z.array(
+        z.object({
+          node: z.object({
+            stop: z.object({
+              gtfsId: z.string(),
+              name: z.string(),
+              code: z.string().nullable(),
+              platformCode: z.string().nullable(),
+              lat: z.number(),
+              lon: z.number(),
+              vehicleMode: z.string(),
+            }),
+            distance: z.number(),
+          }),
+        }),
+      ),
+    }),
+  }),
+});
 
-interface StopsByRadiusResponse {
-  data: {
-    stopsByRadius: {
-      edges: Array<{ node: StopsByRadiusNode }>;
-    };
-  };
-}
-
-interface StoptimeData {
-  trip: {
-    route: {
-      shortName: string;
-      mode: string;
-    };
-  };
-  headsign: string;
-  serviceDay: string;
-  scheduledDeparture: number;
-  realtimeDeparture: number;
-  departureDelay: number;
-  realtime: boolean;
-}
-
-interface StoptimesResponse {
-  data: {
-    stop: {
-      stoptimesWithoutPatterns: StoptimeData[];
-    } | null;
-  };
-}
+const StoptimesSchema = z.object({
+  data: z.object({
+    stop: z
+      .object({
+        stoptimesWithoutPatterns: z.array(
+          z.object({
+            trip: z.object({
+              route: z.object({
+                shortName: z.string(),
+                mode: z.string(),
+              }),
+            }),
+            headsign: z.string(),
+            // GraphQL Long scalar — some implementations serialize as a string
+            // to preserve precision; coerce to number to handle both shapes.
+            serviceDay: z.coerce.number(),
+            scheduledDeparture: z.number(),
+            realtimeDeparture: z.number(),
+            departureDelay: z.number(),
+            realtime: z.boolean(),
+          }),
+        ),
+      })
+      .nullable(),
+  }),
+});
 
 const VEHICLE_MODE_MAP = {
   BUS: 'BUS',
@@ -61,11 +69,12 @@ export function mapVehicleMode(mode: string): VehicleType {
   return 'BUS';
 }
 
-async function query<T>(
+async function query<T extends z.ZodType>(
   apiKey: string,
   graphql: string,
   variables: Record<string, unknown>,
-): Promise<T> {
+  schema: T,
+): Promise<z.infer<T>> {
   const response = await fetch(DIGITRANSIT_URL, {
     method: 'POST',
     headers: {
@@ -79,7 +88,21 @@ async function query<T>(
     throw new Error(`Digitransit API error: ${response.status} ${response.statusText}`);
   }
 
-  return response.json() as Promise<T>;
+  const json = (await response.json()) as { errors?: Array<{ message?: string }> };
+
+  // GraphQL signals query-level failures via a top-level `errors` array (which
+  // omits `data` entirely). Surface those directly so the worker log shows the
+  // API's own message rather than a generic schema mismatch.
+  if (Array.isArray(json.errors) && json.errors.length > 0) {
+    const messages = json.errors.map((e) => e.message ?? 'unknown error').join('; ');
+    throw new Error(`Digitransit GraphQL error: ${messages}`);
+  }
+
+  const parsed = schema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error(`Digitransit response validation failed: ${parsed.error.message}`);
+  }
+  return parsed.data;
 }
 
 const STOPS_BY_RADIUS_QUERY = `
@@ -120,11 +143,12 @@ export async function fetchNearbyStops(
   lon: number,
   radius: number,
 ): Promise<NearbyStop[]> {
-  const result = await query<StopsByRadiusResponse>(apiKey, STOPS_BY_RADIUS_QUERY, {
-    lat,
-    lon,
-    radius,
-  });
+  const result = await query(
+    apiKey,
+    STOPS_BY_RADIUS_QUERY,
+    { lat, lon, radius },
+    StopsByRadiusSchema,
+  );
 
   return result.data.stopsByRadius.edges.map(({ node }) => ({
     id: node.stop.gtfsId,
@@ -176,10 +200,12 @@ export async function fetchDepartures(
   stopId: string,
   numberOfDepartures = 20,
 ): Promise<Departure[]> {
-  const result = await query<StoptimesResponse>(apiKey, STOPTIMES_QUERY, {
-    stopId,
-    numberOfDepartures,
-  });
+  const result = await query(
+    apiKey,
+    STOPTIMES_QUERY,
+    { stopId, numberOfDepartures },
+    StoptimesSchema,
+  );
 
   if (!result.data.stop) {
     return [];
@@ -189,7 +215,7 @@ export async function fetchDepartures(
     // Digitransit serviceDay is epoch seconds at midnight Helsinki local time.
     // Adding 12h shifts it to noon local, so the UTC date always matches
     // the intended local date regardless of timezone offset.
-    const noonEpochMs = Number(st.serviceDay) * 1000 + 12 * 3600_000;
+    const noonEpochMs = st.serviceDay * 1000 + 12 * 3600_000;
     const serviceDay = new Date(noonEpochMs).toISOString().split('T')[0];
 
     return {

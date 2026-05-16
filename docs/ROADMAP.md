@@ -180,7 +180,68 @@ Build a LAN-reachable admin UI for editing data, plus per-client API key auth fo
 
 ---
 
-## Phase 9: iCal Subscribe
+## Phase 9: Electricity Spot Price Panel
+
+Add a dashboard panel showing the Finnish electricity spot price (Nord Pool FI area) for the current hour and the next ~24–36 hours, with a chart. Data source: [`porssisahko.net`](https://porssisahko.net/api) — free, no key, returns hourly prices for today + tomorrow (tomorrow's prices published ~14:00 EET) in c/kWh including 25.5% VAT.
+
+### Tasks
+
+#### Data layer
+- [ ] Add `electricity_prices` table — `hour_start` (ISO, PK), `price_cents_per_kwh` (REAL), `fetched_at` (ISO). Migration `003_electricity_prices`
+- [ ] Add Kysely types and Zod schema for the `porssisahko.net` response in `packages/shared`
+
+#### Worker
+- [ ] Scaffold `apps/worker-electricity/` mirroring `worker-weather` (TypeScript, scheduling, graceful shutdown, runtime validation, stale cleanup)
+- [ ] Fetch on a sensible cadence: every ~30 min during 13:00–16:00 EET (next-day publish window), otherwise hourly; replace-on-write keyed by `hour_start`
+- [ ] Drop prices older than ~48h to keep the table small
+
+#### API
+- [ ] Add `GET /api/electricity/prices?from=&to=` (camelCase response, snake_case DB)
+- [ ] Integration tests for the route
+
+#### Frontend
+- [ ] Build `Electricity` panel: current price (large), 24h hand-rolled SVG bar chart (avoid a chart dep), tomorrow's prices visually muted until published, color cheap/expensive hours
+- [ ] Add Finnish + English translations for panel labels, units (`snt/kWh`), and a "tomorrow's prices not yet published" state
+- [ ] Playwright E2E for panel render + chart presence
+
+#### Infra & docs
+- [ ] Add Dockerfile for `apps/worker-electricity/` (node:24-slim) and wire into `docker-compose.yml`
+- [ ] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
+
+**Dependency:** None — independent of Phases 8, 10–13.
+
+---
+
+## Phase 10: `@home-dashboard/i18n` Package (Date & Localization Consolidation)
+
+Tech-debt cleanup: consolidate scattered locale, timezone, and date logic into one workspace package consumed by dashboard, API, and workers.
+
+### Current pain
+- `LOCALE = 'fi-FI'` lives only in `apps/dashboard/src/i18n/t.ts`; `worker-transport` hardcodes `'Europe/Helsinki'` separately
+- Seven near-duplicate `new Intl.DateTimeFormat(LOCALE, {...})` instances across `Clock`, `TodaySoonRail`, `DepartureRow`, `WeatherForecast`, `CalendarDayGroup`, `TodoRow` — most time formatters use identical options
+- Date predicates (`diffDays`, `horizonFromOffset`, `eventStartDate`, `dueDateAsDate`) are buried inside `TodaySoonRail.tsx` instead of being reusable
+- `packages/shared/utils/date.ts` only holds Digitransit-specific helpers; nothing dashboard-side imports from there
+- `t()` is dashboard-only — Phase 8's admin UI will have introduced its own duplicated translation usage by the time this lands
+
+### Tasks
+- [ ] Create `packages/i18n/` workspace package, following the `packages/shared/` shape
+- [ ] Export `LOCALE` and `TIMEZONE = 'Europe/Helsinki'` constants
+- [ ] Move catalogs (`fi.json`, `en.json`) and `t()` from `apps/dashboard/src/i18n/` into the package
+- [ ] Export shared `Intl.DateTimeFormat` singletons (`timeHm`, `weekdayShort`, `dayHeader`, `hourShort`, etc.) named for their shape, not their callers
+- [ ] Extract `diffDays`, `horizonFromOffset`, `startOfLocalDay`, `parseLocalDate`, `parseEventStart` into the package
+- [ ] Move `departureToDate` / `formatDepartureTime` from `packages/shared/utils/date.ts` into `packages/i18n` and remove the now-empty file
+- [ ] Update dashboard components to import formatters and predicates from `@home-dashboard/i18n`
+- [ ] Migrate Phase 8 admin UI strings to the package as part of this work
+- [ ] Update `worker-transport/src/scheduler.ts` to import `TIMEZONE` instead of hardcoding it
+- [ ] Update API to depend on the package (at minimum `TIMEZONE`; enables localized error messages later)
+- [ ] Update `docs/ARCHITECTURE.md` (directory layout + tech section) for the new package
+- [ ] Verify Biome, typecheck, and tests still pass
+
+**Dependency:** Phase 8 (admin UI) — landing this after Phase 8 means admin gets migrated as part of the consolidation rather than refactored twice.
+
+---
+
+## Phase 11: iCal Subscribe
 
 Bring real calendars onto the dashboard via public iCal URLs (read-only).
 
@@ -198,7 +259,7 @@ Bring real calendars onto the dashboard via public iCal URLs (read-only).
 
 ---
 
-## Phase 10: Offline Resilience
+## Phase 12: Offline Resilience
 
 Keep the kiosk readable during network blips instead of going blank.
 
@@ -208,11 +269,11 @@ Keep the kiosk readable during network blips instead of going blank.
 - [ ] Add a service worker that caches the SPA shell + static assets
 - [ ] Visual stale-data indicator on each panel when the latest fetch failed but cached data is shown
 
-**Dependency:** None (parallel to Phases 7-9)
+**Dependency:** None (parallel to Phases 7-11)
 
 ---
 
-## Phase 11: Hardening & Public Release
+## Phase 13: Hardening & Public Release
 
 Lock supply chain, add scanning, and prep the repo for going public.
 
@@ -248,9 +309,10 @@ Phase 1 (scaffolding)
     ├── Phase 2 (API)     ──┐
     └── Phase 3 (workers)  ──┼── Phase 4 (frontend) ── Phase 5 (Docker) ── Phase 6 (polish)
 
-Phase 7 (UI refresh)  ──┬── Phase 8 (admin + LAN) ── Phase 9 (iCal)
-Phase 10 (offline)    ──┘  (independent — can land alongside any of 7-9)
-Phase 11 (hardening)       (anytime; natural fit before going public)
+Phase 7 (UI refresh) ── Phase 8 (admin + LAN) ── Phase 10 (i18n pkg) ── Phase 11 (iCal)
+Phase 9  (electricity)     (independent of 7-13)
+Phase 12 (offline)         (independent — can land alongside any of 7-11)
+Phase 13 (hardening)       (anytime; natural fit before going public)
 ```
 
 ### Key Decisions Made

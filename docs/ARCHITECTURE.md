@@ -29,10 +29,11 @@ home-dashboard/
 ├── biome.json                      # Shared Biome config
 ├── docker-compose.yml
 ├── CLAUDE.md
-├── ARCHITECTURE.md
-├── DATABASE.md
-├── API.md
-├── ROADMAP.md
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── DATABASE.md
+│   ├── API.md
+│   └── ROADMAP.md
 ├── infra/
 │   ├── nginx/
 │   │   ├── Dockerfile              # Multi-stage: builds dashboard + NGINX

@@ -4,7 +4,7 @@ Raspberry Pi touchscreen kiosk dashboard displaying calendar events, todos, Hels
 
 ## Project Structure
 
-pnpm monorepo with workspaces. See `ARCHITECTURE.md` for full details.
+pnpm monorepo with workspaces. See `docs/ARCHITECTURE.md` for full details.
 
 ```
 apps/
@@ -19,6 +19,7 @@ packages/
 infra/
   nginx/        - Reverse proxy Dockerfile + nginx.conf (builds dashboard + serves static + proxies API)
   setup-pi.sh   - One-time Pi setup (Docker, git, BuildKit, nightly backup cron); run from inside the already-cloned repo
+docs/           - Architecture, database, API, and roadmap planning documents
 ```
 
 ## Tech Stack
@@ -53,10 +54,10 @@ docker compose up --build # Build and run full stack
 
 ## Planning Documents
 
-- `ARCHITECTURE.md` - Full architecture, tech decisions, directory structure, Docker setup, env vars
-- `DATABASE.md` - All table schemas, Kysely types, migration strategy, data lifecycle
-- `API.md` - Complete REST API specification with all endpoints, request/response shapes
-- `ROADMAP.md` - Phased implementation plan with task checklists
+- `docs/ARCHITECTURE.md` - Full architecture, tech decisions, directory structure, Docker setup, env vars
+- `docs/DATABASE.md` - All table schemas, Kysely types, migration strategy, data lifecycle
+- `docs/API.md` - Complete REST API specification with all endpoints, request/response shapes
+- `docs/ROADMAP.md` - Phased implementation plan with task checklists
 
 ## Conventions
 
@@ -68,7 +69,7 @@ docker compose up --build # Build and run full stack
 - Package names: `@home-dashboard/<name>`
 - All dates stored as ISO 8601 strings in SQLite
 - Transport departure times stored as seconds since midnight (Digitransit convention)
-- Weather codes follow WMO standard (see DATABASE.md for mapping)
+- Weather codes follow WMO standard (see docs/DATABASE.md for mapping)
 
 ## Quality Gates
 

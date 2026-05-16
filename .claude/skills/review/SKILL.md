@@ -38,7 +38,7 @@ For each changed file, check:
 
 ### API Routes (`apps/api/src/routes/`)
 - Request validation schemas are defined
-- Response shapes match `API.md`
+- Response shapes match `docs/API.md`
 - Queries use Kysely (no raw SQL strings)
 - snake_case DB columns mapped to camelCase in responses
 - Correct HTTP status codes (201 create, 204 delete, etc.)
@@ -85,7 +85,7 @@ pnpm biome check --changed
 
 ## Step 5: Architecture Consistency
 
-- Check changes against `ARCHITECTURE.md`, `DATABASE.md`, `API.md`
+- Check changes against `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, `docs/API.md`
 - Flag if docs need updating for new endpoints, tables, or patterns
 
 ## Output

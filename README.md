@@ -40,14 +40,15 @@ packages/
 infra/
   nginx/             Reverse proxy Dockerfile + nginx.conf
   setup-pi.sh        One-time Raspberry Pi setup
+docs/                Architecture, database, API, and roadmap docs
 ```
 
 ## Documentation
 
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — full architecture, Docker layout, deployment flow
-- [`API.md`](./API.md) — REST API specification
-- [`DATABASE.md`](./DATABASE.md) — table schemas, migration strategy
-- [`ROADMAP.md`](./ROADMAP.md) — phased implementation plan
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — full architecture, Docker layout, deployment flow
+- [`docs/API.md`](./docs/API.md) — REST API specification
+- [`docs/DATABASE.md`](./docs/DATABASE.md) — table schemas, migration strategy
+- [`docs/ROADMAP.md`](./docs/ROADMAP.md) — phased implementation plan
 - [`CLAUDE.md`](./CLAUDE.md) — project notes for AI-assisted development
 
 ## External APIs
@@ -57,7 +58,7 @@ infra/
 
 ## Deployment
 
-Images are built in GitHub Actions and pushed to GHCR on every merge to `main`. The Pi only pulls and runs — it never builds. Full instructions in [`ARCHITECTURE.md`](./ARCHITECTURE.md#deployment).
+Images are built in GitHub Actions and pushed to GHCR on every merge to `main`. The Pi only pulls and runs — it never builds. Full instructions in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md#deployment).
 
 ```bash
 ssh pi@raspberrypi.local 'cd ~/home-dashboard && git pull && docker compose pull && docker compose up -d'

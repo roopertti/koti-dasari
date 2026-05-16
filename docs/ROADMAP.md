@@ -174,7 +174,7 @@ Build a LAN-reachable admin UI for editing data, plus per-client API key auth fo
 #### LAN API access
 - [ ] Tiny Fastify pre-handler validating an `x-api-key` header against a comma-separated list in env
 - [ ] Apply the key check to `/api/*` (admin uses the cookie, not a key)
-- [ ] Document the second-Pi setup in `ARCHITECTURE.md` (one key per client, rotation story)
+- [ ] Document the second-Pi setup in `docs/ARCHITECTURE.md` (one key per client, rotation story)
 
 **Dependency:** Phase 7 (settled UI conventions and Finnish strings carry into the admin UI)
 

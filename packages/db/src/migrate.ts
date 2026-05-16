@@ -1,10 +1,12 @@
 import type { Kysely } from 'kysely';
 import { type Migration, type MigrationProvider, Migrator } from 'kysely/migration';
 import * as initial from './migrations/001_initial.js';
+import * as dropReminders from './migrations/002_drop_reminders.js';
 import type { Database } from './types.js';
 
 const migrations: Record<string, Migration> = {
   '001_initial': initial,
+  '002_drop_reminders': dropReminders,
 };
 
 class StaticMigrationProvider implements MigrationProvider {

@@ -1,6 +1,6 @@
 # Home Dashboard
 
-Raspberry Pi touchscreen kiosk dashboard displaying calendar events, todos, reminders, Helsinki public transport departures (HSL), and weather data.
+Raspberry Pi touchscreen kiosk dashboard displaying calendar events, todos, Helsinki public transport departures (HSL), and weather data. UI is in Finnish (with English fallback strings).
 
 ## Project Structure
 

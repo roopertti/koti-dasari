@@ -3,7 +3,6 @@ import type { Generated } from 'kysely';
 export interface Database {
   calendar_events: CalendarEventTable;
   todos: TodoTable;
-  reminders: ReminderTable;
   transport_stops: TransportStopTable;
   transport_departures: TransportDepartureTable;
   weather_current: WeatherCurrentTable;
@@ -31,17 +30,6 @@ export interface TodoTable {
   priority: Generated<'low' | 'medium' | 'high'>;
   due_date: string | null;
   sort_order: Generated<number>;
-  created_at: Generated<string>;
-  updated_at: Generated<string>;
-}
-
-export interface ReminderTable {
-  id: Generated<string>;
-  title: string;
-  description: string | null;
-  remind_at: string;
-  acknowledged: Generated<number>;
-  recurring: string | null;
   created_at: Generated<string>;
   updated_at: Generated<string>;
 }

@@ -58,26 +58,6 @@ CREATE INDEX idx_todos_completed ON todos(completed);
 CREATE INDEX idx_todos_due_date ON todos(due_date);
 ```
 
-### reminders
-
-Stores reminders with a specific trigger time.
-
-```sql
-CREATE TABLE reminders (
-  id            TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-  title         TEXT NOT NULL,
-  description   TEXT,
-  remind_at     TEXT NOT NULL,  -- ISO 8601 datetime
-  acknowledged  INTEGER NOT NULL DEFAULT 0,  -- boolean
-  recurring     TEXT,           -- cron expression or null for one-time
-  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX idx_reminders_remind_at ON reminders(remind_at);
-CREATE INDEX idx_reminders_acknowledged ON reminders(acknowledged);
-```
-
 ### transport_stops
 
 Stores nearby public transport stops (populated by worker-transport).
@@ -194,7 +174,6 @@ import type { Generated, Insertable, Selectable, Updateable } from 'kysely';
 export interface Database {
   calendar_events: CalendarEventTable;
   todos: TodoTable;
-  reminders: ReminderTable;
   transport_stops: TransportStopTable;
   transport_departures: TransportDepartureTable;
   weather_current: WeatherCurrentTable;
@@ -222,17 +201,6 @@ interface TodoTable {
   priority: 'low' | 'medium' | 'high';
   due_date: string | null;
   sort_order: number;
-  created_at: Generated<string>;
-  updated_at: Generated<string>;
-}
-
-interface ReminderTable {
-  id: Generated<string>;
-  title: string;
-  description: string | null;
-  remind_at: string;
-  acknowledged: number;
-  recurring: string | null;
   created_at: Generated<string>;
   updated_at: Generated<string>;
 }

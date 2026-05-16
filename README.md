@@ -1,6 +1,6 @@
 # Home Dashboard
 
-Touchscreen kiosk dashboard for a Raspberry Pi. Shows calendar events, todos, reminders, Helsinki public transport departures (HSL), and weather data. Runs entirely on the local network — no cloud services, all data persisted in SQLite.
+Touchscreen kiosk dashboard for a Raspberry Pi. Shows calendar events, todos, Helsinki public transport departures (HSL), and weather data. Runs entirely on the local network — no cloud services, all data persisted in SQLite.
 
 ## Stack
 

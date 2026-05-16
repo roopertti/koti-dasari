@@ -1,6 +1,7 @@
 import { type ReactNode, useRef } from 'react';
 import { useActivePage } from '../../hooks/useActivePage.js';
 import { usePointerSwipe } from '../../hooks/usePointerSwipe.js';
+import { t } from '../../i18n/t.js';
 import { Pagination } from '../common/Pagination/Pagination.js';
 import * as styles from './DashboardLayout.css.js';
 
@@ -10,18 +11,17 @@ interface DashboardLayoutProps {
   transport: ReactNode;
   calendar: ReactNode;
   todos: ReactNode;
-  reminders: ReactNode;
 }
 
 interface PageConfig {
-  label: string;
+  labelKey: string;
   testId: string;
   renderContents: (props: DashboardLayoutProps) => ReactNode;
 }
 
 const PAGES: PageConfig[] = [
   {
-    label: 'Weather and transport',
+    labelKey: 'layout.pagePrimary',
     testId: 'page-primary',
     renderContents: ({ weather, transport }) => (
       <>
@@ -31,13 +31,12 @@ const PAGES: PageConfig[] = [
     ),
   },
   {
-    label: 'Calendar, todos, and reminders',
+    labelKey: 'layout.pageSecondary',
     testId: 'page-secondary',
-    renderContents: ({ calendar, todos, reminders }) => (
+    renderContents: ({ calendar, todos }) => (
       <>
         {calendar}
         {todos}
-        {reminders}
       </>
     ),
   },
@@ -56,7 +55,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
           <section
             key={page.testId}
             className={styles.page}
-            aria-label={page.label}
+            aria-label={t(page.labelKey)}
             data-testid={page.testId}
           >
             {page.renderContents(props)}

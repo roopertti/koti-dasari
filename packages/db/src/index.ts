@@ -7,7 +7,6 @@ import type { Database } from './types.js';
 export type {
   CalendarEventTable,
   Database,
-  ReminderTable,
   TodoTable,
   TransportDepartureTable,
   TransportStopTable,

@@ -6,11 +6,6 @@ export type {
 } from './types/calendar.js';
 
 export type {
-  CreateReminderInput,
-  Reminder,
-  UpdateReminderInput,
-} from './types/reminder.js';
-export type {
   CreateTodoInput,
   ReorderTodoItem,
   Todo,

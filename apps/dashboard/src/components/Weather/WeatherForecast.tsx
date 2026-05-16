@@ -1,8 +1,9 @@
 import type { WeatherHourly } from '@home-dashboard/shared';
+import { LOCALE } from '../../i18n/t.js';
 import * as styles from './WeatherPanel.css.js';
 import { wmoInfo } from './wmo.js';
 
-const hourFormatter = new Intl.DateTimeFormat(undefined, {
+const hourFormatter = new Intl.DateTimeFormat(LOCALE, {
   hour: '2-digit',
   hour12: false,
 });

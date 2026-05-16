@@ -5,34 +5,14 @@ export const todo = style({
   display: 'flex',
   alignItems: 'center',
   gap: vars.space.md,
-  padding: '6px 0',
+  padding: '10px 12px',
+  borderRadius: vars.radii.sm,
+  background: vars.color.bgPanelHover,
   minHeight: vars.size.touchMin,
 });
 
-export const toggle = style({
-  width: vars.size.touchMin,
-  height: vars.size.touchMin,
-  borderRadius: '50%',
-  border: `2px solid ${vars.color.border}`,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: '1.2rem',
-  flexShrink: 0,
-  padding: 0,
-  color: 'transparent',
-  transition: 'background-color 120ms ease, border-color 120ms ease',
-  selectors: {
-    '&:disabled': {
-      opacity: 0.5,
-    },
-  },
-});
-
-export const toggleDone = style({
-  background: vars.color.success,
-  borderColor: vars.color.success,
-  color: 'white',
+export const todoDone = style({
+  opacity: 0.6,
 });
 
 export const body = style({
@@ -72,4 +52,22 @@ export const priority = styleVariants({
   low: { ...priorityBase, color: vars.color.fgDim },
 });
 
-export const due = style({});
+export const toggle = style({
+  minHeight: vars.size.touchMin,
+  padding: `0 ${vars.space.lg}`,
+  background: vars.color.accent,
+  borderColor: vars.color.accent,
+  color: vars.color.accentFg,
+  fontWeight: 600,
+  selectors: {
+    '&:disabled': {
+      opacity: 0.5,
+    },
+  },
+});
+
+export const toggleUndo = style({
+  background: 'transparent',
+  borderColor: vars.color.border,
+  color: vars.color.fgMuted,
+});

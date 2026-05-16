@@ -4,7 +4,6 @@ import Fastify, { type FastifyError } from 'fastify';
 import type { Kysely } from 'kysely';
 import { calendarRoutes } from './routes/calendar.js';
 import { healthRoutes } from './routes/health.js';
-import { remindersRoutes } from './routes/reminders.js';
 import { todosRoutes } from './routes/todos.js';
 import { transportRoutes } from './routes/transport.js';
 import { weatherRoutes } from './routes/weather.js';
@@ -42,7 +41,6 @@ export async function buildApp(options: AppOptions) {
   await app.register(healthRoutes, { prefix: '/api' });
   await app.register(calendarRoutes, { prefix: '/api' });
   await app.register(todosRoutes, { prefix: '/api' });
-  await app.register(remindersRoutes, { prefix: '/api' });
   await app.register(transportRoutes, { prefix: '/api' });
   await app.register(weatherRoutes, { prefix: '/api' });
 

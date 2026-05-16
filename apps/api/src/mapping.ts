@@ -1,6 +1,5 @@
 import type {
   CalendarEventTable,
-  ReminderTable,
   TodoTable,
   TransportDepartureTable,
   TransportStopTable,
@@ -47,11 +46,6 @@ export function mapEventRow(row: Selectable<CalendarEventTable>) {
 export function mapTodoRow(row: Selectable<TodoTable>) {
   const mapped = mapRow(row);
   return mapBooleans(mapped, ['completed']);
-}
-
-export function mapReminderRow(row: Selectable<ReminderTable>) {
-  const mapped = mapRow(row);
-  return mapBooleans(mapped, ['acknowledged']);
 }
 
 export function mapDepartureRow(row: Selectable<TransportDepartureTable>) {

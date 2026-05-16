@@ -2,7 +2,7 @@
 
 ## Overview
 
-A kiosk-style dashboard application for a Raspberry Pi with a touchscreen display. Shows calendar events, todos, reminders, public transport departures (Helsinki/HSL), and weather data. All data is persisted locally in SQLite and exposed via a REST API for use by other local network apps.
+A kiosk-style dashboard application for a Raspberry Pi with a touchscreen display. Shows calendar events, todos, public transport departures (Helsinki/HSL), and weather data. All data is persisted locally in SQLite and exposed via a REST API for use by other local network apps.
 
 ## Tech Stack
 
@@ -50,13 +50,14 @@ home-dashboard/
 │   │   │   ├── App.tsx
 │   │   │   ├── components/
 │   │   │   │   ├── Calendar/
+│   │   │   │   ├── Clock/          # Clock + Today & Soon rail
 │   │   │   │   ├── Todos/
-│   │   │   │   ├── Reminders/
 │   │   │   │   ├── Transport/
 │   │   │   │   ├── Weather/
 │   │   │   │   └── Layout/
 │   │   │   ├── hooks/
 │   │   │   ├── api/                # API client functions
+│   │   │   ├── i18n/               # t() helper + fi.json / en.json catalogs
 │   │   │   ├── types/
 │   │   │   └── styles/
 │   │   └── e2e/                    # Playwright tests
@@ -71,7 +72,6 @@ home-dashboard/
 │   │   │   ├── routes/
 │   │   │   │   ├── calendar.ts
 │   │   │   │   ├── todos.ts
-│   │   │   │   ├── reminders.ts
 │   │   │   │   ├── transport.ts
 │   │   │   │   └── weather.ts
 │   │   │   ├── plugins/
@@ -113,7 +113,6 @@ home-dashboard/
     │       ├── types/
     │       │   ├── calendar.ts
     │       │   ├── todo.ts
-    │       │   ├── reminder.ts
     │       │   ├── transport.ts
     │       │   └── weather.ts
     │       └── utils/
@@ -140,7 +139,7 @@ home-dashboard/
 ### Backend API (api)
 
 - **Fastify** server exposing RESTful endpoints
-- All CRUD operations for calendar events, todos, reminders
+- All CRUD operations for calendar events and todos
 - Read-only endpoints for weather and transport (data populated by workers)
 - Uses **Kysely** for type-safe SQL queries against SQLite
 - No authentication; reached same-origin via nginx on the local network (see Authentication Strategy)

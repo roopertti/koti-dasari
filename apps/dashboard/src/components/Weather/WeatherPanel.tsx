@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentWeather, getWeatherForecast } from '../../api/weather.js';
+import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { WeatherCurrent } from './WeatherCurrent.js';
@@ -23,7 +24,7 @@ export function WeatherPanel() {
 
   function renderContent() {
     if (current.isPending) {
-      return <PanelMessage variant="loading">Loading…</PanelMessage>;
+      return <PanelMessage variant="loading">{t('panel.weather.loading')}</PanelMessage>;
     }
 
     if (current.error && !current.data) {
@@ -31,7 +32,7 @@ export function WeatherPanel() {
     }
 
     if (!current.data) {
-      return <PanelMessage variant="empty">Weather unavailable</PanelMessage>;
+      return <PanelMessage variant="empty">{t('panel.weather.unavailable')}</PanelMessage>;
     }
 
     return (
@@ -45,7 +46,7 @@ export function WeatherPanel() {
   }
 
   return (
-    <PanelShell title="Weather" testId="panel-weather">
+    <PanelShell title={t('panel.weather.title')} testId="panel-weather">
       {renderContent()}
     </PanelShell>
   );

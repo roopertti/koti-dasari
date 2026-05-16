@@ -27,7 +27,6 @@ async function stubReads(page: Page, overrides: Record<string, unknown> = {}) {
   const responses: Record<string, unknown> = {
     'calendar/events': EMPTY,
     todos: EMPTY,
-    reminders: EMPTY,
     'transport/departures': EMPTY,
     'weather/current': WEATHER_CURRENT,
     'weather/forecast': EMPTY,
@@ -53,9 +52,8 @@ test.describe('dashboard', () => {
 
     await expect(page.getByTestId('panel-weather')).toBeVisible();
 
-    await expect(page.getByTestId('panel-calendar')).toContainText('No upcoming events');
-    await expect(page.getByTestId('panel-todos')).toContainText('No todos');
-    await expect(page.getByTestId('panel-reminders')).toContainText('No reminders');
+    await expect(page.getByTestId('panel-calendar')).toContainText('Ei tulevia tapahtumia');
+    await expect(page.getByTestId('panel-todos')).toContainText('Ei tehtäviä');
   });
 
   test('renders optional panels when they have data', async ({ page }) => {
@@ -80,8 +78,7 @@ test.describe('dashboard', () => {
 
     await expect(page.getByTestId('panel-todos')).toBeVisible();
     await expect(page.getByTestId('panel-todos')).toContainText('Buy bread');
-    await expect(page.getByTestId('panel-calendar')).toContainText('No upcoming events');
-    await expect(page.getByTestId('panel-reminders')).toContainText('No reminders');
+    await expect(page.getByTestId('panel-calendar')).toContainText('Ei tulevia tapahtumia');
   });
 
   test('swiping horizontally advances to the secondary page', async ({ page }) => {
@@ -109,39 +106,6 @@ test.describe('dashboard', () => {
     await page.mouse.up();
 
     await expect(dots.nth(1)).toHaveAttribute('aria-current', 'page');
-  });
-
-  test('acknowledging a reminder calls the acknowledge endpoint', async ({ page }) => {
-    const reminder = {
-      id: 'rem-1',
-      title: 'Take medication',
-      description: null,
-      remindAt: '2026-04-15T08:00:00Z',
-      acknowledged: false,
-      recurring: null,
-      createdAt: '2026-04-10T12:00:00Z',
-      updatedAt: '2026-04-10T12:00:00Z',
-    };
-
-    await stubReads(page, {
-      reminders: { data: [reminder] },
-    });
-
-    let acknowledged = false;
-    await page.route(/\/api\/reminders\/rem-1\/acknowledge$/, (route) => {
-      acknowledged = true;
-      return route.fulfill({ json: { data: { ...reminder, acknowledged: true } } });
-    });
-
-    await page.goto('/');
-
-    const ackButton = page.getByRole('button', {
-      name: 'Acknowledge "Take medication"',
-    });
-    await expect(ackButton).toBeVisible();
-    await ackButton.click();
-
-    await expect.poll(() => acknowledged, { timeout: 2000 }).toBe(true);
   });
 
   test('error boundary catches render-time crashes inside a panel', async ({ page }) => {
@@ -175,11 +139,11 @@ test.describe('dashboard', () => {
 
     const fallback = page.getByTestId('error-boundary');
     await expect(fallback).toBeVisible();
-    await expect(fallback).toContainText('Dashboard crashed');
-    await expect(page.getByRole('button', { name: 'Reload' })).toBeVisible();
+    await expect(fallback).toContainText('Näyttö kaatui');
+    await expect(page.getByRole('button', { name: 'Lataa uudelleen' })).toBeVisible();
   });
 
-  test('toggling a todo calls the toggle endpoint', async ({ page }) => {
+  test('toggling a todo via the Done button calls the toggle endpoint', async ({ page }) => {
     const todo = {
       id: 'todo-1',
       title: 'Buy milk',
@@ -194,7 +158,6 @@ test.describe('dashboard', () => {
 
     await stubReads(page, {
       'calendar/events': EMPTY,
-      reminders: EMPTY,
       'transport/departures': EMPTY,
       'weather/forecast': EMPTY,
     });
@@ -212,12 +175,111 @@ test.describe('dashboard', () => {
 
     await page.goto('/');
 
-    const toggle = page.getByRole('button', {
-      name: /Mark "Buy milk" as done/,
+    const doneButton = page.getByRole('button', {
+      name: 'Merkitse "Buy milk" valmiiksi',
     });
-    await expect(toggle).toBeVisible();
-    await toggle.click();
+    await expect(doneButton).toBeVisible();
+    await expect(doneButton).toHaveText('Valmis');
+    await doneButton.click();
 
     await expect.poll(() => toggled, { timeout: 2000 }).toBe(true);
   });
+
+  test('Today & Soon rail surfaces overdue todos prominently', async ({ page }) => {
+    await stubReads(page, {
+      todos: { data: [makeTodo({ id: 'overdue-1', title: 'Maksa lasku', dayOffset: -2 })] },
+    });
+
+    await page.goto('/');
+
+    const rail = page.getByTestId('today-soon-rail');
+    await expect(rail).toBeVisible();
+    await expect(rail).toContainText('Maksa lasku');
+    await expect(rail).toContainText('Myöhässä');
+  });
+
+  test('Today & Soon rail buckets items into today / tomorrow / this week', async ({ page }) => {
+    await stubReads(page, {
+      todos: {
+        data: [
+          makeTodo({ id: 't-today', title: 'Tehtävä tänään', dayOffset: 0 }),
+          makeTodo({ id: 't-tomorrow', title: 'Tehtävä huomenna', dayOffset: 1 }),
+          makeTodo({ id: 't-week', title: 'Tehtävä viikolla', dayOffset: 5 }),
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    const rail = page.getByTestId('today-soon-rail');
+    await expect(rail).toBeVisible();
+    await expect(rail).toContainText('Tänään');
+    await expect(rail).toContainText('Huomenna');
+    await expect(rail).toContainText('Tällä viikolla');
+    await expect(rail).toContainText('Tehtävä tänään');
+    await expect(rail).toContainText('Tehtävä huomenna');
+    await expect(rail).toContainText('Tehtävä viikolla');
+  });
+
+  test('Today & Soon rail shows "+N muuta" overflow when items exceed the visible cap', async ({
+    page,
+  }) => {
+    // 6 todos in horizon → 4 visible, 2 hidden → "+2 muuta".
+    const data = Array.from({ length: 6 }, (_, i) =>
+      makeTodo({ id: `t-${i}`, title: `Tehtävä ${i}`, dayOffset: i, sortOrder: i }),
+    );
+    await stubReads(page, { todos: { data } });
+
+    await page.goto('/');
+
+    const rail = page.getByTestId('today-soon-rail');
+    await expect(rail).toContainText('+2 muuta');
+  });
+
+  test('Today & Soon rail uses singular "+1 muu" when exactly one item is hidden', async ({
+    page,
+  }) => {
+    // 5 todos in horizon → 4 visible, 1 hidden → "+1 muu" (Finnish nominative).
+    const data = Array.from({ length: 5 }, (_, i) =>
+      makeTodo({ id: `t-${i}`, title: `Tehtävä ${i}`, dayOffset: i, sortOrder: i }),
+    );
+    await stubReads(page, { todos: { data } });
+
+    await page.goto('/');
+
+    const rail = page.getByTestId('today-soon-rail');
+    // \b ensures we don't accidentally match "+1 muuta".
+    await expect(rail).toContainText(/\+1 muu\b/);
+  });
 });
+
+function localDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+interface MakeTodoOptions {
+  id: string;
+  title: string;
+  dayOffset: number;
+  sortOrder?: number;
+  priority?: 'low' | 'medium' | 'high';
+}
+
+function makeTodo({ id, title, dayOffset, sortOrder = 0, priority = 'medium' }: MakeTodoOptions) {
+  const date = new Date();
+  date.setDate(date.getDate() + dayOffset);
+  return {
+    id,
+    title,
+    description: null,
+    completed: false,
+    priority,
+    dueDate: localDateKey(date),
+    sortOrder,
+    createdAt: '2026-04-10T12:00:00Z',
+    updatedAt: '2026-04-10T12:00:00Z',
+  };
+}

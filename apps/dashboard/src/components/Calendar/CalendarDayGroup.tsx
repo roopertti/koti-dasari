@@ -1,14 +1,15 @@
 import type { CalendarEvent } from '@home-dashboard/shared';
+import { LOCALE, t } from '../../i18n/t.js';
 import { vars } from '../../styles/theme.css.js';
 import * as styles from './CalendarPanel.css.js';
 
-const dayHeaderFormatter = new Intl.DateTimeFormat(undefined, {
+const dayHeaderFormatter = new Intl.DateTimeFormat(LOCALE, {
   weekday: 'short',
   day: 'numeric',
   month: 'short',
 });
 
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
+const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
@@ -37,7 +38,7 @@ export function CalendarDayGroup({ day, events }: CalendarDayGroupProps) {
               <div className={styles.eventTitle}>{event.title}</div>
               <div className={styles.eventWhen}>
                 {event.allDay
-                  ? 'All day'
+                  ? t('panel.calendar.allDay')
                   : `${timeFormatter.format(new Date(event.startTime))} – ${timeFormatter.format(new Date(event.endTime))}`}
                 {event.location ? <span> · {event.location}</span> : null}
               </div>

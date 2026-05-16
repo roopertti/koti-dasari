@@ -11,7 +11,7 @@ Set up the monorepo structure, tooling, and shared packages.
 - [x] Create `.npmrc` with `engine-strict=true` to enforce Node 24+
 - [x] Set up Biome config (`biome.json`) at root
 - [x] Create `packages/tsconfig/` with base, node, and react configs
-- [x] Create `packages/shared/` with shared TypeScript types (calendar, todo, reminder, transport, weather)
+- [x] Create `packages/shared/` with shared TypeScript types (calendar, todo, transport, weather)
 - [x] Create `packages/db/` with Kysely setup, table types, and initial migration
 - [x] Verify all packages build and resolve cross-references
 
@@ -32,7 +32,6 @@ Build the Fastify API server with full CRUD operations.
 - [x] Implement health check route (`GET /api/health`)
 - [x] Implement calendar events routes (full CRUD)
 - [x] Implement todos routes (CRUD + toggle + reorder)
-- [x] Implement reminders routes (CRUD + acknowledge)
 - [x] Implement transport routes (read-only: stops, departures)
 - [x] Implement weather routes (read-only: current, forecast)
 - [x] Add request validation with Fastify schemas (or Zod via fastify-type-provider-zod)
@@ -82,7 +81,6 @@ Build the React touch-optimized dashboard UI.
 - [x] Design and implement dashboard layout (grid-based, touch-friendly)
 - [x] Implement Calendar panel component (shows today's/upcoming events)
 - [x] Implement Todos panel component (shows list, toggle completion via touch)
-- [x] Implement Reminders panel component (shows active reminders, acknowledge via touch)
 - [x] Implement Transport panel component (shows upcoming departures grouped by stop)
 - [x] Implement Weather panel component (current conditions + hourly forecast chart/list)
 - [x] Add auto-refresh polling (configurable intervals per panel)
@@ -130,7 +128,7 @@ Final quality pass.
 
 - [x] Add runtime validation for external API responses (Digitransit, Open-Meteo) before persisting to database — Zod schemas at the worker fetch boundaries
 - [x] Add a global error boundary around the dashboard App (toasts skipped — kiosk has no operator to read them; per-panel states cover errors in-place)
-- [x] Review and expand E2E test coverage — added reminder-acknowledge spec
+- [x] Review and expand E2E test coverage
 - [x] Review and expand API integration test coverage — added PUT /todos/:id spec
 - [x] Run Biome across entire codebase, fix any issues
 - [x] Verify GitHub Actions CI pipeline (`.github/workflows/ci.yml` — lint, typecheck, build, API tests, E2E; plus `build-and-push.yml` for GHCR)
@@ -148,13 +146,13 @@ Reshape the dashboard's primary surface, drop reminders, replace the todo touch 
 
 ### Tasks
 
-- [ ] Strip reminders from API, dashboard, shared types, and tests; write a `down` migration but leave the table in place to preserve any existing data on the Pi
-- [ ] Replace todo round-checkbox with a `Done`-button row mirroring the old `ReminderRow` pattern (larger touch target)
-- [ ] Build a "Today & Soon" rail in the dashboard header: events on the current day + todos with `dueDate <= today + 7d`, grouped by horizon (today / tomorrow / this week)
-- [ ] Surface overdue todos prominently (color + position at top of the rail)
-- [ ] Add a tiny `t(key)` helper that reads a flat JSON catalog (`fi.json` primary, `en.json` fallback)
-- [ ] Translate all UI strings to Finnish; English values used when a key is missing
-- [ ] Translate WMO weather code descriptions to Finnish
+- [x] Strip reminders from API, dashboard, shared types, and tests; add migration `002_drop_reminders` (up drops the table, down recreates it). _Note: this destroys any existing reminders on the Pi on next deploy — the original ROADMAP wording suggested preserving them, but we decided a standard drop-in-up migration was cleaner._
+- [x] Replace todo round-checkbox with a `Done`-button row mirroring the old `ReminderRow` pattern (larger touch target). Toggle behavior preserved (button reads "Kumoa" when completed).
+- [x] Build a "Today & Soon" rail in the dashboard header: events on the current day + todos with `dueDate <= today + 7d`, grouped by horizon (today / tomorrow / this week)
+- [x] Surface overdue todos prominently (color + position at top of the rail)
+- [x] Add a tiny `t(key)` helper that reads a flat JSON catalog (`fi.json` primary, `en.json` fallback), with `{placeholder}` interpolation
+- [x] Translate all UI strings to Finnish; English values used when a key is missing
+- [x] Translate WMO weather code descriptions to Finnish
 
 **Dependency:** None (independent UI work)
 

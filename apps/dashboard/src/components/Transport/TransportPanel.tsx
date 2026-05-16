@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { listAllDepartures } from '../../api/transport.js';
+import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';
@@ -17,7 +18,7 @@ export function TransportPanel() {
 
   function renderContent() {
     if (isPending) {
-      return <PanelMessage variant="loading">Loading…</PanelMessage>;
+      return <PanelMessage variant="loading">{t('panel.transport.loading')}</PanelMessage>;
     }
 
     if (error && !data) {
@@ -25,7 +26,7 @@ export function TransportPanel() {
     }
 
     if (!data || data.length === 0) {
-      return <PanelMessage variant="empty">No upcoming departures</PanelMessage>;
+      return <PanelMessage variant="empty">{t('panel.transport.empty')}</PanelMessage>;
     }
 
     return (
@@ -38,7 +39,7 @@ export function TransportPanel() {
   }
 
   return (
-    <PanelShell title="Departures" testId="panel-transport">
+    <PanelShell title={t('panel.transport.title')} testId="panel-transport">
       {renderContent()}
     </PanelShell>
   );

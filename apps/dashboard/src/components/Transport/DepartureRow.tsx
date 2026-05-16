@@ -2,6 +2,7 @@ import type { TransportDeparture } from '@home-dashboard/shared';
 import { departureToDate } from '@home-dashboard/shared';
 import { Bus, Ship, TrainFront, TramFront } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
+import { LOCALE, t } from '../../i18n/t.js';
 import { Badge } from '../common/Badge/Badge.js';
 import { MetroMark } from '../common/MetroMark/MetroMark.js';
 import * as styles from './TransportPanel.css.js';
@@ -16,7 +17,7 @@ const VEHICLE_ICONS: Record<TransportDeparture['vehicleType'], IconComponent> = 
   FERRY: Ship,
 };
 
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
+const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
@@ -32,11 +33,11 @@ function formatMinutesAway(departure: TransportDeparture): {
   const minutes = Math.round(diffMs / 60_000);
 
   if (minutes <= 0) {
-    return { label: 'now', soon: true };
+    return { label: t('panel.transport.now'), soon: true };
   }
 
   if (minutes < 60) {
-    return { label: `${minutes} min`, soon: minutes <= 3 };
+    return { label: t('panel.transport.minAway', { minutes }), soon: minutes <= 3 };
   }
 
   return { label: timeFormatter.format(when), soon: false };
@@ -60,7 +61,7 @@ export function DepartureRow({ departure }: DepartureRowProps) {
       <span className={styles.headsign}>{departure.headsign}</span>
       <span className={`${styles.time}${soon ? ` ${styles.timeSoon}` : ''}`}>
         {departure.isRealtime && (
-          <span className={styles.liveDot} role="img" aria-label="tracked live" />
+          <span className={styles.liveDot} role="img" aria-label={t('panel.transport.liveLabel')} />
         )}
         {label}
         {hasDelay && (

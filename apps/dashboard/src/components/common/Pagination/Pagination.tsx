@@ -1,3 +1,4 @@
+import { t } from '../../../i18n/t.js';
 import * as styles from './Pagination.css.js';
 
 interface PaginationProps {
@@ -7,7 +8,7 @@ interface PaginationProps {
 
 export function Pagination({ count, active }: PaginationProps) {
   return (
-    <nav className={styles.pagination} aria-label="Dashboard pages" data-testid="pagination">
+    <nav className={styles.pagination} aria-label={t('pagination.label')} data-testid="pagination">
       {Array.from({ length: count }, (_, i) => (
         <span
           // biome-ignore lint/suspicious/noArrayIndexKey: pages are a fixed, ordered list

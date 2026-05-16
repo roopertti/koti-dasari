@@ -1,4 +1,5 @@
 import { useCalendarEvents } from '../../hooks/useCalendarEvents.js';
+import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';
@@ -25,9 +26,9 @@ export function CalendarPanel() {
   const { data } = useCalendarEvents();
 
   return (
-    <PanelShell title="Calendar" testId="panel-calendar">
+    <PanelShell title={t('panel.calendar.title')} testId="panel-calendar">
       {!data || data.length === 0 ? (
-        <PanelMessage variant="empty">No upcoming events</PanelMessage>
+        <PanelMessage variant="empty">{t('panel.calendar.empty')}</PanelMessage>
       ) : (
         <Stack as="ul" gap="loose">
           {Array.from(groupByDay(data).entries()).map(([day, events]) => (

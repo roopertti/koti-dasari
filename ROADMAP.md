@@ -142,6 +142,103 @@ Final quality pass.
 
 ---
 
+## Phase 7: UI Refresh & Localization
+
+Reshape the dashboard's primary surface, drop reminders, replace the todo touch target, and switch the UI to Finnish.
+
+### Tasks
+
+- [ ] Strip reminders from API, dashboard, shared types, and tests; write a `down` migration but leave the table in place to preserve any existing data on the Pi
+- [ ] Replace todo round-checkbox with a `Done`-button row mirroring the old `ReminderRow` pattern (larger touch target)
+- [ ] Build a "Today & Soon" rail in the dashboard header: events on the current day + todos with `dueDate <= today + 7d`, grouped by horizon (today / tomorrow / this week)
+- [ ] Surface overdue todos prominently (color + position at top of the rail)
+- [ ] Add a tiny `t(key)` helper that reads a flat JSON catalog (`fi.json` primary, `en.json` fallback)
+- [ ] Translate all UI strings to Finnish; English values used when a key is missing
+- [ ] Translate WMO weather code descriptions to Finnish
+
+**Dependency:** None (independent UI work)
+
+---
+
+## Phase 8: Admin Panel & LAN Access
+
+Build a LAN-reachable admin UI for editing data, plus per-client API key auth for the second Pi.
+
+### Tasks
+
+#### Admin UI
+- [ ] Add an `/admin` route to the same SPA, designed responsive (phone + PC, not kiosk)
+- [ ] Form-based create/edit/delete for calendar events
+- [ ] Form-based create/edit/delete for todos
+- [ ] Settings page editing home location, transport radius, and refresh intervals (move from env vars to a `settings` table; workers re-read on each tick)
+- [ ] Server-side session-cookie auth on all `/admin/*` routes, gated by a PIN/password (env-configured)
+
+#### LAN API access
+- [ ] Tiny Fastify pre-handler validating an `x-api-key` header against a comma-separated list in env
+- [ ] Apply the key check to `/api/*` (admin uses the cookie, not a key)
+- [ ] Document the second-Pi setup in `ARCHITECTURE.md` (one key per client, rotation story)
+
+**Dependency:** Phase 7 (settled UI conventions and Finnish strings carry into the admin UI)
+
+---
+
+## Phase 9: iCal Subscribe
+
+Bring real calendars onto the dashboard via public iCal URLs (read-only).
+
+### Tasks
+
+- [ ] Scaffold `apps/worker-calendar/` mirroring the existing worker pattern
+- [ ] Fetch and parse one or more public `.ics` URLs on a configurable schedule
+- [ ] Add a `source` discriminator on `calendar_events` (`'manual' | 'ical:<url>'`)
+- [ ] Persist iCal events idempotently keyed by their iCal `UID`
+- [ ] Render synced events visually distinct from manual ones in the dashboard
+- [ ] Hide synced events from edit/delete in the admin UI (admin only manages `manual` events)
+- [ ] Configure iCal URLs via the Phase 8 settings page (no auth — public published feeds only)
+
+**Dependency:** Phase 8 (settings UI for configuring URLs; admin scoping needs the source discriminator)
+
+---
+
+## Phase 10: Offline Resilience
+
+Keep the kiosk readable during network blips instead of going blank.
+
+### Tasks
+
+- [ ] Persist React Query cache to `localStorage` (or IndexedDB) so reloads show last-known data
+- [ ] Add a service worker that caches the SPA shell + static assets
+- [ ] Visual stale-data indicator on each panel when the latest fetch failed but cached data is shown
+
+**Dependency:** None (parallel to Phases 7-9)
+
+---
+
+## Phase 11: Hardening & Public Release
+
+Lock supply chain, add scanning, and prep the repo for going public.
+
+### Tasks
+
+#### Supply chain
+- [ ] Pin every Docker base image by digest (`node:24-slim@sha256:…`, `nginx:alpine@sha256:…`, `node:24-alpine@sha256:…`)
+- [ ] Add Renovate (or Dependabot config) to PR digest bumps automatically
+- [ ] `pnpm audit --audit-level=high` step in `.github/workflows/ci.yml`
+- [ ] Trivy scan step in `.github/workflows/build-and-push.yml`, fail on HIGH/CRITICAL CVEs
+
+#### Public release
+- [ ] Scrub git history for accidentally committed secrets
+- [ ] Confirm `.env` (and other secrets) are gitignored and have never been committed
+- [ ] Expand `README.md` with screenshots and a fork-and-deploy walkthrough
+- [ ] Flip GHCR packages to public visibility (so forkers can pull without a PAT)
+- [ ] Verify Dependabot alerts are enabled after the repo goes public
+
+**Skipped:** Pinning npm `package.json` versions exactly — `pnpm-lock.yaml` already locks installed versions and CI uses `--frozen-lockfile`, so the lockfile is the real protection. Pinning `package.json` would only force manual minor bumps without adding security.
+
+**Dependency:** None (can be done at any time, but doing it before going public is the natural ordering)
+
+---
+
 ## Implementation Notes
 
 ### Recommended Order Within Each Phase
@@ -152,6 +249,10 @@ Each phase can largely be done in order, but Phases 2 and 3 can be done **in par
 Phase 1 (scaffolding)
     ├── Phase 2 (API)     ──┐
     └── Phase 3 (workers)  ──┼── Phase 4 (frontend) ── Phase 5 (Docker) ── Phase 6 (polish)
+
+Phase 7 (UI refresh)  ──┬── Phase 8 (admin + LAN) ── Phase 9 (iCal)
+Phase 10 (offline)    ──┘  (independent — can land alongside any of 7-9)
+Phase 11 (hardening)       (anytime; natural fit before going public)
 ```
 
 ### Key Decisions Made

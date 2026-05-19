@@ -7,6 +7,13 @@ export interface Database {
   transport_departures: TransportDepartureTable;
   weather_current: WeatherCurrentTable;
   weather_hourly: WeatherHourlyTable;
+  settings: SettingsTable;
+}
+
+export interface SettingsTable {
+  key: string;
+  value: string;
+  updated_at: Generated<string>;
 }
 
 export interface CalendarEventTable {

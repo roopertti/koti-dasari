@@ -4,7 +4,8 @@ import { mq, vars } from '../../styles/theme.css.js';
 export const dashboard = style({
   position: 'relative',
   zIndex: 1,
-  height: '100%',
+  height: '100dvh',
+  overflow: 'hidden',
   display: 'grid',
   gridTemplateRows: 'auto minmax(0, 1fr) auto',
   gap: vars.space.md,
@@ -12,10 +13,12 @@ export const dashboard = style({
   paddingBottom: vars.space.sm,
   paddingLeft: vars.space.lg,
   paddingRight: vars.space.lg,
+  WebkitTapHighlightColor: 'transparent',
+  WebkitUserSelect: 'none',
+  userSelect: 'none',
+  overscrollBehavior: 'none',
+  touchAction: 'manipulation',
   '@media': {
-    [mq.tablet]: {
-      height: '100vh',
-    },
     [mq.pi]: {
       paddingTop: vars.space.md,
       paddingBottom: vars.space.xs,

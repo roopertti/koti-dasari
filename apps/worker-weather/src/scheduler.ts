@@ -1,30 +1,35 @@
-import type { Database } from '@home-dashboard/db';
+import { type DashboardSettings, type Database, resolveSettings } from '@home-dashboard/db';
 import type { Kysely } from 'kysely';
 import { fetchWeather, type WeatherData } from './open-meteo.js';
 
 export interface WeatherSchedulerConfig {
   db: Kysely<Database>;
-  latitude: number;
-  longitude: number;
-  intervalMs: number;
+  defaults: DashboardSettings;
 }
 
 export function startScheduler(config: WeatherSchedulerConfig): () => void {
-  const { db, latitude, longitude, intervalMs } = config;
-  let timer: ReturnType<typeof setInterval> | null = null;
+  const { db, defaults } = config;
+  let timer: ReturnType<typeof setTimeout> | null = null;
   let running = false;
+  let stopped = false;
 
   async function tick() {
     if (running) {
       return;
     }
     running = true;
+    let intervalMs = defaults.weatherIntervalMs;
 
     try {
-      console.log('[weather] Fetching weather data...');
-      const data = await fetchWeather(latitude, longitude);
+      const settings = await resolveSettings(db, defaults);
+      intervalMs = settings.weatherIntervalMs;
 
-      await upsertCurrentWeather(db, data, latitude, longitude);
+      console.log(
+        `[weather] Fetching weather (lat=${settings.homeLatitude}, lon=${settings.homeLongitude})...`,
+      );
+      const data = await fetchWeather(settings.homeLatitude, settings.homeLongitude);
+
+      await upsertCurrentWeather(db, data, settings.homeLatitude, settings.homeLongitude);
       await replaceHourlyForecast(db, data);
 
       console.log(
@@ -34,16 +39,18 @@ export function startScheduler(config: WeatherSchedulerConfig): () => void {
       console.error('[weather] Fetch cycle failed:', err);
     } finally {
       running = false;
+      if (!stopped) {
+        timer = setTimeout(tick, intervalMs);
+      }
     }
   }
 
-  // Run immediately, then on interval
   tick();
-  timer = setInterval(tick, intervalMs);
 
   return () => {
+    stopped = true;
     if (timer) {
-      clearInterval(timer);
+      clearTimeout(timer);
       timer = null;
     }
   };

@@ -2,6 +2,9 @@ import cors from '@fastify/cors';
 import type { Database } from '@home-dashboard/db';
 import Fastify, { type FastifyError } from 'fastify';
 import type { Kysely } from 'kysely';
+import type { AuthConfig } from './config.js';
+import { adminSessionPlugin } from './plugins/adminSession.js';
+import { apiKeyPlugin } from './plugins/apiKey.js';
 import { calendarRoutes } from './routes/calendar.js';
 import { healthRoutes } from './routes/health.js';
 import { todosRoutes } from './routes/todos.js';
@@ -10,9 +13,17 @@ import { weatherRoutes } from './routes/weather.js';
 
 export interface AppOptions {
   db: Kysely<Database>;
+  auth?: AuthConfig;
 }
 
+const DEFAULT_AUTH: AuthConfig = {
+  apiKeys: [],
+  adminPin: null,
+  adminSessionKey: null,
+};
+
 export async function buildApp(options: AppOptions) {
+  const auth = options.auth ?? DEFAULT_AUTH;
   const app = Fastify({
     logger: true,
     schemaErrorFormatter(errors) {
@@ -34,9 +45,15 @@ export async function buildApp(options: AppOptions) {
       .send({ error: { message: error.message, code: 'INTERNAL_ERROR' } });
   });
 
-  await app.register(cors, { origin: true });
+  await app.register(cors, { origin: true, credentials: true });
 
   app.decorate('db', options.db);
+
+  await app.register(apiKeyPlugin, { keys: auth.apiKeys });
+  await app.register(adminSessionPlugin, {
+    pin: auth.adminPin,
+    sessionKey: auth.adminSessionKey,
+  });
 
   await app.register(healthRoutes, { prefix: '/api' });
   await app.register(calendarRoutes, { prefix: '/api' });

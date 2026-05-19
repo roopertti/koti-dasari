@@ -1,4 +1,4 @@
-import type { Database } from '@home-dashboard/db';
+import { type DashboardSettings, type Database, resolveSettings } from '@home-dashboard/db';
 import type { Kysely } from 'kysely';
 import {
   type Departure,
@@ -10,26 +10,35 @@ import {
 export interface TransportSchedulerConfig {
   db: Kysely<Database>;
   apiKey: string;
-  latitude: number;
-  longitude: number;
-  radius: number;
-  intervalMs: number;
+  defaults: DashboardSettings;
 }
 
 export function startScheduler(config: TransportSchedulerConfig): () => void {
-  const { db, apiKey, latitude, longitude, radius, intervalMs } = config;
-  let timer: ReturnType<typeof setInterval> | null = null;
+  const { db, apiKey, defaults } = config;
+  let timer: ReturnType<typeof setTimeout> | null = null;
   let running = false;
+  let stopped = false;
 
   async function tick() {
     if (running) {
       return;
     }
     running = true;
+    let intervalMs = defaults.transportIntervalMs;
 
     try {
-      console.log('[transport] Fetching nearby stops...');
-      const stops = await fetchNearbyStops(apiKey, latitude, longitude, radius);
+      const settings = await resolveSettings(db, defaults);
+      intervalMs = settings.transportIntervalMs;
+
+      console.log(
+        `[transport] Fetching nearby stops (lat=${settings.homeLatitude}, lon=${settings.homeLongitude}, radius=${settings.transportRadius}m)...`,
+      );
+      const stops = await fetchNearbyStops(
+        apiKey,
+        settings.homeLatitude,
+        settings.homeLongitude,
+        settings.transportRadius,
+      );
       console.log(`[transport] Found ${stops.length} stops`);
 
       await upsertStops(db, stops);
@@ -54,16 +63,18 @@ export function startScheduler(config: TransportSchedulerConfig): () => void {
       console.error('[transport] Fetch cycle failed:', err);
     } finally {
       running = false;
+      if (!stopped) {
+        timer = setTimeout(tick, intervalMs);
+      }
     }
   }
 
-  // Run immediately, then on interval
   tick();
-  timer = setInterval(tick, intervalMs);
 
   return () => {
+    stopped = true;
     if (timer) {
-      clearInterval(timer);
+      clearTimeout(timer);
       timer = null;
     }
   };

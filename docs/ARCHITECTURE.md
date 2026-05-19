@@ -48,19 +48,43 @@ home-dashboard/
 │   │   ├── index.html
 │   │   ├── src/
 │   │   │   ├── main.tsx
-│   │   │   ├── App.tsx
+│   │   │   ├── App.tsx             # Top-level router: /admin/* → AdminApp, /* → KioskApp
 │   │   │   ├── components/
-│   │   │   │   ├── Calendar/
-│   │   │   │   ├── Clock/          # Clock + Today & Soon rail
-│   │   │   │   ├── Todos/
-│   │   │   │   ├── Transport/
-│   │   │   │   ├── Weather/
-│   │   │   │   └── Layout/
-│   │   │   ├── hooks/
-│   │   │   ├── api/                # API client functions
+│   │   │   │   ├── Kiosk/          # KioskApp — composes the dashboard panels
+│   │   │   │   ├── Layout/         # DashboardLayout, kiosk chrome (paging, swipe)
+│   │   │   │   ├── Calendar/       # Kiosk panel
+│   │   │   │   ├── Clock/          # Kiosk panel — Clock + Today & Soon rail
+│   │   │   │   ├── Todos/          # Kiosk panel
+│   │   │   │   ├── Transport/      # Kiosk panel
+│   │   │   │   ├── Weather/        # Kiosk panel
+│   │   │   │   ├── Admin/          # Admin app (responsive)
+│   │   │   │   │   ├── AdminApp.tsx       # Session gate + nested routes
+│   │   │   │   │   ├── AdminLayout.tsx    # Header / nav / main shell
+│   │   │   │   │   ├── Events/            # Events page = EventsPage + Form + List + queries
+│   │   │   │   │   ├── Todos/             # Todos page (same shape as Events)
+│   │   │   │   │   ├── Settings/          # Settings page = container + presentational SettingsForm
+│   │   │   │   │   ├── Login/             # LoginPage (shown when not authed)
+│   │   │   │   │   └── primitives/        # Reusable single-purpose components (see below)
+│   │   │   │   │       ├── Button/        # Button.tsx + Button.css.ts (one folder per primitive)
+│   │   │   │   │       ├── Checkbox/
+│   │   │   │   │       ├── Field/
+│   │   │   │   │       ├── Form/          # <form> + 2-column grid layout
+│   │   │   │   │       ├── FormActions/   # Right-aligned actions row inside a Form
+│   │   │   │   │       ├── Heading/
+│   │   │   │   │       ├── Input/
+│   │   │   │   │       ├── ListRow/
+│   │   │   │   │       ├── NavTab/
+│   │   │   │   │       ├── Notice/        # Inline status message (tone: info/error/empty)
+│   │   │   │   │       ├── Section/
+│   │   │   │   │       ├── Select/
+│   │   │   │   │       ├── Textarea/
+│   │   │   │   │       └── inputBase.css.ts   # Shared base style for Input/Textarea/Select
+│   │   │   │   └── common/         # Cross-area: ErrorBoundary, Pagination, PanelMessage, Stack, …
+│   │   │   ├── hooks/              # useAdminSession, useClock, useActivePage, usePointerSwipe, …
+│   │   │   ├── api/                # API client functions (admin, calendar, todos, transport, weather)
 │   │   │   ├── i18n/               # t() helper + fi.json / en.json catalogs
 │   │   │   ├── types/
-│   │   │   └── styles/
+│   │   │   └── styles/             # theme.css.ts (design tokens, breakpoints)
 │   │   └── e2e/                    # Playwright tests
 │   │       └── *.spec.ts
 │   ├── api/                        # Fastify backend
@@ -136,6 +160,18 @@ home-dashboard/
 - No separate container — NGINX serves the static build output directly
 - API calls go to `/api/*` on the same origin (NGINX proxies to Fastify)
 - Component-based layout with dedicated panels for each data type
+- Routes:
+  - `/` — kiosk dashboard (touch-optimized, fixed viewport)
+  - `/admin/*` — responsive admin panel for editing events/todos and tuning runtime settings; gated by PIN + session cookie
+
+#### Component conventions
+
+- **Kiosk vs. admin.** `App.tsx` is a thin router; everything below it lives in either `Kiosk/` (composes the dashboard panels) or `Admin/` (login, layout, feature pages). The kiosk panels themselves (`Calendar/`, `Clock/`, `Todos/`, `Transport/`, `Weather/`, `Layout/`) sit at the top of `components/` and are imported into `KioskApp`.
+- **Primitives** (`Admin/primitives/`) are single-purpose reusable components — `Button`, `Input`, `Field`, `Section`, `Heading`, `ListRow`, etc. One folder per primitive (`<Name>/<Name>.tsx` + `<Name>.css.ts`). Page-level code should compose primitives, not raw HTML. The term "widget" is reserved for self-contained features (a clock, a weather panel) — primitives are not widgets.
+- **Feature folders** (`Admin/Events/`, `Admin/Todos/`, `Admin/Settings/`) follow a page + form + list shape: a thin `*Page.tsx` orchestrator, a presentational `*Form.tsx` that owns its mutation, a `*List.tsx` that owns its query, and a `queries.ts` for shared query keys / invalidation.
+- **Common** (`common/`) holds cross-area utilities that aren't admin-specific (ErrorBoundary, Pagination, PanelMessage, Stack, FullScreenMessage, …).
+- **Styling.** Vanilla Extract; tokens in `src/styles/theme.css.ts`. Each component owns its own `.css.ts`. No global element selectors beyond minimal resets; no cross-component `.css.ts` imports — shared base styles live next to their consumers (e.g. `primitives/inputBase.css.ts` is composed by `Input`, `Textarea`, and `Select`).
+- **Side effects.** TanStack Query for data; a `key` prop for prop→state resets; `useEffect` is a last resort. Full rules in `.claude/skills/react-ui/SKILL.md`.
 
 ### Backend API (api)
 
@@ -145,6 +181,10 @@ home-dashboard/
 - Uses **Kysely** for type-safe SQL queries against SQLite
 - No authentication; reached same-origin via nginx on the local network (see Authentication Strategy)
 - CORS configured for local network access
+
+### Runtime Settings
+
+Five tunables — home coordinates, transport search radius, and the two worker fetch intervals — live in a `settings` key/value table. The admin UI edits them via `/api/admin/settings`; both workers re-read the table on every tick, so changes take effect on the next cycle without a restart. Env values (`HOME_LATITUDE`, `HOME_LONGITUDE`, `TRANSPORT_RADIUS`, `TRANSPORT_INTERVAL_MS`, `WEATHER_INTERVAL_MS`) seed defaults at boot when no stored value exists. Secrets (`DIGITRANSIT_API_KEY`, `ADMIN_PIN`, keys) stay in env.
 
 ### Workers
 
@@ -199,9 +239,27 @@ Two separate long-running services that fetch external data and persist it to SQ
 
 ## Authentication Strategy
 
-The API is unauthenticated. The dashboard reaches it same-origin through nginx on the local network, so no shared secret is needed (and a frontend-bundled key would be readable by anyone with devtools anyway).
+Three layers, each opt-in via env:
 
-If a second client is added later — another browser app on a different origin, or a backend/script caller — introduce per-client API keys at that point, validated in Fastify. Each client gets its own key so they can be rotated or revoked independently. The dashboard itself stays unauthenticated.
+1. **API key gate (`/api/*`)** — Fastify pre-handler validates an `x-api-key` header against a comma-separated `API_KEYS` env. Empty/unset disables the gate (dev / first-boot). The kiosk's own nginx injects `KIOSK_API_KEY` on every `/api/` proxy via `proxy_set_header x-api-key …`, so the dashboard SPA never sees the key and a remote client can't impersonate the kiosk. `/api/health` and `/api/admin/*` are exempt from the key check.
+2. **Admin session cookie (`/api/admin/*`)** — `@fastify/secure-session` issues a signed cookie after `POST /api/admin/login { pin }`. Other admin routes (`GET /api/admin/session`, `GET|PUT /api/admin/settings`) require the cookie. The PIN comes from `ADMIN_PIN`; the cookie is signed with `ADMIN_SESSION_KEY` (32 random bytes as hex). If either is unset, all admin routes return `503 ADMIN_DISABLED`.
+3. **Same-origin nginx + LAN** — there is no public ingress. The Pi is reachable on its LAN address only.
+
+### Adding a second client (e.g., another Pi)
+
+Each client gets its own key so they can be rotated or revoked independently:
+
+```bash
+# On the API host, add the new key to .env and restart the api container:
+API_KEYS=<kiosk-key>,<second-pi-key>
+docker compose up -d api
+
+# On the second Pi (running its own nginx + dashboard), set its KIOSK_API_KEY:
+KIOSK_API_KEY=<second-pi-key>
+docker compose up -d nginx
+```
+
+Rotating: replace the entry in `API_KEYS`, restart the api, redeploy that client's nginx with the new value. Revocation: drop the entry; `api` rejects with 401 on next request.
 
 ## Docker Architecture
 
@@ -343,3 +401,7 @@ Restoring is a file copy: stop the stack, replace `data/dashboard.db` with the c
 | `WEATHER_INTERVAL_MS` | worker-weather | Fetch interval (default: `1800000` / 30 min) |
 | `PORT` | api | API server port (default: `3001`) |
 | `HOST_PORT` | nginx | Host port to bind nginx to (default: `80`) |
+| `API_KEYS` | api | Comma-separated client keys. Empty disables the `/api/*` key check |
+| `KIOSK_API_KEY` | nginx | Key injected as `x-api-key` on every `/api/` proxy. Must appear in `API_KEYS` |
+| `ADMIN_PIN` | api | Admin login PIN. Empty disables admin (routes return 503) |
+| `ADMIN_SESSION_KEY` | api | 32 random bytes as hex (64 chars) used to sign the admin session cookie |

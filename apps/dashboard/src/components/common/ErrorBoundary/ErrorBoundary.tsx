@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
       <div className={styles.root} role="alert" data-testid="error-boundary">
         <div className={styles.title}>{t('error.title')}</div>
         <div className={styles.detail}>{this.state.error.message}</div>
-        <button type="button" onClick={() => window.location.reload()}>
+        <button type="button" className={styles.reload} onClick={() => window.location.reload()}>
           {t('error.reload')}
         </button>
       </div>

@@ -165,16 +165,16 @@ Build a LAN-reachable admin UI for editing data, plus per-client API key auth fo
 ### Tasks
 
 #### Admin UI
-- [ ] Add an `/admin` route to the same SPA, designed responsive (phone + PC, not kiosk)
-- [ ] Form-based create/edit/delete for calendar events
-- [ ] Form-based create/edit/delete for todos
-- [ ] Settings page editing home location, transport radius, and refresh intervals (move from env vars to a `settings` table; workers re-read on each tick)
-- [ ] Server-side session-cookie auth on all `/admin/*` routes, gated by a PIN/password (env-configured)
+- [x] Add an `/admin` route to the same SPA, designed responsive (phone + PC, not kiosk)
+- [x] Form-based create/edit/delete for calendar events
+- [x] Form-based create/edit/delete for todos
+- [x] Settings page editing home location, transport radius, and refresh intervals (move from env vars to a `settings` table; workers re-read on each tick)
+- [x] Server-side session-cookie auth on all `/admin/*` routes, gated by a PIN/password (env-configured). Session-cookie auth gates the data-mutating admin endpoints; `/api/admin/login`, `/api/admin/logout`, and `/api/admin/session` are intentionally unauthenticated so the SPA can drive the login flow.
 
 #### LAN API access
-- [ ] Tiny Fastify pre-handler validating an `x-api-key` header against a comma-separated list in env
-- [ ] Apply the key check to `/api/*` (admin uses the cookie, not a key)
-- [ ] Document the second-Pi setup in `docs/ARCHITECTURE.md` (one key per client, rotation story)
+- [x] Tiny Fastify pre-handler validating an `x-api-key` header against a comma-separated list in env
+- [x] Apply the key check to `/api/*` (admin uses the cookie, not a key). `/api/health` is also exempt so container healthchecks stay key-free.
+- [x] Document the second-Pi setup in `docs/ARCHITECTURE.md` (one key per client, rotation story)
 
 **Dependency:** Phase 7 (settled UI conventions and Finnish strings carry into the admin UI)
 

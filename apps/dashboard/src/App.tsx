@@ -1,24 +1,14 @@
-import { CalendarPanel } from './components/Calendar/CalendarPanel.js';
-import { Clock } from './components/Clock/Clock.js';
-import { TodaySoonRail } from './components/Clock/TodaySoonRail.js';
-import { DashboardLayout } from './components/Layout/DashboardLayout.js';
-import { TodosPanel } from './components/Todos/TodosPanel.js';
-import { TransportPanel } from './components/Transport/TransportPanel.js';
-import { WeatherPanel } from './components/Weather/WeatherPanel.js';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { AdminApp } from './components/Admin/AdminApp.js';
+import { KioskApp } from './components/Kiosk/KioskApp.js';
 
 export function App() {
   return (
-    <DashboardLayout
-      header={
-        <>
-          <Clock />
-          <TodaySoonRail />
-        </>
-      }
-      weather={<WeatherPanel />}
-      transport={<TransportPanel />}
-      calendar={<CalendarPanel />}
-      todos={<TodosPanel />}
-    />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/*" element={<AdminApp />} />
+        <Route path="/*" element={<KioskApp />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

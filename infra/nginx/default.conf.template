@@ -37,6 +37,9 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        # Per-client API key injected by this nginx; the SPA never sees it.
+        # Overrides any client-supplied header so a remote can't impersonate the kiosk.
+        proxy_set_header x-api-key "${KIOSK_API_KEY}";
         proxy_read_timeout 30s;
         proxy_connect_timeout 5s;
     }

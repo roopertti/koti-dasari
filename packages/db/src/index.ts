@@ -4,9 +4,17 @@ import { Kysely, SqliteDialect } from 'kysely';
 import { runMigrations } from './migrate.js';
 import type { Database } from './types.js';
 
+export {
+  type DashboardSettings,
+  readSettings,
+  resolveSettings,
+  seedSettingsFromEnv,
+  writeSettings,
+} from './settings.js';
 export type {
   CalendarEventTable,
   Database,
+  SettingsTable,
   TodoTable,
   TransportDepartureTable,
   TransportStopTable,

@@ -28,3 +28,20 @@ export const detail = style({
   maxWidth: '60ch',
   wordBreak: 'break-word',
 });
+
+export const reload = style({
+  font: 'inherit',
+  color: 'inherit',
+  background: 'transparent',
+  border: `1px solid ${vars.color.border}`,
+  borderRadius: vars.radii.sm,
+  minHeight: vars.size.touchMin,
+  minWidth: vars.size.touchMin,
+  padding: '8px 14px',
+  cursor: 'pointer',
+  selectors: {
+    '&:active': {
+      background: vars.color.bgPanelHover,
+    },
+  },
+});

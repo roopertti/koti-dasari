@@ -146,6 +146,20 @@ CREATE TABLE weather_hourly (
 CREATE INDEX idx_weather_hourly_time ON weather_hourly(forecast_time);
 ```
 
+### settings
+
+Key/value store for admin-tunable runtime settings (home location, transport radius, worker fetch intervals). Each value is a stringified number; the API parses to typed fields. Empty rows fall back to env defaults at the worker.
+
+```sql
+CREATE TABLE settings (
+  key         TEXT PRIMARY KEY,
+  value       TEXT NOT NULL,
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+Known keys (snake_case in DB, camelCase in API): `home_latitude`, `home_longitude`, `transport_radius`, `transport_interval_ms`, `weather_interval_ms`.
+
 ## WMO Weather Codes Reference
 
 Used in `weather_code` fields. Frontend maps these to icons/descriptions:
@@ -178,6 +192,13 @@ export interface Database {
   transport_departures: TransportDepartureTable;
   weather_current: WeatherCurrentTable;
   weather_hourly: WeatherHourlyTable;
+  settings: SettingsTable;
+}
+
+interface SettingsTable {
+  key: string;
+  value: string;
+  updated_at: Generated<string>;
 }
 
 interface CalendarEventTable {

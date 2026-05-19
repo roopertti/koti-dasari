@@ -53,13 +53,20 @@ export const priority = styleVariants({
 });
 
 export const toggle = style({
+  font: 'inherit',
   minHeight: vars.size.touchMin,
+  minWidth: vars.size.touchMin,
   padding: `0 ${vars.space.lg}`,
   background: vars.color.accent,
-  borderColor: vars.color.accent,
+  border: `1px solid ${vars.color.accent}`,
+  borderRadius: vars.radii.sm,
   color: vars.color.accentFg,
   fontWeight: 600,
+  cursor: 'pointer',
   selectors: {
+    '&:active': {
+      background: vars.color.bgPanelHover,
+    },
     '&:disabled': {
       opacity: 0.5,
     },

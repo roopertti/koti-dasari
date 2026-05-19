@@ -8,7 +8,10 @@ http://<raspberry-pi-ip>:3001
 
 ## Authentication
 
-None. The API is unauthenticated and intended to be reached only via the same-origin nginx proxy on the local network. If a second client (different origin or backend caller) is added later, introduce per-client keys validated in Fastify at that point.
+Two opt-in layers (see `docs/ARCHITECTURE.md#authentication-strategy`):
+
+1. **API key (`x-api-key` header)** required on all `/api/*` when `API_KEYS` env is non-empty. Exempt: `/api/health`, `/api/admin/*`. The kiosk's nginx injects `KIOSK_API_KEY` automatically; remote clients must send the header themselves.
+2. **Admin session cookie** required on `/api/admin/settings` (and any future admin endpoint). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
 
 ## Common Response Format
 
@@ -335,6 +338,49 @@ Get hourly weather forecast.
   ]
 }
 ```
+
+---
+
+### Admin
+
+Session-cookie authenticated routes for the admin panel. Cookie name: `home-dashboard-admin` (HttpOnly, SameSite=Lax, 14-day expiry). All return `503 ADMIN_DISABLED` if `ADMIN_PIN` or `ADMIN_SESSION_KEY` is unset.
+
+#### `POST /api/admin/login`
+
+**Request Body:** `{ "pin": "1234" }`
+
+**Response:** `200 OK { "data": { "authed": true } }` and a `Set-Cookie: home-dashboard-admin=...` header. `401 UNAUTHORIZED` on wrong PIN.
+
+#### `POST /api/admin/logout`
+
+Clears the session cookie. Always returns `200 OK { "data": { "authed": false } }`.
+
+#### `GET /api/admin/session`
+
+Reports the cookie's auth state.
+
+**Response:** `200 OK { "data": { "authed": boolean, "since": string | null } }`
+
+#### `GET /api/admin/settings`
+
+Returns stored runtime settings (only keys the admin has set; absent keys mean "use env default at the worker").
+
+**Response:** `200 OK`
+```json
+{
+  "data": {
+    "homeLatitude": 60.2,
+    "homeLongitude": 24.9,
+    "transportRadius": 600,
+    "transportIntervalMs": 240000,
+    "weatherIntervalMs": 1200000
+  }
+}
+```
+
+#### `PUT /api/admin/settings`
+
+Upserts the provided keys. Returns the updated stored snapshot. Each field is range-validated (`homeLatitude` ±90, `homeLongitude` ±180, `transportRadius` 50–10000m, `transportIntervalMs` 30s–1h, `weatherIntervalMs` 1min–6h).
 
 ---
 

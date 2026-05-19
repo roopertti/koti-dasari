@@ -2,18 +2,22 @@ import { createDatabaseWithRetry } from '@home-dashboard/db';
 import { startScheduler } from './scheduler.js';
 
 const databasePath = process.env.DATABASE_PATH || './dashboard.db';
-const latitude = Number(process.env.HOME_LATITUDE) || 60.1699;
-const longitude = Number(process.env.HOME_LONGITUDE) || 24.9384;
-const intervalMs = Number(process.env.WEATHER_INTERVAL_MS) || 1_800_000;
+const defaults = {
+  homeLatitude: Number(process.env.HOME_LATITUDE) || 60.1699,
+  homeLongitude: Number(process.env.HOME_LONGITUDE) || 24.9384,
+  transportRadius: Number(process.env.TRANSPORT_RADIUS) || 500,
+  transportIntervalMs: Number(process.env.TRANSPORT_INTERVAL_MS) || 300_000,
+  weatherIntervalMs: Number(process.env.WEATHER_INTERVAL_MS) || 1_800_000,
+};
 
 console.log(`[weather] Connecting to database at ${databasePath}`);
 const db = await createDatabaseWithRetry(databasePath);
 console.log('[weather] Database connected');
 
-const stop = startScheduler({ db, latitude, longitude, intervalMs });
+const stop = startScheduler({ db, defaults });
 
 console.log(
-  `[weather] Worker started (lat=${latitude}, lon=${longitude}, interval=${intervalMs}ms)`,
+  `[weather] Worker started (default lat=${defaults.homeLatitude}, lon=${defaults.homeLongitude}, interval=${defaults.weatherIntervalMs}ms)`,
 );
 
 function shutdown() {

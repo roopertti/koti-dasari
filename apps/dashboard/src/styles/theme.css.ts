@@ -99,42 +99,12 @@ globalStyle('*, *::before, *::after', {
 globalStyle('html, body, #root', {
   margin: 0,
   padding: 0,
-  height: '100%',
-  width: '100%',
-  overflow: 'hidden',
-  '@media': {
-    [mq.tablet]: {
-      overflow: 'auto',
-      height: 'auto',
-    },
-  },
 });
 
 globalStyle('body', {
   background: vars.color.bg,
   color: vars.color.fg,
   WebkitFontSmoothing: 'antialiased',
-  WebkitTapHighlightColor: 'transparent',
-  WebkitUserSelect: 'none',
-  userSelect: 'none',
-  overscrollBehavior: 'none',
-  touchAction: 'manipulation',
-});
-
-globalStyle('button', {
-  font: 'inherit',
-  color: 'inherit',
-  background: 'transparent',
-  border: `1px solid ${vars.color.border}`,
-  borderRadius: vars.radii.sm,
-  minHeight: vars.size.touchMin,
-  minWidth: vars.size.touchMin,
-  padding: '8px 14px',
-  cursor: 'pointer',
-});
-
-globalStyle('button:active', {
-  background: vars.color.bgPanelHover,
 });
 
 globalStyle('h1, h2, h3, h4', {

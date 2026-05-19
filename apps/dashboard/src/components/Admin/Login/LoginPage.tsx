@@ -3,9 +3,9 @@ import { useAdminLogin } from '../../../hooks/useAdminSession.js';
 import { t } from '../../../i18n/t.js';
 import { Button } from '../primitives/Button/Button.js';
 import { Field } from '../primitives/Field/Field.js';
-import { Notice } from '../primitives/Notice/Notice.js';
 import { Heading } from '../primitives/Heading/Heading.js';
 import { Input } from '../primitives/Input/Input.js';
+import { Notice } from '../primitives/Notice/Notice.js';
 import * as styles from './LoginPage.css.js';
 
 export function LoginPage() {

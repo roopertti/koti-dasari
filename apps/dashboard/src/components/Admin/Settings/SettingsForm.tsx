@@ -6,8 +6,8 @@ import { Button } from '../primitives/Button/Button.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';
 import { FormActions } from '../primitives/FormActions/FormActions.js';
-import { Notice } from '../primitives/Notice/Notice.js';
 import { Input } from '../primitives/Input/Input.js';
+import { Notice } from '../primitives/Notice/Notice.js';
 import { Section } from '../primitives/Section/Section.js';
 import { SETTINGS_KEY } from './queries.js';
 

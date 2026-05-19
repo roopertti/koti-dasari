@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteCalendarEvent, listCalendarEvents } from '../../../api/calendar.js';
 import { LOCALE, t } from '../../../i18n/t.js';
 import { Button } from '../primitives/Button/Button.js';
-import { Notice } from '../primitives/Notice/Notice.js';
 import { ListRow } from '../primitives/ListRow/ListRow.js';
+import { Notice } from '../primitives/Notice/Notice.js';
 import { Section } from '../primitives/Section/Section.js';
 import { EVENTS_KEY, invalidateEverywhere } from './queries.js';
 

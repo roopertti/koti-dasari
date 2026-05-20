@@ -9,10 +9,7 @@ interface NavTabProps {
 
 export function NavTab({ to, children }: NavTabProps) {
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) => (isActive ? `${styles.link} ${styles.linkActive}` : styles.link)}
-    >
+    <NavLink to={to} className={({ isActive }) => styles.link[isActive ? 'active' : 'inactive']}>
       {children}
     </NavLink>
   );

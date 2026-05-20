@@ -166,10 +166,13 @@ export function TodaySoonRail() {
       <span className={styles.label}>{t('rail.label')}</span>
       <ul className={styles.list}>
         {visible.map((item) => {
-          const itemClass = `${styles.item}${item.horizon === 'overdue' ? ` ${styles.itemOverdue}` : ''}`;
           const Icon = KIND_ICONS[item.kind];
           return (
-            <li key={item.key} className={itemClass}>
+            <li
+              key={item.key}
+              className={styles.item}
+              data-overdue={item.horizon === 'overdue' ? 'true' : undefined}
+            >
               <span
                 className={styles.kindIcon}
                 role="img"

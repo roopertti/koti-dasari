@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { createCalendarEvent, updateCalendarEvent } from '../../../api/calendar.js';
 import { t } from '../../../i18n/t.js';
-import { Button } from '../primitives/Button/Button.js';
+import { Button } from '../../common/Button/Button.js';
 import { Checkbox } from '../primitives/Checkbox/Checkbox.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';

@@ -1,12 +1,12 @@
-import { keyframes, style } from '@vanilla-extract/css';
-import { mq, vars } from '../../styles/theme.css.js';
+import { keyframes, style, styleVariants } from '@vanilla-extract/css';
+import { mq, vars } from '../../../styles/theme.css.js';
 
 const blink = keyframes({
   '0%, 100%': { opacity: 1 },
   '50%': { opacity: 0.2 },
 });
 
-export const departure = style({
+const rowBase = {
   display: 'grid',
   gridTemplateColumns: '40px 72px 1fr auto',
   alignItems: 'center',
@@ -22,10 +22,14 @@ export const departure = style({
       minHeight: '60px',
     },
   },
-});
+} as const;
 
-export const departureSoon = style({
-  background: `color-mix(in srgb, ${vars.color.accent} 15%, transparent)`,
+export const row = styleVariants({
+  default: rowBase,
+  soon: {
+    ...rowBase,
+    background: `color-mix(in srgb, ${vars.color.accent} 15%, transparent)`,
+  },
 });
 
 export const vehicle = style({
@@ -41,11 +45,6 @@ export const route = style({
   fontSize: '1.5rem',
   fontVariantNumeric: 'tabular-nums',
   letterSpacing: '-0.02em',
-  '@media': {
-    [mq.pi]: {
-      fontSize: '1.5rem',
-    },
-  },
 });
 
 export const headsign = style({
@@ -61,7 +60,7 @@ export const headsign = style({
   },
 });
 
-export const time = style({
+const timeBase = {
   display: 'flex',
   alignItems: 'center',
   gap: vars.space.sm,
@@ -73,10 +72,11 @@ export const time = style({
       fontSize: '1.3rem',
     },
   },
-});
+} as const;
 
-export const timeSoon = style({
-  color: vars.color.accent,
+export const time = styleVariants({
+  default: timeBase,
+  soon: { ...timeBase, color: vars.color.accent },
 });
 
 export const liveDot = style({
@@ -84,8 +84,8 @@ export const liveDot = style({
   width: '10px',
   height: '10px',
   borderRadius: vars.radii.pill,
-  background: '#fca5a5',
-  boxShadow: '0 0 3px #fca5a5',
+  background: vars.color.danger,
+  boxShadow: `0 0 3px ${vars.color.danger}`,
   animation: `${blink} 2s ease-in-out infinite`,
   flexShrink: 0,
   '@media': {

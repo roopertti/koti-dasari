@@ -4,7 +4,7 @@ import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';
-import { DepartureRow } from './DepartureRow.js';
+import { DepartureRow } from './DepartureRow/DepartureRow.js';
 
 const REFRESH_MS = 30_000;
 const LIMIT = 10;

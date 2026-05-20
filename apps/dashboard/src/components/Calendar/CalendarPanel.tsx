@@ -3,7 +3,7 @@ import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';
-import { CalendarDayGroup } from './CalendarDayGroup.js';
+import { CalendarDayGroup } from './CalendarDayGroup/CalendarDayGroup.js';
 
 function groupByDay<T extends { startTime: string }>(events: T[]): Map<string, T[]> {
   const groups = new Map<string, T[]>();

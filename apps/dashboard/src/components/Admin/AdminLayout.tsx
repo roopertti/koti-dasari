@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { useAdminLogout } from '../../hooks/useAdminSession.js';
 import { t } from '../../i18n/t.js';
+import { Button } from '../common/Button/Button.js';
+import { Heading } from '../common/Heading/Heading.js';
 import * as styles from './AdminLayout.css.js';
-import { Button } from './primitives/Button/Button.js';
-import { Heading } from './primitives/Heading/Heading.js';
 import { NavTab } from './primitives/NavTab/NavTab.js';
 
 interface AdminLayoutProps {

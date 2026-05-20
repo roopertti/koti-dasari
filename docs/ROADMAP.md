@@ -298,6 +298,24 @@ Lock supply chain, add scanning, and prep the repo for going public.
 
 ---
 
+## Phase 14: Error Handling & User Feedback (Admin)
+
+Smaller polish phase. Surface mutation failures to the admin operator (Phase 6 deliberately skipped toasts on the kiosk; the admin UI has a human reading the screen). Also tighten a few places where errors are currently swallowed.
+
+### Tasks
+
+- [ ] Add a lightweight toast primitive in `components/common/Toast/` (Vanilla Extract, no extra dep) with a `useToast()` hook backed by a context provider mounted at the admin route root
+- [ ] Wire `onError` on the silent admin delete mutations (`EventsList`, `TodosList`) to show the API error message as a toast
+- [ ] Move the inline `setError(err.message)` pattern in `EventsForm` / `TodosForm` / `SettingsForm` to toasts so success and failure feedback are consistent
+- [ ] Restore the lost `console.error` on the kiosk `TodosPanel` toggle mutation (regression from the recent useMutation refactor) — kiosk stays toast-free per Phase 6
+- [ ] Map known API error codes (`{ error: { message, code } }`) to localized strings via `t()` (FI primary, EN fallback) instead of surfacing raw `err.message`
+- [ ] Add a separate error boundary at the admin route so an admin crash doesn't take down the kiosk SPA
+- [ ] Playwright: assert a toast appears when a mutation fails (mock the API to 500)
+
+**Dependency:** Phase 8 (admin UI exists). Best landed before Phase 13 so forkers see polished admin UX out of the box. Can stack with Phase 10 (i18n) — the error-code map naturally lives in the new `@home-dashboard/i18n` package if Phase 10 has shipped.
+
+---
+
 ## Implementation Notes
 
 ### Recommended Order Within Each Phase
@@ -310,9 +328,10 @@ Phase 1 (scaffolding)
     └── Phase 3 (workers)  ──┼── Phase 4 (frontend) ── Phase 5 (Docker) ── Phase 6 (polish)
 
 Phase 7 (UI refresh) ── Phase 8 (admin + LAN) ── Phase 10 (i18n pkg) ── Phase 11 (iCal)
-Phase 9  (electricity)     (independent of 7-13)
+Phase 9  (electricity)     (independent of 7-14)
 Phase 12 (offline)         (independent — can land alongside any of 7-11)
 Phase 13 (hardening)       (anytime; natural fit before going public)
+Phase 14 (admin errors)    (depends on 8; ideally before 13)
 ```
 
 ### Key Decisions Made

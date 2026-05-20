@@ -106,14 +106,3 @@ globalStyle('body', {
   color: vars.color.fg,
   WebkitFontSmoothing: 'antialiased',
 });
-
-globalStyle('h1, h2, h3, h4', {
-  margin: 0,
-  fontWeight: 600,
-});
-
-globalStyle('ul, ol', {
-  margin: 0,
-  padding: 0,
-  listStyle: 'none',
-});

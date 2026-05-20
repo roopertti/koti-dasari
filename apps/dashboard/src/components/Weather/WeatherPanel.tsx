@@ -3,8 +3,8 @@ import { getCurrentWeather, getWeatherForecast } from '../../api/weather.js';
 import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
-import { WeatherCurrent } from './WeatherCurrent.js';
-import { WeatherForecast } from './WeatherForecast.js';
+import { WeatherCurrent } from './WeatherCurrent/WeatherCurrent.js';
+import { WeatherForecast } from './WeatherForecast/WeatherForecast.js';
 
 const REFRESH_MS = 5 * 60_000;
 const FORECAST_HOURS = 12;
@@ -46,7 +46,7 @@ export function WeatherPanel() {
   }
 
   return (
-    <PanelShell title={t('panel.weather.title')} testId="panel-weather">
+    <PanelShell title={t('panel.weather.title')} testId="panel-weather" grow="auto">
       {renderContent()}
     </PanelShell>
   );

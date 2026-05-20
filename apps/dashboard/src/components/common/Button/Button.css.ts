@@ -1,5 +1,5 @@
 import { style, styleVariants } from '@vanilla-extract/css';
-import { vars } from '../../../../styles/theme.css.js';
+import { vars } from '../../../styles/theme.css.js';
 
 const base = style({
   font: 'inherit',
@@ -14,6 +14,10 @@ const base = style({
   selectors: {
     '&:active': {
       background: vars.color.bgPanelHover,
+    },
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
     },
   },
 });

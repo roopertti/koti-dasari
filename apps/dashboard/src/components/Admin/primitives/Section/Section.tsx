@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Heading } from '../Heading/Heading.js';
+import { Heading } from '../../../common/Heading/Heading.js';
 import * as styles from './Section.css.js';
 
 interface SectionProps {

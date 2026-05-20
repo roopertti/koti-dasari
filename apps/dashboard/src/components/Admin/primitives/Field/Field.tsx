@@ -9,9 +9,8 @@ interface FieldProps {
 }
 
 export function Field({ id, label, fullWidth, children }: FieldProps) {
-  const rootClass = fullWidth ? `${styles.root} ${styles.fullWidth}` : styles.root;
   return (
-    <div className={rootClass}>
+    <div className={styles.root[fullWidth ? 'fullWidth' : 'default']}>
       <label className={styles.label} htmlFor={id}>
         {label}
       </label>

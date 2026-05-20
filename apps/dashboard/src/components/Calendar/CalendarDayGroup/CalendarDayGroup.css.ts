@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css';
-import { vars } from '../../styles/theme.css.js';
+import { vars } from '../../../styles/theme.css.js';
 
 export const dayLabel = style({
   fontSize: '0.85rem',
@@ -13,6 +13,9 @@ export const dayEvents = style({
   display: 'flex',
   flexDirection: 'column',
   gap: vars.space.sm,
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
 });
 
 export const event = style({
@@ -28,6 +31,7 @@ export const eventBar = style({
   width: '4px',
   borderRadius: '2px',
   flexShrink: 0,
+  background: `var(--event-color, ${vars.color.accent})`,
 });
 
 export const eventTitle = style({

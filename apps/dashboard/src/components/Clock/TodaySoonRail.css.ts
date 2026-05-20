@@ -30,6 +30,9 @@ export const list = style({
   flexDirection: 'column',
   gap: '6px',
   width: '100%',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
 });
 
 export const item = style({
@@ -43,10 +46,11 @@ export const item = style({
       justifyContent: 'center',
     },
   },
-});
-
-export const itemOverdue = style({
-  color: vars.color.danger,
+  selectors: {
+    '&[data-overdue="true"]': {
+      color: vars.color.danger,
+    },
+  },
 });
 
 export const kindIcon = style({
@@ -57,7 +61,7 @@ export const kindIcon = style({
   color: vars.color.fgMuted,
   flexShrink: 0,
   selectors: {
-    [`${itemOverdue} &`]: {
+    [`${item}[data-overdue="true"] &`]: {
       color: vars.color.danger,
     },
   },
@@ -73,7 +77,7 @@ export const horizon = style({
   background: vars.color.bgPanelHover,
   flexShrink: 0,
   selectors: {
-    [`${itemOverdue} &`]: {
+    [`${item}[data-overdue="true"] &`]: {
       background: `color-mix(in srgb, ${vars.color.danger} 24%, transparent)`,
       color: vars.color.danger,
     },
@@ -86,7 +90,7 @@ export const when = style({
   color: vars.color.fgMuted,
   flexShrink: 0,
   selectors: {
-    [`${itemOverdue} &`]: {
+    [`${item}[data-overdue="true"] &`]: {
       color: vars.color.danger,
     },
   },

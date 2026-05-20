@@ -4,6 +4,9 @@ import { vars } from '../../../styles/theme.css.js';
 const base = {
   display: 'flex',
   flexDirection: 'column',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
 } as const;
 
 export const stack = styleVariants({

@@ -1,7 +1,7 @@
 import type { CalendarEvent } from '@home-dashboard/shared';
-import { LOCALE, t } from '../../i18n/t.js';
-import { vars } from '../../styles/theme.css.js';
-import * as styles from './CalendarPanel.css.js';
+import type { CSSProperties } from 'react';
+import { LOCALE, t } from '../../../i18n/t.js';
+import * as styles from './CalendarDayGroup.css.js';
 
 const dayHeaderFormatter = new Intl.DateTimeFormat(LOCALE, {
   weekday: 'short',
@@ -20,6 +20,10 @@ interface CalendarDayGroupProps {
   events: CalendarEvent[];
 }
 
+function barStyle(color: string | null): CSSProperties | undefined {
+  return color ? ({ '--event-color': color } as CSSProperties) : undefined;
+}
+
 export function CalendarDayGroup({ day, events }: CalendarDayGroupProps) {
   return (
     <li>
@@ -29,11 +33,7 @@ export function CalendarDayGroup({ day, events }: CalendarDayGroupProps) {
       <ul className={styles.dayEvents}>
         {events.map((event) => (
           <li key={event.id} className={styles.event}>
-            <div
-              className={styles.eventBar}
-              style={{ background: event.color ?? vars.color.accent }}
-              aria-hidden="true"
-            />
+            <div className={styles.eventBar} style={barStyle(event.color)} aria-hidden="true" />
             <div>
               <div className={styles.eventTitle}>{event.title}</div>
               <div className={styles.eventWhen}>

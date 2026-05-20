@@ -76,12 +76,3 @@ export const page = style({
 globalStyle(`${page}::-webkit-scrollbar`, {
   display: 'none',
 });
-
-globalStyle(`${page} > *`, {
-  flex: 1,
-  minHeight: 0,
-});
-
-globalStyle(`${page} > [data-testid="panel-weather"]`, {
-  flex: '0 0 auto',
-});

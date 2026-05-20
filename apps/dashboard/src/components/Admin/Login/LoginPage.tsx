@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from 'react';
 import { useAdminLogin } from '../../../hooks/useAdminSession.js';
 import { t } from '../../../i18n/t.js';
-import { Button } from '../primitives/Button/Button.js';
+import { Button } from '../../common/Button/Button.js';
+import { Heading } from '../../common/Heading/Heading.js';
 import { Field } from '../primitives/Field/Field.js';
-import { Heading } from '../primitives/Heading/Heading.js';
 import { Input } from '../primitives/Input/Input.js';
 import { Notice } from '../primitives/Notice/Notice.js';
 import * as styles from './LoginPage.css.js';

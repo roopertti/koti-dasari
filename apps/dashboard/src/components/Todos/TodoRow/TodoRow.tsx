@@ -1,6 +1,7 @@
 import type { Todo } from '@home-dashboard/shared';
-import { LOCALE, t } from '../../i18n/t.js';
-import * as styles from './TodosPanel.css.js';
+import { LOCALE, t } from '../../../i18n/t.js';
+import { Button } from '../../common/Button/Button.js';
+import * as styles from './TodoRow.css.js';
 
 interface TodoRowProps {
   todo: Todo;
@@ -18,18 +19,16 @@ function formatDueDate(dueDate: string): string {
 }
 
 export function TodoRow({ todo, pending, onToggle }: TodoRowProps) {
-  const rowClass = `${styles.todo}${todo.completed ? ` ${styles.todoDone}` : ''}`;
-  const titleClass = `${styles.titleBase}${todo.completed ? ` ${styles.titleDone}` : ''}`;
+  const state = todo.completed ? 'done' : 'active';
   const labelKey = todo.completed ? 'panel.todos.markUndoneLabel' : 'panel.todos.markDoneLabel';
   const buttonKey = todo.completed ? 'panel.todos.undo' : 'panel.todos.done';
-  const buttonClass = `${styles.toggle}${todo.completed ? ` ${styles.toggleUndo}` : ''}`;
   const showPriority = todo.priority !== 'medium';
   const showMeta = Boolean(todo.dueDate) || showPriority;
 
   return (
-    <li className={rowClass}>
+    <li className={styles.row[state]}>
       <div className={styles.body}>
-        <div className={titleClass}>{todo.title}</div>
+        <div className={styles.title[state]}>{todo.title}</div>
         {showMeta && (
           <div className={styles.meta}>
             {showPriority && (
@@ -41,16 +40,15 @@ export function TodoRow({ todo, pending, onToggle }: TodoRowProps) {
           </div>
         )}
       </div>
-      <button
-        type="button"
-        className={buttonClass}
+      <Button
+        variant={todo.completed ? 'subtle' : 'primary'}
         onClick={() => onToggle(todo)}
         disabled={pending}
         aria-pressed={todo.completed}
         aria-label={t(labelKey, { title: todo.title })}
       >
         {t(buttonKey)}
-      </button>
+      </Button>
     </li>
   );
 }

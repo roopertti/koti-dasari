@@ -1,14 +1,15 @@
-import { style } from '@vanilla-extract/css';
+import { style, styleVariants } from '@vanilla-extract/css';
 import { vars } from '../../../../styles/theme.css.js';
 
-export const root = style({
+const rootBase = {
   display: 'flex',
   flexDirection: 'column',
   gap: vars.space.xs,
-});
+} as const;
 
-export const fullWidth = style({
-  gridColumn: '1 / -1',
+export const root = styleVariants({
+  default: rootBase,
+  fullWidth: { ...rootBase, gridColumn: '1 / -1' },
 });
 
 export const label = style({

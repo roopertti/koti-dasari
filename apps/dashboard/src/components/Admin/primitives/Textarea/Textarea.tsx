@@ -1,6 +1,8 @@
 import type { TextareaHTMLAttributes } from 'react';
 import * as styles from './Textarea.css.js';
 
-export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className'>;
+
+export function Textarea(props: TextareaProps) {
   return <textarea {...props} className={styles.root} />;
 }

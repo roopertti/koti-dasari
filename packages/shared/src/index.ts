@@ -4,7 +4,7 @@ export type {
   CreateCalendarEventInput,
   UpdateCalendarEventInput,
 } from './types/calendar.js';
-
+export type { ElectricityPrice } from './types/electricity.js';
 export type {
   CreateTodoInput,
   ReorderTodoItem,

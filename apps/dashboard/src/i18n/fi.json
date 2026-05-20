@@ -1,6 +1,21 @@
 {
   "layout.pagePrimary": "Sää ja liikenne",
   "layout.pageSecondary": "Kalenteri ja tehtävät",
+  "layout.pageTertiary": "Sähkönhinta",
+
+  "panel.electricity.title": "Sähkönhinta",
+  "panel.electricity.unavailable": "Hinta ei saatavilla",
+  "panel.electricity.loading": "Ladataan…",
+  "panel.electricity.now": "Nykyinen hinta",
+  "panel.electricity.unit": "snt/kWh",
+  "panel.electricity.tomorrowPending": "Huomisen hintoja ei ole vielä julkaistu.",
+  "panel.electricity.stat.average": "Keskiarvo",
+  "panel.electricity.stat.cheapest": "Edullisin",
+  "panel.electricity.stat.priciest": "Kallein",
+  "panel.electricity.status.cheap": "Edullinen",
+  "panel.electricity.status.normal": "Normaali",
+  "panel.electricity.status.expensive": "Kallis",
+  "panel.electricity.chartAriaLabel": "Sähkönhinnan tunnit",
 
   "panel.weather.title": "Sää",
   "panel.weather.unavailable": "Sää ei saatavilla",

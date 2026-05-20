@@ -18,4 +18,18 @@ export const badge = styleVariants({
       color: vars.color.warn,
     },
   ],
+  success: [
+    base,
+    {
+      background: `color-mix(in srgb, ${vars.color.success} 25%, transparent)`,
+      color: vars.color.success,
+    },
+  ],
+  danger: [
+    base,
+    {
+      background: `color-mix(in srgb, ${vars.color.danger} 25%, transparent)`,
+      color: vars.color.danger,
+    },
+  ],
 });

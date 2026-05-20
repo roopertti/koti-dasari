@@ -86,3 +86,17 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+
+  worker-electricity:
+    image: ghcr.io/roopertti/koti-dasari/worker-electricity:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/worker-electricity/Dockerfile
+    environment:
+      DATABASE_PATH: /data/dashboard.db
+    volumes:
+      - ./data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

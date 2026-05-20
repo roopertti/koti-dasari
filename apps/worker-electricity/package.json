@@ -1,0 +1,26 @@
+{
+  "name": "@home-dashboard/worker-electricity",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@home-dashboard/db": "workspace:*",
+    "kysely": "0.29.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@home-dashboard/tsconfig": "workspace:*",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

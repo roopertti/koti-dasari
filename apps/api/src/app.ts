@@ -6,6 +6,7 @@ import type { AuthConfig } from './config.js';
 import { adminSessionPlugin } from './plugins/adminSession.js';
 import { apiKeyPlugin } from './plugins/apiKey.js';
 import { calendarRoutes } from './routes/calendar.js';
+import { electricityRoutes } from './routes/electricity.js';
 import { healthRoutes } from './routes/health.js';
 import { todosRoutes } from './routes/todos.js';
 import { transportRoutes } from './routes/transport.js';
@@ -60,6 +61,7 @@ export async function buildApp(options: AppOptions) {
   await app.register(todosRoutes, { prefix: '/api' });
   await app.register(transportRoutes, { prefix: '/api' });
   await app.register(weatherRoutes, { prefix: '/api' });
+  await app.register(electricityRoutes, { prefix: '/api' });
 
   return app;
 }

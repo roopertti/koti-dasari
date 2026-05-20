@@ -1,6 +1,21 @@
 {
   "layout.pagePrimary": "Weather and transport",
   "layout.pageSecondary": "Calendar and todos",
+  "layout.pageTertiary": "Electricity price",
+
+  "panel.electricity.title": "Electricity price",
+  "panel.electricity.unavailable": "Price unavailable",
+  "panel.electricity.loading": "Loading…",
+  "panel.electricity.now": "Current price",
+  "panel.electricity.unit": "c/kWh",
+  "panel.electricity.tomorrowPending": "Tomorrow's prices have not been published yet.",
+  "panel.electricity.stat.average": "Average",
+  "panel.electricity.stat.cheapest": "Cheapest",
+  "panel.electricity.stat.priciest": "Priciest",
+  "panel.electricity.status.cheap": "Cheap",
+  "panel.electricity.status.normal": "Normal",
+  "panel.electricity.status.expensive": "Expensive",
+  "panel.electricity.chartAriaLabel": "Hourly electricity prices",
 
   "panel.weather.title": "Weather",
   "panel.weather.unavailable": "Weather unavailable",

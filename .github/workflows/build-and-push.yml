@@ -30,6 +30,8 @@ jobs:
             dockerfile: apps/worker-transport/Dockerfile
           - service: worker-weather
             dockerfile: apps/worker-weather/Dockerfile
+          - service: worker-electricity
+            dockerfile: apps/worker-electricity/Dockerfile
           - service: nginx
             dockerfile: infra/nginx/Dockerfile
     steps:

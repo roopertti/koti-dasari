@@ -30,6 +30,7 @@ async function stubReads(page: Page, overrides: Record<string, unknown> = {}) {
     'transport/departures': EMPTY,
     'weather/current': WEATHER_CURRENT,
     'weather/forecast': EMPTY,
+    'electricity/prices': EMPTY,
     ...overrides,
   };
   for (const [suffix, body] of Object.entries(responses)) {
@@ -250,6 +251,67 @@ test.describe('dashboard', () => {
     const rail = page.getByTestId('today-soon-rail');
     // \b ensures we don't accidentally match "+1 muuta".
     await expect(rail).toContainText(/\+1 muu\b/);
+  });
+
+  test('electricity panel renders prices and chart bars when data is present', async ({ page }) => {
+    const now = new Date();
+    const topOfHour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000);
+    const data = Array.from({ length: 24 }, (_, i) => ({
+      hourStart: new Date(topOfHour.getTime() + i * 3_600_000).toISOString(),
+      priceCentsPerKwh: 4 + Math.sin(i / 3) * 6,
+      fetchedAt: now.toISOString(),
+    }));
+    await stubReads(page, { 'electricity/prices': { data } });
+
+    await page.goto('/');
+
+    const panel = page.getByTestId('panel-electricity');
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText('Sähkönhinta');
+    await expect(panel).toContainText('snt/kWh');
+    // The chart is an inline SVG with one rect per hour.
+    await expect(panel.locator('svg rect')).toHaveCount(24);
+    // Status pill is shown for the current hour (the first synthetic data entry is at "now").
+    await expect(page.getByTestId('electricity-status-pill')).toBeVisible();
+  });
+
+  test('electricity status pill reads "Kallis" when the current price is above the expensive threshold', async ({
+    page,
+  }) => {
+    const now = new Date();
+    const topOfHour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000);
+    const data = Array.from({ length: 6 }, (_, i) => ({
+      hourStart: new Date(topOfHour.getTime() + i * 3_600_000).toISOString(),
+      // First entry is the current hour — push it well above the 15 c/kWh expensive threshold.
+      priceCentsPerKwh: i === 0 ? 25 : 6,
+      fetchedAt: now.toISOString(),
+    }));
+    await stubReads(page, { 'electricity/prices': { data } });
+
+    await page.goto('/');
+
+    await expect(page.getByTestId('electricity-status-pill')).toContainText('Kallis');
+  });
+
+  test('electricity panel shows "tomorrow pending" note when only today is published', async ({
+    page,
+  }) => {
+    const now = new Date();
+    const startOfHelsinkiToday = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Europe/Helsinki' }),
+    );
+    startOfHelsinkiToday.setHours(0, 0, 0, 0);
+    // Generate prices only for "today" Helsinki time — no tomorrow entries.
+    const data = Array.from({ length: 6 }, (_, i) => ({
+      hourStart: new Date(startOfHelsinkiToday.getTime() + i * 3_600_000).toISOString(),
+      priceCentsPerKwh: 5,
+      fetchedAt: now.toISOString(),
+    }));
+    await stubReads(page, { 'electricity/prices': { data } });
+
+    await page.goto('/');
+
+    await expect(page.getByTestId('electricity-tomorrow-pending')).toBeVisible();
   });
 });
 

@@ -12,6 +12,7 @@ apps/
   api/          - Fastify + TypeScript backend API
   worker-transport/ - HSL Digitransit data fetcher
   worker-weather/   - Open-Meteo weather data fetcher
+  worker-electricity/ - porssisahko.net spot price fetcher
 packages/
   db/           - Kysely database setup, types, and migrations (SQLite)
   shared/       - Shared TypeScript types and utilities

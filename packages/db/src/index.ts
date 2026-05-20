@@ -14,6 +14,7 @@ export {
 export type {
   CalendarEventTable,
   Database,
+  ElectricityPriceTable,
   SettingsTable,
   TodoTable,
   TransportDepartureTable,

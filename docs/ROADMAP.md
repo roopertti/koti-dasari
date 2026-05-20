@@ -187,26 +187,26 @@ Add a dashboard panel showing the Finnish electricity spot price (Nord Pool FI a
 ### Tasks
 
 #### Data layer
-- [ ] Add `electricity_prices` table — `hour_start` (ISO, PK), `price_cents_per_kwh` (REAL), `fetched_at` (ISO). Migration `003_electricity_prices`
-- [ ] Add Kysely types and Zod schema for the `porssisahko.net` response in `packages/shared`
+- [x] Add `electricity_prices` table — `hour_start` (ISO, PK), `price_cents_per_kwh` (REAL), `fetched_at` (ISO). Migration `004_electricity_prices` _(numbered after the existing settings migration, not `003` as originally stated)_
+- [x] Add Kysely table type in `packages/db/types.ts` and `ElectricityPrice` DTO in `packages/shared`. Zod schema for the `porssisahko.net` response lives next to the worker, matching the Open-Meteo pattern (deviates from "in `packages/shared`" but consistent with existing worker code)
 
 #### Worker
-- [ ] Scaffold `apps/worker-electricity/` mirroring `worker-weather` (TypeScript, scheduling, graceful shutdown, runtime validation, stale cleanup)
-- [ ] Fetch on a sensible cadence: every ~30 min during 13:00–16:00 EET (next-day publish window), otherwise hourly; replace-on-write keyed by `hour_start`
-- [ ] Drop prices older than ~48h to keep the table small
+- [x] Scaffold `apps/worker-electricity/` mirroring `worker-weather` (TypeScript, scheduling, graceful shutdown, runtime validation, stale cleanup)
+- [x] Fetch on a sensible cadence: every ~30 min during 13:00–16:00 Europe/Helsinki (next-day publish window), otherwise hourly; upsert keyed by `hour_start`
+- [x] Drop prices older than 48h to keep the table small
 
 #### API
-- [ ] Add `GET /api/electricity/prices?from=&to=` (camelCase response, snake_case DB)
-- [ ] Integration tests for the route
+- [x] Add `GET /api/electricity/prices?from=&to=` (camelCase response, snake_case DB)
+- [x] Integration tests for the route
 
 #### Frontend
-- [ ] Build `Electricity` panel: current price (large), 24h hand-rolled SVG bar chart (avoid a chart dep), tomorrow's prices visually muted until published, color cheap/expensive hours
-- [ ] Add Finnish + English translations for panel labels, units (`snt/kWh`), and a "tomorrow's prices not yet published" state
-- [ ] Playwright E2E for panel render + chart presence
+- [x] Build `Electricity` panel: current price (large), 24h hand-rolled SVG bar chart (no chart dep), tomorrow's prices visually muted until published, color cheap/expensive hours
+- [x] Add Finnish + English translations for panel labels, units (`snt/kWh`), and a "tomorrow's prices not yet published" state
+- [x] Playwright E2E for panel render + chart presence
 
 #### Infra & docs
-- [ ] Add Dockerfile for `apps/worker-electricity/` (node:24-slim) and wire into `docker-compose.yml`
-- [ ] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
+- [x] Add Dockerfile for `apps/worker-electricity/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
+- [x] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
 
 **Dependency:** None — independent of Phases 8, 10–13.
 

@@ -1,6 +1,7 @@
 import { CalendarPanel } from '../Calendar/CalendarPanel.js';
 import { Clock } from '../Clock/Clock.js';
 import { TodaySoonRail } from '../Clock/TodaySoonRail.js';
+import { ElectricityPanel } from '../Electricity/ElectricityPanel.js';
 import { DashboardLayout } from '../Layout/DashboardLayout.js';
 import { TodosPanel } from '../Todos/TodosPanel.js';
 import { TransportPanel } from '../Transport/TransportPanel.js';
@@ -19,6 +20,7 @@ export function KioskApp() {
       transport={<TransportPanel />}
       calendar={<CalendarPanel />}
       todos={<TodosPanel />}
+      electricity={<ElectricityPanel />}
     />
   );
 }

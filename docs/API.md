@@ -341,6 +341,37 @@ Get hourly weather forecast.
 
 ---
 
+### Electricity (Read-only)
+
+Data populated by worker-electricity. Read-only endpoint.
+
+#### `GET /api/electricity/prices`
+
+List Nord Pool FI hourly spot prices in c/kWh including VAT 25.5%.
+
+**Query Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `from` | string | ISO 8601 datetime (inclusive lower bound on `hourStart`) |
+| `to` | string | ISO 8601 datetime (inclusive upper bound on `hourStart`) |
+
+**Response:** `200 OK`
+```json
+{
+  "data": [
+    {
+      "hourStart": "2026-05-20T12:00:00.000Z",
+      "priceCentsPerKwh": 3.998,
+      "fetchedAt": "2026-05-20T11:45:00.000Z"
+    }
+  ]
+}
+```
+
+Results are ordered ascending by `hourStart`. Tomorrow's prices appear after the daily publish (~14:00 EET); absent rows mean the publish has not happened yet.
+
+---
+
 ### Admin
 
 Session-cookie authenticated routes for the admin panel. Cookie name: `home-dashboard-admin` (HttpOnly, SameSite=Lax, 14-day expiry). All return `503 ADMIN_DISABLED` if `ADMIN_PIN` or `ADMIN_SESSION_KEY` is unset.

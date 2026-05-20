@@ -146,6 +146,18 @@ CREATE TABLE weather_hourly (
 CREATE INDEX idx_weather_hourly_time ON weather_hourly(forecast_time);
 ```
 
+### electricity_prices
+
+Hourly Finnish spot electricity price (Nord Pool FI area), populated by `worker-electricity` from [porssisahko.net](https://porssisahko.net/api). Prices are in c/kWh including 25.5% VAT.
+
+```sql
+CREATE TABLE electricity_prices (
+  hour_start            TEXT PRIMARY KEY,         -- ISO 8601 datetime (UTC, top of hour)
+  price_cents_per_kwh   REAL NOT NULL,
+  fetched_at            TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
 ### settings
 
 Key/value store for admin-tunable runtime settings (home location, transport radius, worker fetch intervals). Each value is a stringified number; the API parses to typed fields. Empty rows fall back to env defaults at the worker.
@@ -192,6 +204,7 @@ export interface Database {
   transport_departures: TransportDepartureTable;
   weather_current: WeatherCurrentTable;
   weather_hourly: WeatherHourlyTable;
+  electricity_prices: ElectricityPriceTable;
   settings: SettingsTable;
 }
 
@@ -283,6 +296,12 @@ interface WeatherHourlyTable {
   cloud_cover: number | null;
   fetched_at: Generated<string>;
 }
+
+interface ElectricityPriceTable {
+  hour_start: string;
+  price_cents_per_kwh: number;
+  fetched_at: Generated<string>;
+}
 ```
 
 ## Migration Strategy
@@ -316,3 +335,8 @@ The API server runs migrations on startup before accepting requests. Workers wai
 - `weather_current` is always a single row (upserted)
 - `weather_hourly` rows for past hours are cleaned up on each fetch
 - New forecast data replaces old forecast for the same time slots
+
+### Electricity Prices
+- Worker fetches every 30 min between 13:00–16:00 Europe/Helsinki (next-day publish window), every 60 min otherwise
+- Rows are upserted by `hour_start` so a re-publish for the same hour overwrites
+- Rows older than 48 hours are dropped on each cycle

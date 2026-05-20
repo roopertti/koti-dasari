@@ -113,13 +113,21 @@ home-dashboard/
 │   │       ├── index.ts
 │   │       ├── digitransit.ts      # Digitransit API client
 │   │       └── scheduler.ts        # Cron/interval scheduling
-│   └── worker-weather/             # Open-Meteo data fetcher
+│   ├── worker-weather/             # Open-Meteo data fetcher
+│   │   ├── package.json
+│   │   ├── Dockerfile
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       ├── index.ts
+│   │       ├── open-meteo.ts       # Open-Meteo API client
+│   │       └── scheduler.ts
+│   └── worker-electricity/         # porssisahko.net spot price fetcher
 │       ├── package.json
 │       ├── Dockerfile
 │       ├── tsconfig.json
 │       └── src/
 │           ├── index.ts
-│           ├── open-meteo.ts       # Open-Meteo API client
+│           ├── porssisahko.ts      # porssisahko.net API client
 │           └── scheduler.ts
 └── packages/
     ├── db/                         # Shared database package
@@ -203,6 +211,13 @@ Two separate long-running services that fetch external data and persist it to SQ
 - Runs on a configurable schedule (e.g., every 30 minutes)
 - Stores weather data in SQLite via the shared `@home-dashboard/db` package
 
+#### worker-electricity
+- Fetches Finnish Nord Pool spot prices from **porssisahko.net** (no API key needed)
+- Stores hourly prices (today + tomorrow when published) in c/kWh including 25.5% VAT
+- Smart cadence: every 30 min between 13:00–16:00 Europe/Helsinki (next-day publish window), every 60 min otherwise
+- Drops rows older than 48 hours each cycle
+- Stores data in SQLite via the shared `@home-dashboard/db` package
+
 ### Shared Packages
 
 #### @home-dashboard/db
@@ -236,6 +251,13 @@ Two separate long-running services that fetch external data and persist it to SQ
 - **Data**: Current temperature, humidity, wind, precipitation + hourly forecast
 - **Rate limits**: 10,000 calls/day (more than sufficient)
 - **Params**: latitude, longitude, current/hourly variable selection
+
+### porssisahko.net (Electricity spot price)
+
+- **Endpoint**: `https://api.porssisahko.net/v1/latest-prices.json`
+- **Auth**: No API key required
+- **Data**: Hourly Nord Pool FI spot price for today + tomorrow (tomorrow published ~14:00 EET) in c/kWh including 25.5% VAT
+- **Rate limits**: Reasonable for the worker's hourly/30-min cadence
 
 ## Authentication Strategy
 
@@ -273,10 +295,11 @@ Browser (port 80)
 
 ```
 docker-compose.yml
-├── nginx            (Reverse proxy + static dashboard assets)  Port: 80
-├── api              (Fastify server)                           Port: 3001 (internal only)
-├── worker-transport (Long-running Node.js process)             No port
-└── worker-weather   (Long-running Node.js process)             No port
+├── nginx              (Reverse proxy + static dashboard assets)  Port: 80
+├── api                (Fastify server)                           Port: 3001 (internal only)
+├── worker-transport   (Long-running Node.js process)             No port
+├── worker-weather     (Long-running Node.js process)             No port
+└── worker-electricity (Long-running Node.js process)             No port
 ```
 
 - **NGINX is the single entry point** on port 80 — serves the dashboard static build and proxies `/api/*` to Fastify
@@ -326,7 +349,7 @@ SQLite supports concurrent reads but only one writer at a time. With WAL mode en
 
 ### Architecture
 
-Images are built in GitHub Actions on every push to `main` (`.github/workflows/build-and-push.yml`) and pushed to GHCR as `ghcr.io/roopertti/koti-dasari/{api,worker-transport,worker-weather,nginx}` tagged `:latest` and `:<short-sha>`. The Pi only ever pulls — it never builds — so the 1 GB Pi 3 has no trouble keeping up.
+Images are built in GitHub Actions on every push to `main` (`.github/workflows/build-and-push.yml`) and pushed to GHCR as `ghcr.io/roopertti/koti-dasari/{api,worker-transport,worker-weather,worker-electricity,nginx}` tagged `:latest` and `:<short-sha>`. The Pi only ever pulls — it never builds — so the 1 GB Pi 3 has no trouble keeping up.
 
 ### One-time Pi Setup (`infra/setup-pi.sh`)
 

@@ -3,12 +3,14 @@ import { type Migration, type MigrationProvider, Migrator } from 'kysely/migrati
 import * as initial from './migrations/001_initial.js';
 import * as dropReminders from './migrations/002_drop_reminders.js';
 import * as settings from './migrations/003_settings.js';
+import * as electricityPrices from './migrations/004_electricity_prices.js';
 import type { Database } from './types.js';
 
 const migrations: Record<string, Migration> = {
   '001_initial': initial,
   '002_drop_reminders': dropReminders,
   '003_settings': settings,
+  '004_electricity_prices': electricityPrices,
 };
 
 class StaticMigrationProvider implements MigrationProvider {

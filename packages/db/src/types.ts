@@ -7,6 +7,7 @@ export interface Database {
   transport_departures: TransportDepartureTable;
   weather_current: WeatherCurrentTable;
   weather_hourly: WeatherHourlyTable;
+  electricity_prices: ElectricityPriceTable;
   settings: SettingsTable;
 }
 
@@ -96,5 +97,11 @@ export interface WeatherHourlyTable {
   precipitation_probability: number | null;
   weather_code: number;
   cloud_cover: number | null;
+  fetched_at: Generated<string>;
+}
+
+export interface ElectricityPriceTable {
+  hour_start: string;
+  price_cents_per_kwh: number;
   fetched_at: Generated<string>;
 }

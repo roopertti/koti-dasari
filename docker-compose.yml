@@ -9,7 +9,11 @@ services:
       # entries in API_KEYS (or be empty if API auth is disabled).
       KIOSK_API_KEY: ${KIOSK_API_KEY:-}
     ports:
-      - "${HOST_PORT:-80}:80"
+      - "${HOST_PORT:-80}:8080"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       api:
         condition: service_healthy
@@ -24,9 +28,11 @@ services:
       DATABASE_PATH: /data/dashboard.db
       PORT: "3001"
       HOST: 0.0.0.0
-      # Comma-separated client keys. Leave empty to disable the key check.
-      # Include KIOSK_API_KEY plus one entry per remote client (second Pi etc).
+      # Comma-separated client keys. Include KIOSK_API_KEY plus one entry per
+      # remote client (second Pi etc). API refuses to boot if empty unless
+      # API_AUTH=disabled is set (only safe on a fully trusted network).
       API_KEYS: ${API_KEYS:-}
+      API_AUTH: ${API_AUTH:-}
       # Admin login PIN + 64-hex-char session key. Leave both empty to disable admin.
       ADMIN_PIN: ${ADMIN_PIN:-}
       ADMIN_SESSION_KEY: ${ADMIN_SESSION_KEY:-}
@@ -39,6 +45,13 @@ services:
       WEATHER_INTERVAL_MS: ${WEATHER_INTERVAL_MS:-1800000}
     volumes:
       - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test:
         - CMD
@@ -65,6 +78,13 @@ services:
       TRANSPORT_INTERVAL_MS: ${TRANSPORT_INTERVAL_MS:-300000}
     volumes:
       - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       api:
         condition: service_healthy
@@ -82,6 +102,13 @@ services:
       WEATHER_INTERVAL_MS: ${WEATHER_INTERVAL_MS:-1800000}
     volumes:
       - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       api:
         condition: service_healthy
@@ -96,6 +123,13 @@ services:
       DATABASE_PATH: /data/dashboard.db
     volumes:
       - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       api:
         condition: service_healthy

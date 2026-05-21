@@ -82,6 +82,7 @@ async function query<T extends z.ZodType>(
       'digitransit-subscription-key': apiKey,
     },
     body: JSON.stringify({ query: graphql, variables }),
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

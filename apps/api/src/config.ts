@@ -48,12 +48,20 @@ function parseNumber(raw: string | undefined): number | undefined {
 }
 
 export function loadConfig(): Config {
+  const apiKeys = parseApiKeys(process.env.API_KEYS);
+  const apiAuthDisabled = process.env.API_AUTH?.trim().toLowerCase() === 'disabled';
+  if (apiKeys.length === 0 && !apiAuthDisabled) {
+    throw new Error(
+      'API_KEYS is empty. Set API_KEYS=<comma-separated client keys> to enable per-client auth, ' +
+        'or explicitly opt out with API_AUTH=disabled (only safe on a fully trusted network).',
+    );
+  }
   return {
     port: Number(process.env.PORT) || 3001,
     host: process.env.HOST || '0.0.0.0',
     databasePath: process.env.DATABASE_PATH || './dashboard.db',
     auth: {
-      apiKeys: parseApiKeys(process.env.API_KEYS),
+      apiKeys,
       adminPin: process.env.ADMIN_PIN?.trim() || null,
       adminSessionKey: parseSessionKey(process.env.ADMIN_SESSION_KEY),
     },

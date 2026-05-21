@@ -88,7 +88,9 @@ export async function fetchWeather(latitude: number, longitude: number): Promise
     timezone: 'auto',
   });
 
-  const response = await fetch(`${OPEN_METEO_URL}?${params}`);
+  const response = await fetch(`${OPEN_METEO_URL}?${params}`, {
+    signal: AbortSignal.timeout(15_000),
+  });
 
   if (!response.ok) {
     throw new Error(`Open-Meteo API error: ${response.status} ${response.statusText}`);

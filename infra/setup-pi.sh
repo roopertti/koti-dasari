@@ -50,6 +50,11 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 log "Ensuring data/ and backups/ exist (so Docker doesn't auto-create them as root)..."
 mkdir -p "$REPO_ROOT/data" "$REPO_ROOT/backups"
 
+if [ -f "$REPO_ROOT/.env" ]; then
+  log "Restricting .env to current user (chmod 600)..."
+  chmod 600 "$REPO_ROOT/.env"
+fi
+
 log "Installing nightly DB backup cron entry (03:00 daily)..."
 CRON_LINE="0 3 * * * cd \"$REPO_ROOT\" && bash infra/backup.sh >> backups/backup.log 2>&1"
 {

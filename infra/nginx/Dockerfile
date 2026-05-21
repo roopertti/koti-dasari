@@ -22,12 +22,12 @@ COPY apps/dashboard ./apps/dashboard
 RUN pnpm --filter @home-dashboard/shared build \
  && pnpm --filter @home-dashboard/dashboard build
 
-FROM nginx:alpine AS runtime
+FROM nginxinc/nginx-unprivileged:alpine AS runtime
 COPY --from=build /repo/apps/dashboard/dist /usr/share/nginx/html
-# nginx:alpine's entrypoint runs envsubst on /etc/nginx/templates/*.template
+# The upstream entrypoint runs envsubst on /etc/nginx/templates/*.template
 # at boot, outputting to /etc/nginx/conf.d/. NGINX_ENVSUBST_FILTER limits
 # substitution to KIOSK_API_KEY so nginx's own $host / $remote_addr aren't eaten.
 COPY infra/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 ENV NGINX_ENVSUBST_FILTER=^KIOSK_API_KEY$
 
-EXPOSE 80
+EXPOSE 8080

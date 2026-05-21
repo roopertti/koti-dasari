@@ -65,6 +65,12 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
   app.post<{ Body: { pin: string } }>(
     '/api/admin/login',
     {
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: '15 minutes',
+        },
+      },
       schema: {
         body: {
           type: 'object',
@@ -78,6 +84,7 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
     },
     async (request, reply) => {
       if (!pinMatches(request.body.pin, pin)) {
+        request.log.warn({ ip: request.ip }, 'admin login failed');
         return reply.status(401).send({ error: { message: 'Invalid PIN', code: 'UNAUTHORIZED' } });
       }
       request.session.set(SESSION_FIELD, true);

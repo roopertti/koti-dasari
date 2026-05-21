@@ -1,4 +1,4 @@
-import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import type { Database } from '@home-dashboard/db';
 import Fastify, { type FastifyError } from 'fastify';
 import type { Kysely } from 'kysely';
@@ -35,20 +35,29 @@ export async function buildApp(options: AppOptions) {
     },
   });
 
-  app.setErrorHandler((error: FastifyError, _request, reply) => {
+  app.setErrorHandler((error: FastifyError, request, reply) => {
     if (error.validation) {
       return reply
         .status(400)
         .send({ error: { message: error.message, code: 'VALIDATION_ERROR' } });
     }
-    reply
-      .status(error.statusCode ?? 500)
-      .send({ error: { message: error.message, code: 'INTERNAL_ERROR' } });
+    const status = error.statusCode ?? 500;
+    if (status >= 500) {
+      request.log.error({ err: error }, 'request failed');
+      return reply
+        .status(status)
+        .send({ error: { message: 'Internal server error', code: 'INTERNAL_ERROR' } });
+    }
+    reply.status(status).send({ error: { message: error.message, code: 'INTERNAL_ERROR' } });
   });
 
-  await app.register(cors, { origin: true, credentials: true });
-
   app.decorate('db', options.db);
+
+  await app.register(rateLimit, {
+    global: false,
+    max: 120,
+    timeWindow: '1 minute',
+  });
 
   await app.register(apiKeyPlugin, { keys: auth.apiKeys });
   await app.register(adminSessionPlugin, {

@@ -18,7 +18,9 @@ export interface ElectricityPriceEntry {
 }
 
 export async function fetchElectricityPrices(): Promise<ElectricityPriceEntry[]> {
-  const response = await fetch(PORSSISAHKO_URL);
+  const response = await fetch(PORSSISAHKO_URL, {
+    signal: AbortSignal.timeout(15_000),
+  });
 
   if (!response.ok) {
     throw new Error(`Porssisahko API error: ${response.status} ${response.statusText}`);

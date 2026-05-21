@@ -141,6 +141,17 @@ export async function calendarRoutes(app: FastifyInstance) {
         });
       }
 
+      const effectiveStart = startTime ?? existing.start_time;
+      const effectiveEnd = endTime ?? existing.end_time;
+      if (new Date(effectiveEnd) <= new Date(effectiveStart)) {
+        return reply.status(400).send({
+          error: {
+            message: 'endTime must be after startTime',
+            code: 'VALIDATION_ERROR',
+          },
+        });
+      }
+
       const updates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
       };

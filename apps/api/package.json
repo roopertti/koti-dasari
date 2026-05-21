@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@fastify/cookie": "^11",
-    "@fastify/cors": "^11.0.0",
+    "@fastify/rate-limit": "^10",
     "@fastify/secure-session": "^8",
     "@home-dashboard/db": "workspace:*",
     "@home-dashboard/shared": "workspace:*",

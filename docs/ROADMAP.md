@@ -208,7 +208,7 @@ Add a dashboard panel showing the Finnish electricity spot price (Nord Pool FI a
 - [x] Add Dockerfile for `apps/worker-electricity/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
 - [x] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
 
-**Dependency:** None — independent of Phases 8, 10–13.
+**Dependency:** None — independent of Phases 8, 10–16.
 
 ---
 
@@ -259,7 +259,43 @@ Bring real calendars onto the dashboard via public iCal URLs (read-only).
 
 ---
 
-## Phase 12: Offline Resilience
+## Phase 12: Yle News Panel
+
+Add a dashboard panel showing Yle's main news headlines (pääuutiset). Yle (Finland's national broadcaster) publishes a public RSS feed of major headlines — no API key needed. Default feed: `https://feeds.yle.fi/uutiset/v1/majorHeadlines/YLE_UUTISET.rss`.
+
+### Tasks
+
+#### Data layer
+- [ ] Add `news_items` table — `guid` (TEXT PK, RSS `<guid>` for idempotent upsert), `title`, `link`, `summary` (nullable, plain text after HTML strip), `published_at` (ISO 8601), `source` (TEXT, default `'yle'` — leaves room for additional feeds later), `fetched_at`. Migration `005_news_items` (next number after `004_electricity_prices`)
+- [ ] Add Kysely table type in `packages/db/types.ts` and `NewsItem` DTO in `packages/shared`. Zod schema for the parsed RSS shape lives next to the worker, matching the Open-Meteo / electricity worker pattern
+
+#### Worker
+- [ ] Scaffold `apps/worker-news/` mirroring `worker-weather` (TypeScript, scheduling, graceful shutdown, runtime validation, stale cleanup)
+- [ ] Fetch the Yle pääuutiset RSS feed every ~15 min; parse with a tiny dependency (e.g. `fast-xml-parser`) or hand-rolled regex if the feed shape is stable enough; upsert by `guid`
+- [ ] Strip HTML from `<description>` before persisting so the panel doesn't have to sanitize on every render
+- [ ] Drop rows older than 7 days each cycle to keep the table small
+- [ ] Env var `NEWS_FEED_URL` overrides the default (in case Yle changes the path); `NEWS_INTERVAL_MS` overrides the cadence
+
+#### API
+- [ ] Add `GET /api/news?limit=` (camelCase response, snake_case DB), default `limit=10`, ordered by `published_at DESC`
+- [ ] Integration tests for the route
+
+#### Frontend
+- [ ] Build `News` panel: list of N most recent headlines, each showing title + relative time (e.g. "12 min sitten"). Titles wrap to 2 lines max with ellipsis; tapping a row is a no-op (kiosk has no browser nav)
+- [ ] If headline is clicked, there should appear a QR code that can be read with mobile phone to open the actual article on mobile device. QR code can be displayed on a closable modal
+- [ ] Empty / loading / error states via the existing `PanelMessage` primitive
+- [ ] Add Finnish + English translations for panel labels and the "no news available" empty state
+- [ ] Playwright E2E for panel render + headline list
+
+#### Infra & docs
+- [ ] Add Dockerfile for `apps/worker-news/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
+- [ ] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
+
+**Dependency:** None — independent of Phases 7–11 and 13–15. Best landed after Phase 10 (i18n package) so the new panel's strings go straight into `@home-dashboard/i18n` instead of being migrated later.
+
+---
+
+## Phase 13: Offline Resilience
 
 Keep the kiosk readable during network blips instead of going blank.
 
@@ -269,11 +305,11 @@ Keep the kiosk readable during network blips instead of going blank.
 - [ ] Add a service worker that caches the SPA shell + static assets
 - [ ] Visual stale-data indicator on each panel when the latest fetch failed but cached data is shown
 
-**Dependency:** None (parallel to Phases 7-11)
+**Dependency:** None (parallel to Phases 7-12)
 
 ---
 
-## Phase 13: Hardening & Public Release
+## Phase 14: Hardening & Public Release
 
 Lock supply chain, add scanning, and prep the repo for going public.
 
@@ -298,7 +334,7 @@ Lock supply chain, add scanning, and prep the repo for going public.
 
 ---
 
-## Phase 14: Error Handling & User Feedback (Admin)
+## Phase 15: Error Handling & User Feedback (Admin)
 
 Smaller polish phase. Surface mutation failures to the admin operator (Phase 6 deliberately skipped toasts on the kiosk; the admin UI has a human reading the screen). Also tighten a few places where errors are currently swallowed.
 
@@ -312,7 +348,53 @@ Smaller polish phase. Surface mutation failures to the admin operator (Phase 6 d
 - [ ] Add a separate error boundary at the admin route so an admin crash doesn't take down the kiosk SPA
 - [ ] Playwright: assert a toast appears when a mutation fails (mock the API to 500)
 
-**Dependency:** Phase 8 (admin UI exists). Best landed before Phase 13 so forkers see polished admin UX out of the box. Can stack with Phase 10 (i18n) — the error-code map naturally lives in the new `@home-dashboard/i18n` package if Phase 10 has shipped.
+**Dependency:** Phase 8 (admin UI exists). Best landed before Phase 14 so forkers see polished admin UX out of the box. Can stack with Phase 10 (i18n) — the error-code map naturally lives in the new `@home-dashboard/i18n` package if Phase 10 has shipped.
+
+---
+
+## Phase 16: Kiosk UX & Interactions
+
+Improve how the kiosk surfaces and arranges content. Today only the currently-paged panels are visible at once, event/todo descriptions are nowhere to be seen, the screen burns power overnight while no one is looking, and first-time admin access requires typing the LAN address into a phone. This phase fixes that.
+
+### Tasks
+
+#### Event & todo detail dialogs
+- [ ] Tap on a todo row or calendar event opens a kiosk-friendly modal showing the full description plus available metadata (priority, due date, location, all-day flag, etc.)
+- [ ] Read-only on the kiosk — no edit affordances; admin UI remains the only editor
+- [ ] Touch-dismissible (tap outside or a large close button); modal sized for kiosk touch targets
+- [ ] Reuse existing primitives (e.g. promote `Heading`, `Section`, `Notice` out of `Admin/primitives/` to `common/` so both kiosk and admin share them) rather than introducing a parallel set
+
+#### Panel focus (tap to expand)
+- [ ] Tap a whole panel (e.g. transport, calendar, electricity chart) to expand it full-screen with more detail than the compact view shows — e.g. more departures, the full hourly forecast, the full electricity chart
+- [ ] Tap outside / a close affordance returns to the normal layout; doubles as a "see more" alternative to swiping between pages
+- [ ] Should compose with the detail dialog above (e.g. inside the expanded calendar panel, tapping an event still opens its detail dialog)
+
+#### Mobile admin discovery via QR
+- [ ] Render small QR codes on the kiosk linking to `/admin/`, `/admin/events/new`, and `/admin/todos/new` — scan from a phone and skip typing the LAN address
+- [ ] Use a tiny build-time-friendly QR lib (e.g. `qrcode-generator`); no network calls
+- [ ] Base URL derived from `window.location.origin` at render time so it Just Works on whatever IP/hostname the kiosk is reached by
+- [ ] Placement TBD in design pass — candidates: small persistent corner widget, behind a long-press on the header, or inside a "help" overlay. Pick one — don't crowd the panels
+- [ ] Verify QR resolves on iOS Camera and Android default camera
+
+#### Denser layout + idle auto-rotate
+- [ ] Tighten panel heights so more panels fit per page (target: ~3 stacked panels per page instead of the current 2). Verify on the actual Pi touchscreen resolution before locking the heights in
+- [ ] **Design call to settle first:** pure timed page-cycling is jarring if a viewer is mid-read. Recommended approach is to cycle only after N minutes of no touch input, pausing immediately when touched and resuming after another idle window. The denser layout above is the primary win; cycling is a fallback for content that still doesn't fit
+- [ ] If cycling stays: add page-indicator dots so a glance shows which page you're on
+- [ ] Admin settings: rotate interval, idle timeout before rotation starts, on/off toggle
+
+#### Night sleep mode
+- [ ] Admin settings: sleep start + end times (local time), on/off toggle, optional weekend override (e.g. later wake on Sat/Sun)
+- [ ] Frontend: during the sleep window, render a black (or near-black) screen showing only the current time; tap to wake temporarily, auto-resume sleep after a short idle window
+- [ ] Wake transition: fade the dashboard back in over ~400–600 ms rather than snapping — same fade when sleep starts. Easier on the eyes at 06:30 and at the night boundary
+- [ ] Backend: every worker (transport, weather, electricity, news) reads the sleep window from the `settings` table on each tick and skips fetching while asleep — same re-read-each-tick pattern existing settings use
+- [ ] Pi-side screen power: document a small systemd timer or cron job that calls `vcgencmd display_power 0/1` (or DPMS) at the sleep boundaries. Out of scope for the Node containers but referenced from `infra/setup-pi.sh` so forkers get it for free
+- [ ] Manual override in admin: a "force wake now" / "force sleep now" button so you can override the schedule without editing the window
+
+#### Polish & micro-interactions
+- [ ] Last-updated stamp on each panel (small muted text, e.g. "päivitetty 2 min sitten") so the viewer can tell at a glance whether data is fresh; integrates with the stale-data indicator Phase 13 introduces if both ship
+- [ ] Brief highlight pulse on a panel right after new data lands — subtle border/ring flash over ~300 ms. Behind an admin toggle (off by default) since opinions differ on whether it's helpful or noisy
+
+**Dependency:** Phase 8 (admin settings table + UI for the sleep window, rotate options, and the polish toggles). Detail dialogs, panel focus, and the QR widget have no dependency and can land independently.
 
 ---
 
@@ -328,10 +410,12 @@ Phase 1 (scaffolding)
     └── Phase 3 (workers)  ──┼── Phase 4 (frontend) ── Phase 5 (Docker) ── Phase 6 (polish)
 
 Phase 7 (UI refresh) ── Phase 8 (admin + LAN) ── Phase 10 (i18n pkg) ── Phase 11 (iCal)
-Phase 9  (electricity)     (independent of 7-14)
-Phase 12 (offline)         (independent — can land alongside any of 7-11)
-Phase 13 (hardening)       (anytime; natural fit before going public)
-Phase 14 (admin errors)    (depends on 8; ideally before 13)
+Phase 9  (electricity)     (independent of 7-16)
+Phase 12 (news)            (independent — ideally after 10 so strings land in @home-dashboard/i18n)
+Phase 13 (offline)         (independent — can land alongside any of 7-12)
+Phase 14 (hardening)       (anytime; natural fit before going public)
+Phase 15 (admin errors)    (depends on 8; ideally before 14)
+Phase 16 (kiosk UX)        (depends on 8 for sleep + rotate settings; detail dialogs + QR are independent)
 ```
 
 ### Key Decisions Made

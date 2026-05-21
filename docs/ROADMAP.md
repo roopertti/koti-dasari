@@ -113,8 +113,8 @@ Containerize everything, set up NGINX reverse proxy, and automate Raspberry Pi d
 #### Deployment Automation
 - [x] Write `infra/setup-pi.sh` (one-time Pi setup: install Docker + git, enable BuildKit; run from inside the already-cloned repo)
 - [x] Document git-based deploy flow (clone → `git pull` → `docker compose up -d --build`) in `ARCHITECTURE.md`
-- [ ] Test deploy to Raspberry Pi
-- [ ] Verify health check and all services running on Pi
+- [x] Test deploy to Raspberry Pi
+- [x] Verify health check and all services running on Pi
 
 **Dependency:** Phases 2, 3, 4
 
@@ -208,7 +208,7 @@ Add a dashboard panel showing the Finnish electricity spot price (Nord Pool FI a
 - [x] Add Dockerfile for `apps/worker-electricity/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
 - [x] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
 
-**Dependency:** None — independent of Phases 8, 10–16.
+**Dependency:** None — independent of Phases 8, 10–19.
 
 ---
 
@@ -222,6 +222,8 @@ Tech-debt cleanup: consolidate scattered locale, timezone, and date logic into o
 - Date predicates (`diffDays`, `horizonFromOffset`, `eventStartDate`, `dueDateAsDate`) are buried inside `TodaySoonRail.tsx` instead of being reusable
 - `packages/shared/utils/date.ts` only holds Digitransit-specific helpers; nothing dashboard-side imports from there
 - `t()` is dashboard-only — Phase 8's admin UI will have introduced its own duplicated translation usage by the time this lands
+
+**Why now:** establishes the reuse pattern for future formatters and translations across new panels/apps — not just dedup of what exists today. Acknowledged as somewhat premature DRY; the value is making "where date/locale code goes" obvious before more code needs it.
 
 ### Tasks
 - [ ] Create `packages/i18n/` workspace package, following the `packages/shared/` shape
@@ -245,17 +247,21 @@ Tech-debt cleanup: consolidate scattered locale, timezone, and date logic into o
 
 Bring real calendars onto the dashboard via public iCal URLs (read-only).
 
+**v1 scope:** Finnish public holidays + flag days only. Source URL TBD (candidates: Google's `fi.finnish#holiday@group.v.calendar.google.com`, or a community-maintained `.ics`). One feed, hardcoded or env-configured for v1; the settings-page configurability is a v2 stretch goal — don't let it block the holiday data landing.
+
+**Cadence note:** holiday/flag-day feeds change ~once a year. A daily fetch (or even on-startup-only) is sufficient — do **not** copy the 5–30 minute cadence of `worker-weather`, `worker-transport`, `worker-electricity`. The scheduling/`graceful-shutdown` shape of those workers is reusable; the *frequency* is not.
+
 ### Tasks
 
-- [ ] Scaffold `apps/worker-calendar/` mirroring the existing worker pattern
-- [ ] Fetch and parse one or more public `.ics` URLs on a configurable schedule
-- [ ] Add a `source` discriminator on `calendar_events` (`'manual' | 'ical:<url>'`)
+- [ ] Scaffold `apps/worker-calendar/` mirroring the existing worker pattern (TypeScript, runtime validation, graceful shutdown) — but with a daily-or-slower tick, not the high-frequency cadence of other workers
+- [ ] Fetch and parse a single public `.ics` URL (Finnish holidays v1); pick a small parser (`ical.js` or `node-ical`) — do not hand-roll iCal parsing
+- [ ] Add a `source` discriminator on `calendar_events` (`'manual' | 'ical:<feed-id>'`)
 - [ ] Persist iCal events idempotently keyed by their iCal `UID`
-- [ ] Render synced events visually distinct from manual ones in the dashboard
+- [ ] Render synced events visually distinct from manual ones in the dashboard (e.g. a small flag icon for the holiday feed)
 - [ ] Hide synced events from edit/delete in the admin UI (admin only manages `manual` events)
-- [ ] Configure iCal URLs via the Phase 8 settings page (no auth — public published feeds only)
+- [ ] **v2 (defer):** make iCal feed URLs configurable via the Phase 8 settings page so additional public feeds can be added without a redeploy
 
-**Dependency:** Phase 8 (settings UI for configuring URLs; admin scoping needs the source discriminator)
+**Dependency:** Phase 8 (admin scoping needs the source discriminator). Settings-page configurability is part of v2, not v1.
 
 ---
 
@@ -281,7 +287,7 @@ Add a dashboard panel showing Yle's main news headlines (pääuutiset). Yle (Fin
 - [ ] Integration tests for the route
 
 #### Frontend
-- [ ] Build `News` panel: list of N most recent headlines, each showing title + relative time (e.g. "12 min sitten"). Titles wrap to 2 lines max with ellipsis; tapping a row is a no-op (kiosk has no browser nav)
+- [ ] Build `News` panel: list of N most recent headlines, each showing title + relative time (e.g. "12 min sitten"). Titles wrap to 2 lines max with ellipsis. Tapping a row opens the QR-code modal described below
 - [ ] If headline is clicked, there should appear a QR code that can be read with mobile phone to open the actual article on mobile device. QR code can be displayed on a closable modal
 - [ ] Empty / loading / error states via the existing `PanelMessage` primitive
 - [ ] Add Finnish + English translations for panel labels and the "no news available" empty state
@@ -291,27 +297,15 @@ Add a dashboard panel showing Yle's main news headlines (pääuutiset). Yle (Fin
 - [ ] Add Dockerfile for `apps/worker-news/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
 - [ ] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
 
-**Dependency:** None — independent of Phases 7–11 and 13–15. Best landed after Phase 10 (i18n package) so the new panel's strings go straight into `@home-dashboard/i18n` instead of being migrated later.
+**Dependency:** None — independent of Phases 7–11 and 13–19. Best landed after Phase 10 (i18n package) so the new panel's strings go straight into `@home-dashboard/i18n` instead of being migrated later.
 
 ---
 
-## Phase 13: Offline Resilience
-
-Keep the kiosk readable during network blips instead of going blank.
-
-### Tasks
-
-- [ ] Persist React Query cache to `localStorage` (or IndexedDB) so reloads show last-known data
-- [ ] Add a service worker that caches the SPA shell + static assets
-- [ ] Visual stale-data indicator on each panel when the latest fetch failed but cached data is shown
-
-**Dependency:** None (parallel to Phases 7-12)
-
----
-
-## Phase 14: Hardening & Public Release
+## Phase 13: Hardening & Public Release
 
 Lock supply chain, add scanning, and prep the repo for going public.
+
+**Public release is a confirmed goal** (decided 2026-05-21) — this is not aspirational. Forkers should be able to clone, set a few env vars, and run.
 
 ### Tasks
 
@@ -334,7 +328,7 @@ Lock supply chain, add scanning, and prep the repo for going public.
 
 ---
 
-## Phase 15: Error Handling & User Feedback (Admin)
+## Phase 14: Error Handling & User Feedback (Admin)
 
 Smaller polish phase. Surface mutation failures to the admin operator (Phase 6 deliberately skipped toasts on the kiosk; the admin UI has a human reading the screen). Also tighten a few places where errors are currently swallowed.
 
@@ -348,17 +342,34 @@ Smaller polish phase. Surface mutation failures to the admin operator (Phase 6 d
 - [ ] Add a separate error boundary at the admin route so an admin crash doesn't take down the kiosk SPA
 - [ ] Playwright: assert a toast appears when a mutation fails (mock the API to 500)
 
-**Dependency:** Phase 8 (admin UI exists). Best landed before Phase 14 so forkers see polished admin UX out of the box. Can stack with Phase 10 (i18n) — the error-code map naturally lives in the new `@home-dashboard/i18n` package if Phase 10 has shipped.
+**Dependency:** Phase 8 (admin UI exists). Best landed before Phase 13 so forkers see polished admin UX out of the box. Can stack with Phase 10 (i18n) — the error-code map naturally lives in the new `@home-dashboard/i18n` package if Phase 10 has shipped.
 
 ---
 
-## Phase 16: Kiosk UX & Interactions
+## Phase 15: Night Sleep Mode
 
-Improve how the kiosk surfaces and arranges content. Today only the currently-paged panels are visible at once, event/todo descriptions are nowhere to be seen, the screen burns power overnight while no one is looking, and first-time admin access requires typing the LAN address into a phone. This phase fixes that.
+The kiosk screen burns power overnight while no one's watching. Sleep it on a schedule, wake it on touch or at the configured hour. Highest-value bullet from the original (oversized) Phase 16 — split out so it can ship on its own.
 
 ### Tasks
 
-#### Event & todo detail dialogs
+- [ ] Admin settings: sleep start + end times (local time), on/off toggle, optional weekend override (e.g. later wake on Sat/Sun)
+- [ ] Frontend: during the sleep window, render a black (or near-black) screen showing only the current time; tap to wake temporarily, auto-resume sleep after a short idle window
+- [ ] Wake transition: fade the dashboard back in over ~400–600 ms rather than snapping — same fade when sleep starts. Easier on the eyes at 06:30 and at the night boundary
+- [ ] Backend: every worker (transport, weather, electricity, news) reads the sleep window from the `settings` table on each tick and skips fetching while asleep — same re-read-each-tick pattern existing settings use
+- [ ] Pi-side screen power: document a small systemd timer or cron job that calls `vcgencmd display_power 0/1` (or DPMS) at the sleep boundaries. Out of scope for the Node containers but referenced from `infra/setup-pi.sh` so forkers get it for free
+- [ ] Manual override in admin: a "force wake now" / "force sleep now" button so you can override the schedule without editing the window
+
+**Dependency:** Phase 8 (admin settings table + UI for the sleep window).
+
+---
+
+## Phase 16: Event & Todo Detail Dialogs + Panel Focus
+
+Nice-to-have kiosk UX. Today event/todo descriptions and full panel detail are nowhere to be seen — tapping a row or a panel should reveal more. Bundled because they compose (expanded calendar panel → tap event → detail modal).
+
+### Tasks
+
+#### Detail dialogs
 - [ ] Tap on a todo row or calendar event opens a kiosk-friendly modal showing the full description plus available metadata (priority, due date, location, all-day flag, etc.)
 - [ ] Read-only on the kiosk — no edit affordances; admin UI remains the only editor
 - [ ] Touch-dismissible (tap outside or a large close button); modal sized for kiosk touch targets
@@ -369,32 +380,51 @@ Improve how the kiosk surfaces and arranges content. Today only the currently-pa
 - [ ] Tap outside / a close affordance returns to the normal layout; doubles as a "see more" alternative to swiping between pages
 - [ ] Should compose with the detail dialog above (e.g. inside the expanded calendar panel, tapping an event still opens its detail dialog)
 
-#### Mobile admin discovery via QR
+**Dependency:** None — independent UI work.
+
+---
+
+## Phase 17: Mobile Admin Discovery via QR
+
+Nice-to-have. Today first-time admin access requires typing the LAN address into a phone. A small QR code on the kiosk would skip that.
+
+### Tasks
+
 - [ ] Render small QR codes on the kiosk linking to `/admin/`, `/admin/events/new`, and `/admin/todos/new` — scan from a phone and skip typing the LAN address
 - [ ] Use a tiny build-time-friendly QR lib (e.g. `qrcode-generator`); no network calls
 - [ ] Base URL derived from `window.location.origin` at render time so it Just Works on whatever IP/hostname the kiosk is reached by
 - [ ] Placement TBD in design pass — candidates: small persistent corner widget, behind a long-press on the header, or inside a "help" overlay. Pick one — don't crowd the panels
 - [ ] Verify QR resolves on iOS Camera and Android default camera
 
-#### Denser layout + idle auto-rotate
+**Dependency:** None.
+
+---
+
+## Phase 18: Denser Layout + Idle Auto-Rotate
+
+Nice-to-have. Today only the currently-paged panels are visible at once. Tighter layout fits more, and idle-driven cycling stops the kiosk from getting stuck on the same page indefinitely.
+
+### Tasks
+
 - [ ] Tighten panel heights so more panels fit per page (target: ~3 stacked panels per page instead of the current 2). Verify on the actual Pi touchscreen resolution before locking the heights in
 - [ ] **Design call to settle first:** pure timed page-cycling is jarring if a viewer is mid-read. Recommended approach is to cycle only after N minutes of no touch input, pausing immediately when touched and resuming after another idle window. The denser layout above is the primary win; cycling is a fallback for content that still doesn't fit
 - [ ] If cycling stays: add page-indicator dots so a glance shows which page you're on
 - [ ] Admin settings: rotate interval, idle timeout before rotation starts, on/off toggle
 
-#### Night sleep mode
-- [ ] Admin settings: sleep start + end times (local time), on/off toggle, optional weekend override (e.g. later wake on Sat/Sun)
-- [ ] Frontend: during the sleep window, render a black (or near-black) screen showing only the current time; tap to wake temporarily, auto-resume sleep after a short idle window
-- [ ] Wake transition: fade the dashboard back in over ~400–600 ms rather than snapping — same fade when sleep starts. Easier on the eyes at 06:30 and at the night boundary
-- [ ] Backend: every worker (transport, weather, electricity, news) reads the sleep window from the `settings` table on each tick and skips fetching while asleep — same re-read-each-tick pattern existing settings use
-- [ ] Pi-side screen power: document a small systemd timer or cron job that calls `vcgencmd display_power 0/1` (or DPMS) at the sleep boundaries. Out of scope for the Node containers but referenced from `infra/setup-pi.sh` so forkers get it for free
-- [ ] Manual override in admin: a "force wake now" / "force sleep now" button so you can override the schedule without editing the window
+**Dependency:** Phase 8 (admin settings for the rotate options).
 
-#### Polish & micro-interactions
-- [ ] Last-updated stamp on each panel (small muted text, e.g. "päivitetty 2 min sitten") so the viewer can tell at a glance whether data is fresh; integrates with the stale-data indicator Phase 13 introduces if both ship
+---
+
+## Phase 19: Polish & Micro-Interactions
+
+Nice-to-have. Small touches that signal freshness and motion to the viewer. Lowest-priority of the Phase 16 split — ship only after the higher-value phases land.
+
+### Tasks
+
+- [ ] Last-updated stamp on each panel (small muted text, e.g. "päivitetty 2 min sitten") so the viewer can tell at a glance whether data is fresh
 - [ ] Brief highlight pulse on a panel right after new data lands — subtle border/ring flash over ~300 ms. Behind an admin toggle (off by default) since opinions differ on whether it's helpful or noisy
 
-**Dependency:** Phase 8 (admin settings table + UI for the sleep window, rotate options, and the polish toggles). Detail dialogs, panel focus, and the QR widget have no dependency and can land independently.
+**Dependency:** Phase 8 (admin toggle for the highlight pulse).
 
 ---
 
@@ -409,14 +439,21 @@ Phase 1 (scaffolding)
     ├── Phase 2 (API)     ──┐
     └── Phase 3 (workers)  ──┼── Phase 4 (frontend) ── Phase 5 (Docker) ── Phase 6 (polish)
 
-Phase 7 (UI refresh) ── Phase 8 (admin + LAN) ── Phase 10 (i18n pkg) ── Phase 11 (iCal)
-Phase 9  (electricity)     (independent of 7-16)
-Phase 12 (news)            (independent — ideally after 10 so strings land in @home-dashboard/i18n)
-Phase 13 (offline)         (independent — can land alongside any of 7-12)
-Phase 14 (hardening)       (anytime; natural fit before going public)
-Phase 15 (admin errors)    (depends on 8; ideally before 14)
-Phase 16 (kiosk UX)        (depends on 8 for sleep + rotate settings; detail dialogs + QR are independent)
+Phase 7  (UI refresh) ── Phase 8 (admin + LAN) ── Phase 10 (i18n pkg) ── Phase 11 (iCal)
+Phase 9  (electricity)         (independent of 7+)
+Phase 12 (news)                (independent — ideally after 10 so strings land in @home-dashboard/i18n)
+Phase 13 (hardening + public)  (anytime; natural fit before going public)
+Phase 14 (admin errors)        (depends on 8; ideally before 13)
+Phase 15 (night sleep mode)    (depends on 8; highest-value of the kiosk-UX split)
+Phase 16 (detail dialogs +     (independent; nice-to-have)
+         panel focus)
+Phase 17 (mobile admin QR)     (independent; nice-to-have)
+Phase 18 (denser layout +      (depends on 8; nice-to-have)
+         auto-rotate)
+Phase 19 (polish)              (depends on 8; lowest priority)
 ```
+
+**Suggested next-up order** based on user-value (not numbering): **11 (iCal — real calendar data)** → **15 (night sleep mode)** → **13 (hardening + public)** → **10 (i18n pkg)** → everything else as appetite allows. Phase 12 (news) is real but lower-value than iCal; Phases 16–19 are explicitly nice-to-have.
 
 ### Key Decisions Made
 

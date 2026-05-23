@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import '../types.js';
 import { mapTodoRow } from '../mapping.js';
 
+const WRITE_RATE_LIMIT = { max: 60, timeWindow: '1 minute' } as const;
+
 export async function todosRoutes(app: FastifyInstance) {
   app.get<{
     Querystring: { completed?: string; priority?: string; limit?: string };
@@ -34,6 +36,8 @@ export async function todosRoutes(app: FastifyInstance) {
   }>(
     '/todos',
     {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
       schema: {
         body: {
           type: 'object',
@@ -71,6 +75,8 @@ export async function todosRoutes(app: FastifyInstance) {
   }>(
     '/todos/reorder',
     {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
       schema: {
         body: {
           type: 'object',
@@ -135,6 +141,8 @@ export async function todosRoutes(app: FastifyInstance) {
   }>(
     '/todos/:id',
     {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
       schema: {
         body: {
           type: 'object',
@@ -213,15 +221,22 @@ export async function todosRoutes(app: FastifyInstance) {
     return { data: mapTodoRow(row) };
   });
 
-  app.delete<{ Params: { id: string } }>('/todos/:id', async (request, reply) => {
-    const result = await app.db
-      .deleteFrom('todos')
-      .where('id', '=', request.params.id)
-      .executeTakeFirst();
+  app.delete<{ Params: { id: string } }>(
+    '/todos/:id',
+    {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
+    },
+    async (request, reply) => {
+      const result = await app.db
+        .deleteFrom('todos')
+        .where('id', '=', request.params.id)
+        .executeTakeFirst();
 
-    if (result.numDeletedRows === 0n) {
-      return reply.status(404).send({ error: { message: 'Todo not found', code: 'NOT_FOUND' } });
-    }
-    return reply.status(204).send();
-  });
+      if (result.numDeletedRows === 0n) {
+        return reply.status(404).send({ error: { message: 'Todo not found', code: 'NOT_FOUND' } });
+      }
+      return reply.status(204).send();
+    },
+  );
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestApp, newSessionKey } from './helpers.js';
+import { createAdminTestApp, createTestApp, newSessionKey } from './helpers.js';
 
 describe('API key gate (/api/*)', () => {
   let app: Awaited<ReturnType<typeof createTestApp>>['app'];
@@ -260,5 +260,100 @@ describe('Admin disabled', () => {
     });
     expect(res.statusCode).toBe(503);
     expect(res.json().error.code).toBe('ADMIN_DISABLED');
+  });
+
+  it('returns 503 on admin-gated mutations (POST /api/todos)', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/todos',
+      payload: { title: 'cannot create' },
+    });
+    expect(res.statusCode).toBe(503);
+    expect(res.json().error.code).toBe('ADMIN_DISABLED');
+  });
+
+  it('returns 503 on admin-gated mutations (DELETE /api/calendar/events/:id)', async () => {
+    const res = await app.inject({
+      method: 'DELETE',
+      url: '/api/calendar/events/anything',
+    });
+    expect(res.statusCode).toBe(503);
+    expect(res.json().error.code).toBe('ADMIN_DISABLED');
+  });
+
+  it('still allows todo toggle (kiosk-only mutation)', async () => {
+    // Create a todo directly via DB-bypass would be cleanest; here we just
+    // confirm the route reaches its 404 path (no admin gate in the way).
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/todos/nonexistent/toggle',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});
+
+describe('Admin-gated mutations (admin enabled)', () => {
+  let app: Awaited<ReturnType<typeof createAdminTestApp>>['app'];
+  let db: Awaited<ReturnType<typeof createAdminTestApp>>['db'];
+  let cookieHeader: string;
+
+  beforeEach(async () => {
+    ({ app, db, cookieHeader } = await createAdminTestApp({
+      auth: { apiKeys: ['kiosk-secret'] },
+    }));
+  });
+
+  afterEach(async () => {
+    await app.close();
+    await db.destroy();
+  });
+
+  it('rejects POST /api/todos with valid api key but no admin cookie', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/todos',
+      headers: { 'x-api-key': 'kiosk-secret' },
+      payload: { title: 'attempted by kiosk' },
+    });
+    expect(res.statusCode).toBe(401);
+    expect(res.json().error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('rejects PUT /api/calendar/events/:id with no admin cookie', async () => {
+    const res = await app.inject({
+      method: 'PUT',
+      url: '/api/calendar/events/anything',
+      headers: { 'x-api-key': 'kiosk-secret' },
+      payload: { title: 'attempted' },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('accepts POST /api/todos with admin cookie + api key', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/todos',
+      headers: { 'x-api-key': 'kiosk-secret', cookie: cookieHeader },
+      payload: { title: 'admin-authored' },
+    });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it('allows PATCH /api/todos/:id/toggle with just the api key (no admin cookie)', async () => {
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/todos',
+      headers: { 'x-api-key': 'kiosk-secret', cookie: cookieHeader },
+      payload: { title: 'toggle target' },
+    });
+    const { id } = created.json().data;
+
+    const toggled = await app.inject({
+      method: 'PATCH',
+      url: `/api/todos/${id}/toggle`,
+      headers: { 'x-api-key': 'kiosk-secret' },
+    });
+    expect(toggled.statusCode).toBe(200);
+    expect(toggled.json().data.completed).toBe(true);
   });
 });

@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestApp } from './helpers.js';
+import { createAdminTestApp } from './helpers.js';
 
 describe('Calendar Events API', () => {
-  let app: Awaited<ReturnType<typeof createTestApp>>['app'];
-  let db: Awaited<ReturnType<typeof createTestApp>>['db'];
+  let app: Awaited<ReturnType<typeof createAdminTestApp>>['app'];
+  let db: Awaited<ReturnType<typeof createAdminTestApp>>['db'];
+  let cookieHeader: string;
 
   beforeEach(async () => {
-    ({ app, db } = await createTestApp());
+    ({ app, db, cookieHeader } = await createAdminTestApp());
   });
 
   afterEach(async () => {
@@ -29,6 +30,7 @@ describe('Calendar Events API', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: validEvent,
       });
 
@@ -44,6 +46,7 @@ describe('Calendar Events API', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: { ...validEvent, title: '' },
       });
 
@@ -55,6 +58,7 @@ describe('Calendar Events API', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: { ...validEvent, endTime: '2026-04-15T08:00:00Z' },
       });
 
@@ -72,17 +76,28 @@ describe('Calendar Events API', () => {
     });
 
     it('returns created events', async () => {
-      await app.inject({ method: 'POST', url: '/api/calendar/events', payload: validEvent });
+      await app.inject({
+        method: 'POST',
+        url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
+        payload: validEvent,
+      });
 
       const res = await app.inject({ method: 'GET', url: '/api/calendar/events' });
       expect(res.json().data).toHaveLength(1);
     });
 
     it('filters by date range', async () => {
-      await app.inject({ method: 'POST', url: '/api/calendar/events', payload: validEvent });
       await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
+        payload: validEvent,
+      });
+      await app.inject({
+        method: 'POST',
+        url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: {
           ...validEvent,
           startTime: '2026-05-01T09:00:00Z',
@@ -103,6 +118,7 @@ describe('Calendar Events API', () => {
       const created = await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: validEvent,
       });
       const { id } = created.json().data;
@@ -123,6 +139,7 @@ describe('Calendar Events API', () => {
       const created = await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: validEvent,
       });
       const { id } = created.json().data;
@@ -130,6 +147,7 @@ describe('Calendar Events API', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/api/calendar/events/${id}`,
+        headers: { cookie: cookieHeader },
         payload: { title: 'Updated' },
       });
 
@@ -141,6 +159,7 @@ describe('Calendar Events API', () => {
       const res = await app.inject({
         method: 'PUT',
         url: '/api/calendar/events/nonexistent',
+        headers: { cookie: cookieHeader },
         payload: { title: 'Updated' },
       });
       expect(res.statusCode).toBe(404);
@@ -152,11 +171,16 @@ describe('Calendar Events API', () => {
       const created = await app.inject({
         method: 'POST',
         url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
         payload: validEvent,
       });
       const { id } = created.json().data;
 
-      const res = await app.inject({ method: 'DELETE', url: `/api/calendar/events/${id}` });
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/api/calendar/events/${id}`,
+        headers: { cookie: cookieHeader },
+      });
       expect(res.statusCode).toBe(204);
 
       const get = await app.inject({ method: 'GET', url: `/api/calendar/events/${id}` });
@@ -164,7 +188,11 @@ describe('Calendar Events API', () => {
     });
 
     it('returns 404 for nonexistent id', async () => {
-      const res = await app.inject({ method: 'DELETE', url: '/api/calendar/events/nonexistent' });
+      const res = await app.inject({
+        method: 'DELETE',
+        url: '/api/calendar/events/nonexistent',
+        headers: { cookie: cookieHeader },
+      });
       expect(res.statusCode).toBe(404);
     });
   });

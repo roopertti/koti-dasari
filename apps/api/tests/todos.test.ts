@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestApp } from './helpers.js';
+import { createAdminTestApp } from './helpers.js';
 
 describe('Todos API', () => {
-  let app: Awaited<ReturnType<typeof createTestApp>>['app'];
-  let db: Awaited<ReturnType<typeof createTestApp>>['db'];
+  let app: Awaited<ReturnType<typeof createAdminTestApp>>['app'];
+  let db: Awaited<ReturnType<typeof createAdminTestApp>>['db'];
+  let cookieHeader: string;
 
   beforeEach(async () => {
-    ({ app, db } = await createTestApp());
+    ({ app, db, cookieHeader } = await createAdminTestApp());
   });
 
   afterEach(async () => {
@@ -23,7 +24,12 @@ describe('Todos API', () => {
 
   describe('POST /api/todos', () => {
     it('creates a todo and returns 201', async () => {
-      const res = await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        headers: { cookie: cookieHeader },
+        payload: validTodo,
+      });
 
       expect(res.statusCode).toBe(201);
       const { data } = res.json();
@@ -37,6 +43,7 @@ describe('Todos API', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/api/todos',
+        headers: { cookie: cookieHeader },
         payload: { title: 'Simple task' },
       });
 
@@ -48,6 +55,7 @@ describe('Todos API', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/api/todos',
+        headers: { cookie: cookieHeader },
         payload: { title: '' },
       });
 
@@ -64,10 +72,16 @@ describe('Todos API', () => {
     });
 
     it('filters by completed status', async () => {
-      await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
+      await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        headers: { cookie: cookieHeader },
+        payload: validTodo,
+      });
       const created = await app.inject({
         method: 'POST',
         url: '/api/todos',
+        headers: { cookie: cookieHeader },
         payload: { title: 'Done task' },
       });
       const { id } = created.json().data;
@@ -81,10 +95,16 @@ describe('Todos API', () => {
     });
 
     it('filters by priority', async () => {
-      await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
       await app.inject({
         method: 'POST',
         url: '/api/todos',
+        headers: { cookie: cookieHeader },
+        payload: validTodo,
+      });
+      await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        headers: { cookie: cookieHeader },
         payload: { title: 'Low task', priority: 'low' },
       });
 
@@ -96,7 +116,12 @@ describe('Todos API', () => {
 
   describe('PATCH /api/todos/:id/toggle', () => {
     it('toggles completion status', async () => {
-      const created = await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
+      const created = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        headers: { cookie: cookieHeader },
+        payload: validTodo,
+      });
       const { id } = created.json().data;
 
       const toggled = await app.inject({ method: 'PATCH', url: `/api/todos/${id}/toggle` });
@@ -114,12 +139,18 @@ describe('Todos API', () => {
 
   describe('PUT /api/todos/:id', () => {
     it('updates a todo and returns the new fields', async () => {
-      const created = await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
+      const created = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        headers: { cookie: cookieHeader },
+        payload: validTodo,
+      });
       const { id } = created.json().data;
 
       const res = await app.inject({
         method: 'PUT',
         url: `/api/todos/${id}`,
+        headers: { cookie: cookieHeader },
         payload: { title: 'Updated', priority: 'low', dueDate: null },
       });
 
@@ -134,6 +165,7 @@ describe('Todos API', () => {
       const res = await app.inject({
         method: 'PUT',
         url: '/api/todos/nonexistent',
+        headers: { cookie: cookieHeader },
         payload: { title: 'Updated' },
       });
       expect(res.statusCode).toBe(404);
@@ -145,17 +177,20 @@ describe('Todos API', () => {
       const first = await app.inject({
         method: 'POST',
         url: '/api/todos',
+        headers: { cookie: cookieHeader },
         payload: { title: 'First' },
       });
       const second = await app.inject({
         method: 'POST',
         url: '/api/todos',
+        headers: { cookie: cookieHeader },
         payload: { title: 'Second' },
       });
 
       const res = await app.inject({
         method: 'PUT',
         url: '/api/todos/reorder',
+        headers: { cookie: cookieHeader },
         payload: {
           items: [
             { id: first.json().data.id, sortOrder: 1 },
@@ -174,15 +209,28 @@ describe('Todos API', () => {
 
   describe('DELETE /api/todos/:id', () => {
     it('deletes a todo and returns 204', async () => {
-      const created = await app.inject({ method: 'POST', url: '/api/todos', payload: validTodo });
+      const created = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        headers: { cookie: cookieHeader },
+        payload: validTodo,
+      });
       const { id } = created.json().data;
 
-      const res = await app.inject({ method: 'DELETE', url: `/api/todos/${id}` });
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/api/todos/${id}`,
+        headers: { cookie: cookieHeader },
+      });
       expect(res.statusCode).toBe(204);
     });
 
     it('returns 404 for nonexistent id', async () => {
-      const res = await app.inject({ method: 'DELETE', url: '/api/todos/nonexistent' });
+      const res = await app.inject({
+        method: 'DELETE',
+        url: '/api/todos/nonexistent',
+        headers: { cookie: cookieHeader },
+      });
       expect(res.statusCode).toBe(404);
     });
   });

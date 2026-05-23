@@ -33,8 +33,13 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
 
   if (!pin || !sessionKey) {
     app.log.warn(
-      '[auth] Admin disabled — set ADMIN_PIN and ADMIN_SESSION_KEY to enable. /api/admin/* will return 503.',
+      '[auth] Admin disabled — set ADMIN_PIN and ADMIN_SESSION_KEY to enable. /api/admin/* will return 503 and admin-gated mutations on /api/* will also return 503.',
     );
+    app.decorate('requireAdmin', async (_request: FastifyRequest, reply: FastifyReply) => {
+      return reply
+        .status(503)
+        .send({ error: { message: 'Admin is not configured', code: 'ADMIN_DISABLED' } });
+    });
     app.all('/api/admin/*', async (_request, reply) => {
       return reply
         .status(503)
@@ -61,6 +66,8 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
       return reply.status(401).send({ error: { message: 'Login required', code: 'UNAUTHORIZED' } });
     }
   }
+
+  app.decorate('requireAdmin', requireAdmin);
 
   app.post<{ Body: { pin: string } }>(
     '/api/admin/login',

@@ -59,6 +59,12 @@ export async function buildApp(options: AppOptions) {
     timeWindow: '1 minute',
   });
 
+  // Order matters: adminSessionPlugin installs app.requireAdmin, which the
+  // calendar/todos route plugins reference at registration time via
+  // `preHandler: app.requireAdmin`. Registering the routes before
+  // adminSessionPlugin would throw at boot ("preHandler is undefined"), not
+  // silently bypass the gate — but the dependency is implicit, so keep it
+  // deliberate.
   await app.register(apiKeyPlugin, { keys: auth.apiKeys });
   await app.register(adminSessionPlugin, {
     pin: auth.adminPin,

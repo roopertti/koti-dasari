@@ -279,11 +279,13 @@ Two separate long-running services that fetch external data and persist it to SQ
 
 ## Authentication Strategy
 
-Three layers, each opt-in via env:
+Two tiers gating the API, plus the LAN boundary. Each is opt-in via env:
 
 1. **API key gate (`/api/*`)** — Fastify pre-handler validates an `x-api-key` header against a comma-separated `API_KEYS` env. Empty/unset disables the gate (dev / first-boot). The kiosk's own nginx injects `KIOSK_API_KEY` on every `/api/` proxy via `proxy_set_header x-api-key …`, so the dashboard SPA never sees the key and a remote client can't impersonate the kiosk. `/api/health` and `/api/admin/*` are exempt from the key check.
-2. **Admin session cookie (`/api/admin/*`)** — `@fastify/secure-session` issues a signed cookie after `POST /api/admin/login { pin }`. Other admin routes (`GET /api/admin/session`, `GET|PUT /api/admin/settings`) require the cookie. The PIN comes from `ADMIN_PIN`; the cookie is signed with `ADMIN_SESSION_KEY` (32 random bytes as hex). If either is unset, all admin routes return `503 ADMIN_DISABLED`.
+2. **Admin session cookie (kiosk's destructive surface)** — `@fastify/secure-session` issues a signed cookie after `POST /api/admin/login { pin }`. The cookie is required by `GET|PUT /api/admin/settings` *and* by every destructive event/todo mutation (`POST|PUT|DELETE /api/calendar/events`, `POST|PUT|DELETE /api/todos`, `PUT /api/todos/reorder`). Reads on every panel and the single kiosk-needed write (`PATCH /api/todos/:id/toggle`) require only the API key. The PIN comes from `ADMIN_PIN`; the cookie is signed with `ADMIN_SESSION_KEY` (32 random bytes as hex). If either is unset, both `/api/admin/*` and the cookie-gated mutations return `503 ADMIN_DISABLED` — i.e. with admin disabled, the API becomes effectively read-only (toggle is the only writable surface).
 3. **Same-origin nginx + LAN** — there is no public ingress. The Pi is reachable on its LAN address only.
+
+The two-tier split exists so a leaked kiosk key (which lives in container env on the same Pi as the API) can't be used to wipe events or todos — destruction requires the human PIN flow from a browser. The admin SPA, served by the same nginx that injects the API key, automatically carries both the cookie (after login) and the key (same-origin), so admin mutations Just Work in the UI.
 
 ### Adding a second client (e.g., another Pi)
 
@@ -300,6 +302,8 @@ docker compose up -d nginx
 ```
 
 Rotating: replace the entry in `API_KEYS`, restart the api, redeploy that client's nginx with the new value. Revocation: drop the entry; `api` rejects with 401 on next request.
+
+Out of the box, a second client gets reads on every panel plus the todo-toggle write. To create/edit/delete events or todos from that client, a human still has to log in via `POST /api/admin/login` from a browser — there is intentionally no API-key bypass for destructive operations.
 
 ## Docker Architecture
 

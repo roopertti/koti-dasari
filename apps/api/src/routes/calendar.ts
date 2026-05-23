@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import '../types.js';
 import { mapEventRow } from '../mapping.js';
 
+const WRITE_RATE_LIMIT = { max: 60, timeWindow: '1 minute' } as const;
+
 export async function calendarRoutes(app: FastifyInstance) {
   app.get<{
     Querystring: { from?: string; to?: string; limit?: string };
@@ -49,6 +51,8 @@ export async function calendarRoutes(app: FastifyInstance) {
   }>(
     '/calendar/events',
     {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
       schema: {
         body: {
           type: 'object',
@@ -110,6 +114,8 @@ export async function calendarRoutes(app: FastifyInstance) {
   }>(
     '/calendar/events/:id',
     {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
       schema: {
         body: {
           type: 'object',
@@ -188,17 +194,24 @@ export async function calendarRoutes(app: FastifyInstance) {
     },
   );
 
-  app.delete<{ Params: { id: string } }>('/calendar/events/:id', async (request, reply) => {
-    const result = await app.db
-      .deleteFrom('calendar_events')
-      .where('id', '=', request.params.id)
-      .executeTakeFirst();
+  app.delete<{ Params: { id: string } }>(
+    '/calendar/events/:id',
+    {
+      preHandler: app.requireAdmin,
+      config: { rateLimit: WRITE_RATE_LIMIT },
+    },
+    async (request, reply) => {
+      const result = await app.db
+        .deleteFrom('calendar_events')
+        .where('id', '=', request.params.id)
+        .executeTakeFirst();
 
-    if (result.numDeletedRows === 0n) {
-      return reply.status(404).send({
-        error: { message: 'Calendar event not found', code: 'NOT_FOUND' },
-      });
-    }
-    return reply.status(204).send();
-  });
+      if (result.numDeletedRows === 0n) {
+        return reply.status(404).send({
+          error: { message: 'Calendar event not found', code: 'NOT_FOUND' },
+        });
+      }
+      return reply.status(204).send();
+    },
+  );
 }

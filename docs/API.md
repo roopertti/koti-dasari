@@ -11,7 +11,9 @@ http://<raspberry-pi-ip>:3001
 Two opt-in layers (see `docs/ARCHITECTURE.md#authentication-strategy`):
 
 1. **API key (`x-api-key` header)** required on all `/api/*` when `API_KEYS` env is non-empty. Exempt: `/api/health`, `/api/admin/*`. The kiosk's nginx injects `KIOSK_API_KEY` automatically; remote clients must send the header themselves.
-2. **Admin session cookie** required on `/api/admin/settings` (and any future admin endpoint). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
+2. **Admin session cookie** required on `/api/admin/settings` and on all destructive event/todo mutations (see the per-endpoint "Requires admin session cookie" notes below). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
+
+Reads (`GET`) on calendar, todos, transport, weather, and electricity require only the API key. The single mutation the kiosk needs — `PATCH /api/todos/:id/toggle` — also requires only the API key. Everything else that writes goes through the admin cookie.
 
 ## Common Response Format
 
@@ -73,7 +75,7 @@ Get a single calendar event.
 
 #### `POST /api/calendar/events`
 
-Create a new calendar event.
+Create a new calendar event. **Requires admin session cookie.**
 
 **Request Body:**
 ```json
@@ -97,7 +99,7 @@ Create a new calendar event.
 
 #### `PUT /api/calendar/events/:id`
 
-Update a calendar event.
+Update a calendar event. **Requires admin session cookie.**
 
 **Request Body:** Same as POST (all fields optional except those being changed).
 
@@ -105,7 +107,7 @@ Update a calendar event.
 
 #### `DELETE /api/calendar/events/:id`
 
-Delete a calendar event.
+Delete a calendar event. **Requires admin session cookie.**
 
 **Response:** `204 No Content` | `404 Not Found`
 
@@ -151,7 +153,7 @@ Get a single todo.
 
 #### `POST /api/todos`
 
-Create a new todo.
+Create a new todo. **Requires admin session cookie.**
 
 **Request Body:**
 ```json
@@ -171,19 +173,19 @@ Create a new todo.
 
 #### `PUT /api/todos/:id`
 
-Update a todo.
+Update a todo. **Requires admin session cookie.**
 
 **Response:** `200 OK` | `404 Not Found`
 
 #### `PATCH /api/todos/:id/toggle`
 
-Toggle todo completion status.
+Toggle todo completion status. This is the one mutation the kiosk performs, so it requires only the API key (no admin cookie).
 
 **Response:** `200 OK` | `404 Not Found`
 
 #### `PUT /api/todos/reorder`
 
-Update sort order for multiple todos.
+Update sort order for multiple todos. **Requires admin session cookie.**
 
 **Request Body:**
 ```json
@@ -199,7 +201,7 @@ Update sort order for multiple todos.
 
 #### `DELETE /api/todos/:id`
 
-Delete a todo.
+Delete a todo. **Requires admin session cookie.**
 
 **Response:** `204 No Content` | `404 Not Found`
 

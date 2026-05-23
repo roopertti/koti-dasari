@@ -16,10 +16,13 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
       --filter @home-dashboard/api... \
       --filter './packages/tsconfig'
 
-COPY packages ./packages
+COPY packages/db ./packages/db
+COPY packages/shared ./packages/shared
+COPY packages/tsconfig ./packages/tsconfig
 COPY apps/api ./apps/api
 
-RUN pnpm --filter './packages/*' build \
+RUN pnpm --filter @home-dashboard/db build \
+ && pnpm --filter @home-dashboard/shared build \
  && pnpm --filter @home-dashboard/api build \
  && pnpm --filter @home-dashboard/api deploy --legacy --prod /prod/api
 

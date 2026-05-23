@@ -1,17 +1,12 @@
+import { dateMediumTimeShort, t } from '@home-dashboard/i18n';
 import type { CalendarEvent } from '@home-dashboard/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteCalendarEvent, listCalendarEvents } from '../../../api/calendar.js';
-import { LOCALE, t } from '../../../i18n/t.js';
 import { Button } from '../../common/Button/Button.js';
 import { ListRow } from '../primitives/ListRow/ListRow.js';
 import { Notice } from '../primitives/Notice/Notice.js';
 import { Section } from '../primitives/Section/Section.js';
 import { EVENTS_KEY, invalidateEverywhere } from './queries.js';
-
-const eventListFormatter = new Intl.DateTimeFormat(LOCALE, {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
 
 interface EventsListProps {
   onEdit: (event: CalendarEvent) => void;
@@ -46,7 +41,7 @@ export function EventsList({ onEdit }: EventsListProps) {
             <>
               {event.allDay
                 ? t('admin.events.list.allDay')
-                : `${eventListFormatter.format(new Date(event.startTime))} — ${eventListFormatter.format(
+                : `${dateMediumTimeShort.format(new Date(event.startTime))} — ${dateMediumTimeShort.format(
                     new Date(event.endTime),
                   )}`}
               {event.location ? ` · ${event.location}` : ''}

@@ -1,12 +1,7 @@
+import { hourShort } from '@home-dashboard/i18n';
 import type { WeatherHourly } from '@home-dashboard/shared';
-import { LOCALE } from '../../../i18n/t.js';
 import { wmoInfo } from '../wmo.js';
 import * as styles from './WeatherForecast.css.js';
-
-const hourFormatter = new Intl.DateTimeFormat(LOCALE, {
-  hour: '2-digit',
-  hour12: false,
-});
 
 interface WeatherForecastProps {
   hours: WeatherHourly[];
@@ -20,7 +15,7 @@ export function WeatherForecast({ hours, limit }: WeatherForecastProps) {
         const info = wmoInfo(h.weatherCode);
         return (
           <li key={h.forecastTime} className={styles.hour}>
-            <div className={styles.time}>{hourFormatter.format(new Date(h.forecastTime))}</div>
+            <div className={styles.time}>{hourShort.format(new Date(h.forecastTime))}</div>
             <div className={styles.icon} role="img" aria-label={info.label}>
               <info.Icon size="1em" strokeWidth={1.75} />
             </div>

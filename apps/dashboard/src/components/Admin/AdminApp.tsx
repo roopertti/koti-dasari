@@ -1,6 +1,6 @@
+import { t } from '@home-dashboard/i18n';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAdminSession } from '../../hooks/useAdminSession.js';
-import { t } from '../../i18n/t.js';
 import { FullScreenMessage } from '../common/FullScreenMessage/FullScreenMessage.js';
 import { AdminLayout } from './AdminLayout.js';
 import { EventsPage } from './Events/EventsPage.js';

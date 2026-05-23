@@ -1,4 +1,4 @@
-import { t } from '../../../i18n/t.js';
+import { t } from '@home-dashboard/i18n';
 import * as styles from './Pagination.css.js';
 
 interface PaginationProps {

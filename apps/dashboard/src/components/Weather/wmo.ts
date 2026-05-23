@@ -1,3 +1,4 @@
+import { t } from '@home-dashboard/i18n';
 import {
   Cloud,
   CloudDrizzle,
@@ -11,7 +12,6 @@ import {
   Snowflake,
   Sun,
 } from 'lucide-react';
-import { t } from '../../i18n/t.js';
 
 export interface WmoInfo {
   label: string;

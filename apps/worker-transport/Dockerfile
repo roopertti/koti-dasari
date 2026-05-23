@@ -8,6 +8,7 @@ WORKDIR /repo
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 COPY packages/db/package.json ./packages/db/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY apps/worker-transport/package.json ./apps/worker-transport/
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
@@ -16,10 +17,12 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
       --filter './packages/tsconfig'
 
 COPY packages/db ./packages/db
+COPY packages/i18n ./packages/i18n
 COPY packages/tsconfig ./packages/tsconfig
 COPY apps/worker-transport ./apps/worker-transport
 
 RUN pnpm --filter @home-dashboard/db build \
+ && pnpm --filter @home-dashboard/i18n build \
  && pnpm --filter @home-dashboard/worker-transport build \
  && pnpm --filter @home-dashboard/worker-transport deploy --legacy --prod /prod/worker
 

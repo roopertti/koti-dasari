@@ -1,5 +1,5 @@
+import { t } from '@home-dashboard/i18n';
 import type { WeatherCurrent as WeatherCurrentData } from '@home-dashboard/shared';
-import { t } from '../../../i18n/t.js';
 import { Stat, StatList } from '../../common/Stat/Stat.js';
 import { wmoInfo } from '../wmo.js';
 import * as styles from './WeatherCurrent.css.js';

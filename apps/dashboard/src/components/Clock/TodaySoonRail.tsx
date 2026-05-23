@@ -1,14 +1,21 @@
+import {
+  diffDays,
+  type Horizon,
+  horizonFromOffset,
+  parseEventStart,
+  parseLocalDate,
+  t,
+  timeHm,
+  weekdayShort,
+} from '@home-dashboard/i18n';
 import type { CalendarEvent, Todo } from '@home-dashboard/shared';
 import { CalendarDays, ListTodo, type LucideIcon } from 'lucide-react';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents.js';
 import { useTodos } from '../../hooks/useTodos.js';
-import { LOCALE, t } from '../../i18n/t.js';
 import * as styles from './TodaySoonRail.css.js';
 
 const VISIBLE = 4;
-const SOON_DAYS = 7;
 
-type Horizon = 'overdue' | 'today' | 'tomorrow' | 'thisWeek';
 type Kind = 'event' | 'todo';
 
 interface RailItem {
@@ -32,52 +39,9 @@ const KIND_LABEL_KEYS: Record<Kind, string> = {
 
 const HORIZON_ORDER: Horizon[] = ['overdue', 'today', 'tomorrow', 'thisWeek'];
 
-const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
-const weekdayFormatter = new Intl.DateTimeFormat(LOCALE, {
-  weekday: 'short',
-});
-
-function diffDays(target: Date, base: Date): number {
-  const a = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
-  const b = new Date(base.getFullYear(), base.getMonth(), base.getDate()).getTime();
-  return Math.round((a - b) / 86_400_000);
-}
-
-function horizonFromOffset(daysFromToday: number): Horizon | null {
-  if (daysFromToday < 0) {
-    return 'overdue';
-  }
-  if (daysFromToday === 0) {
-    return 'today';
-  }
-  if (daysFromToday === 1) {
-    return 'tomorrow';
-  }
-  if (daysFromToday <= SOON_DAYS) {
-    return 'thisWeek';
-  }
-  return null;
-}
-
-function eventStartDate(event: CalendarEvent): Date {
-  return event.allDay
-    ? new Date(`${event.startTime.slice(0, 10)}T00:00:00`)
-    : new Date(event.startTime);
-}
-
-function dueDateAsDate(dueDate: string): Date {
-  // dueDate is stored as YYYY-MM-DD; parse as local midnight.
-  return new Date(`${dueDate.slice(0, 10)}T00:00:00`);
-}
-
 function buildEventItems(events: CalendarEvent[], now: Date): RailItem[] {
   return events.flatMap((event) => {
-    const start = eventStartDate(event);
+    const start = parseEventStart(event);
     const offset = diffDays(start, now);
     // Only surface events from today onwards; past events are pruned.
     if (offset < 0) {
@@ -89,7 +53,7 @@ function buildEventItems(events: CalendarEvent[], now: Date): RailItem[] {
     }
     const when = event.allDay
       ? t('panel.calendar.allDay')
-      : `${weekdayFormatter.format(start)} · ${timeFormatter.format(start)}`;
+      : `${weekdayShort.format(start)} · ${timeHm.format(start)}`;
     return [
       {
         key: `event-${event.id}`,
@@ -108,14 +72,13 @@ function buildTodoItems(todos: Todo[], now: Date): RailItem[] {
     if (todo.completed || !todo.dueDate) {
       return [];
     }
-    const due = dueDateAsDate(todo.dueDate);
+    const due = parseLocalDate(todo.dueDate);
     const offset = diffDays(due, now);
     const horizon = horizonFromOffset(offset);
     if (!horizon) {
       return [];
     }
-    const when =
-      horizon === 'overdue' || horizon === 'thisWeek' ? weekdayFormatter.format(due) : '';
+    const when = horizon === 'overdue' || horizon === 'thisWeek' ? weekdayShort.format(due) : '';
     return [
       {
         key: `todo-${todo.id}`,

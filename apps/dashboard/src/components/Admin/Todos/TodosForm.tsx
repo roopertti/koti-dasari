@@ -1,8 +1,8 @@
+import { t } from '@home-dashboard/i18n';
 import type { CreateTodoInput, Todo, TodoPriority } from '@home-dashboard/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { createTodo, updateTodo } from '../../../api/todos.js';
-import { t } from '../../../i18n/t.js';
 import { Button } from '../../common/Button/Button.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';

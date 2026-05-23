@@ -1,11 +1,6 @@
-import { LOCALE, t } from '../../../i18n/t.js';
+import { hourShort, t } from '@home-dashboard/i18n';
 import { classifyPrice, type PriceClass } from '../priceClass.js';
 import * as styles from './ElectricityChart.css.js';
-
-const hourFormatter = new Intl.DateTimeFormat(LOCALE, {
-  hour: '2-digit',
-  hour12: false,
-});
 
 const VIEWBOX_WIDTH = 600;
 const VIEWBOX_HEIGHT = 180;
@@ -137,7 +132,7 @@ export function ElectricityChart({
       key: `label-${entry.hourStart}`,
       x: barCenterX(index),
       y: VIEWBOX_HEIGHT - 8,
-      text: hourFormatter.format(new Date(entry.hourStart)),
+      text: hourShort.format(new Date(entry.hourStart)),
     };
   }
 

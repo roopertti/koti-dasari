@@ -1,7 +1,7 @@
+import { t } from '@home-dashboard/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { type AdminSettings, updateAdminSettings } from '../../../api/admin.js';
-import { t } from '../../../i18n/t.js';
 import { Button } from '../../common/Button/Button.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';

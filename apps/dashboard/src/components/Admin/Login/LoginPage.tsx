@@ -1,6 +1,6 @@
+import { t } from '@home-dashboard/i18n';
 import { type FormEvent, useState } from 'react';
 import { useAdminLogin } from '../../../hooks/useAdminSession.js';
-import { t } from '../../../i18n/t.js';
 import { Button } from '../../common/Button/Button.js';
 import { Heading } from '../../common/Heading/Heading.js';
 import { Field } from '../primitives/Field/Field.js';

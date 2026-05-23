@@ -1,8 +1,8 @@
+import { t } from '@home-dashboard/i18n';
 import type { Todo } from '@home-dashboard/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toggleTodo } from '../../api/todos.js';
 import { useTodos } from '../../hooks/useTodos.js';
-import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';

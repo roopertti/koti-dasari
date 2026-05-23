@@ -1,5 +1,5 @@
+import { t } from '@home-dashboard/i18n';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { t } from '../../../i18n/t.js';
 import * as styles from './ErrorBoundary.css.js';
 
 interface Props {

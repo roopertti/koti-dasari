@@ -18,5 +18,3 @@ export type {
   VehicleType,
 } from './types/transport.js';
 export type { WeatherCurrent, WeatherHourly } from './types/weather.js';
-
-export { departureToDate, formatDepartureTime } from './utils/date.js';

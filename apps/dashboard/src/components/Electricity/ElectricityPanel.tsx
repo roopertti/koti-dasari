@@ -1,7 +1,7 @@
+import { helsinkiDayKey, t } from '@home-dashboard/i18n';
 import type { ElectricityPrice } from '@home-dashboard/shared';
 import { useQuery } from '@tanstack/react-query';
 import { getElectricityPrices } from '../../api/electricity.js';
-import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Text } from '../common/Text/Text.js';
@@ -15,19 +15,12 @@ const CHEAP_THRESHOLD_CENTS = 5;
 const EXPENSIVE_THRESHOLD_CENTS = 15;
 const THRESHOLDS = { cheap: CHEAP_THRESHOLD_CENTS, expensive: EXPENSIVE_THRESHOLD_CENTS };
 
-const helsinkiDateFmt = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Europe/Helsinki',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
-
 function topOfHour(date: Date): number {
   return Math.floor(date.getTime() / 3_600_000) * 3_600_000;
 }
 
 function helsinkiDate(date: Date): string {
-  return helsinkiDateFmt.format(date);
+  return helsinkiDayKey.format(date);
 }
 
 interface PriceStats {

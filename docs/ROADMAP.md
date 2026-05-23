@@ -226,18 +226,18 @@ Tech-debt cleanup: consolidate scattered locale, timezone, and date logic into o
 **Why now:** establishes the reuse pattern for future formatters and translations across new panels/apps — not just dedup of what exists today. Acknowledged as somewhat premature DRY; the value is making "where date/locale code goes" obvious before more code needs it.
 
 ### Tasks
-- [ ] Create `packages/i18n/` workspace package, following the `packages/shared/` shape
-- [ ] Export `LOCALE` and `TIMEZONE = 'Europe/Helsinki'` constants
-- [ ] Move catalogs (`fi.json`, `en.json`) and `t()` from `apps/dashboard/src/i18n/` into the package
-- [ ] Export shared `Intl.DateTimeFormat` singletons (`timeHm`, `weekdayShort`, `dayHeader`, `hourShort`, etc.) named for their shape, not their callers
-- [ ] Extract `diffDays`, `horizonFromOffset`, `startOfLocalDay`, `parseLocalDate`, `parseEventStart` into the package
-- [ ] Move `departureToDate` / `formatDepartureTime` from `packages/shared/utils/date.ts` into `packages/i18n` and remove the now-empty file
-- [ ] Update dashboard components to import formatters and predicates from `@home-dashboard/i18n`
-- [ ] Migrate Phase 8 admin UI strings to the package as part of this work
-- [ ] Update `worker-transport/src/scheduler.ts` to import `TIMEZONE` instead of hardcoding it
-- [ ] Update API to depend on the package (at minimum `TIMEZONE`; enables localized error messages later)
-- [ ] Update `docs/ARCHITECTURE.md` (directory layout + tech section) for the new package
-- [ ] Verify Biome, typecheck, and tests still pass
+- [x] Create `packages/i18n/` workspace package, following the `packages/shared/` shape
+- [x] Export `LOCALE` and `TIMEZONE = 'Europe/Helsinki'` constants
+- [x] Move catalogs (`fi.json`, `en.json`) and `t()` from `apps/dashboard/src/i18n/` into the package
+- [x] Export shared `Intl.DateTimeFormat` singletons (`timeHm`, `hourShort`, `weekdayShort`, `dayHeader`, `dateLong`, `dueDateShort`, `dateMediumTimeShort`, `helsinkiDayKey`, `helsinkiHour24`) named for their shape, not their callers
+- [x] Extract `diffDays`, `horizonFromOffset`, `startOfLocalDay`, `parseLocalDate`, `parseEventStart` into the package
+- [x] Move `departureToDate` / `formatDepartureTime` from `packages/shared/utils/date.ts` into `packages/i18n` and remove the now-empty file
+- [x] Update dashboard components to import formatters and predicates from `@home-dashboard/i18n` (also covers Phase 8 admin UI — its strings already went through `t()` and now resolve via the package)
+- [x] Update `worker-transport/src/scheduler.ts` to import `TIMEZONE` instead of hardcoding it. _Also pulled `worker-electricity/src/scheduler.ts` into the cleanup: it had its own local `HELSINKI` constant + ad-hoc `Intl.DateTimeFormat` for the publish-window hour, now both replaced by the shared `TIMEZONE` constant and the `helsinkiHour24` singleton._
+- [x] Update `docs/ARCHITECTURE.md` (directory layout + tech section) for the new package
+- [x] Verify Biome, typecheck, and tests still pass
+
+**Skipped:** Adding `@home-dashboard/i18n` as a dependency of the API. The API currently has zero date formatting and zero locale-sensitive code paths, so the dependency would be dead weight. Reintroduce when the first real use (e.g. localized error messages) lands.
 
 **Dependency:** Phase 8 (admin UI) — landing this after Phase 8 means admin gets migrated as part of the consolidation rather than refactored twice.
 

@@ -1,6 +1,6 @@
+import { t } from '@home-dashboard/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { listAllDepartures } from '../../api/transport.js';
-import { t } from '../../i18n/t.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';

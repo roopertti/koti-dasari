@@ -1,4 +1,5 @@
 import { type DashboardSettings, type Database, resolveSettings } from '@home-dashboard/db';
+import { TIMEZONE } from '@home-dashboard/i18n';
 import type { Kysely } from 'kysely';
 import {
   type Departure,
@@ -147,7 +148,7 @@ async function cleanupStaleDepartures(db: Kysely<Database>) {
   // Digitransit times use Helsinki local time, so derive "today" and
   // seconds-since-midnight in the same timezone the data was recorded in.
   const now = new Date();
-  const helsinkiNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Helsinki' }));
+  const helsinkiNow = new Date(now.toLocaleString('en-US', { timeZone: TIMEZONE }));
   const year = helsinkiNow.getFullYear();
   const month = String(helsinkiNow.getMonth() + 1).padStart(2, '0');
   const day = String(helsinkiNow.getDate()).padStart(2, '0');

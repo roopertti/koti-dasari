@@ -1,6 +1,6 @@
+import { t } from '@home-dashboard/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { getAdminSettings } from '../../../api/admin.js';
-import { t } from '../../../i18n/t.js';
 import { Notice } from '../primitives/Notice/Notice.js';
 import { Section } from '../primitives/Section/Section.js';
 import { SETTINGS_KEY } from './queries.js';

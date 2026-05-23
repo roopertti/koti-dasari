@@ -1,0 +1,22 @@
+{
+  "name": "@home-dashboard/i18n",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc && cp src/*.json dist/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@home-dashboard/tsconfig": "workspace:*",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}

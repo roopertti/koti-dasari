@@ -1,7 +1,7 @@
+import { t } from '@home-dashboard/i18n';
 import { type ReactNode, useRef } from 'react';
 import { useActivePage } from '../../hooks/useActivePage.js';
 import { usePointerSwipe } from '../../hooks/usePointerSwipe.js';
-import { t } from '../../i18n/t.js';
 import { Pagination } from '../common/Pagination/Pagination.js';
 import * as styles from './DashboardLayout.css.js';
 

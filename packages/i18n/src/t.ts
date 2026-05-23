@@ -6,8 +6,6 @@ type Catalog = Record<string, string>;
 const primary = fi as Catalog;
 const fallback = en as Catalog;
 
-export const LOCALE = 'fi-FI';
-
 export function t(key: string, params?: Record<string, string | number>): string {
   const template = primary[key] ?? fallback[key] ?? key;
   if (!params) {

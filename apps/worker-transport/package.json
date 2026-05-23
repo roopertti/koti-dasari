@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@home-dashboard/db": "workspace:*",
+    "@home-dashboard/i18n": "workspace:*",
     "kysely": "0.29.1",
     "zod": "^4.4.3"
   },

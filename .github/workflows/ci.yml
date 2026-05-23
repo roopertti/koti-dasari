@@ -48,8 +48,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
-  test-api:
-    name: API Integration Tests
+  test:
+    name: Unit & Integration Tests
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
     steps:
@@ -61,7 +61,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter './packages/*' build
-      - run: pnpm --filter @home-dashboard/api test
+      - run: pnpm test
 
   test-e2e:
     name: E2E Tests

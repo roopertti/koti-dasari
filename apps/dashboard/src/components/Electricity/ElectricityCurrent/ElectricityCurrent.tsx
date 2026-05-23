@@ -1,4 +1,4 @@
-import { t } from '../../../i18n/t.js';
+import { t } from '@home-dashboard/i18n';
 import { Badge } from '../../common/Badge/Badge.js';
 import { Stat, StatList } from '../../common/Stat/Stat.js';
 import type { PriceClass } from '../priceClass.js';

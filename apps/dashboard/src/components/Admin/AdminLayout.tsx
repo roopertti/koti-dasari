@@ -1,6 +1,6 @@
+import { t } from '@home-dashboard/i18n';
 import type { ReactNode } from 'react';
 import { useAdminLogout } from '../../hooks/useAdminSession.js';
-import { t } from '../../i18n/t.js';
 import { Button } from '../common/Button/Button.js';
 import { Heading } from '../common/Heading/Heading.js';
 import * as styles from './AdminLayout.css.js';

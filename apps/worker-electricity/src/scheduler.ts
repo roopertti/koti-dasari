@@ -1,8 +1,8 @@
 import type { Database } from '@home-dashboard/db';
+import { helsinkiHour24 } from '@home-dashboard/i18n';
 import type { Kysely } from 'kysely';
 import { type ElectricityPriceEntry, fetchElectricityPrices } from './porssisahko.js';
 
-const HELSINKI = 'Europe/Helsinki';
 const PUBLISH_WINDOW_INTERVAL_MS = 30 * 60_000;
 const DEFAULT_INTERVAL_MS = 60 * 60_000;
 const STALE_THRESHOLD_MS = 48 * 60 * 60_000;
@@ -58,12 +58,7 @@ export function startScheduler(config: ElectricitySchedulerConfig): () => void {
  * 13:00 and 16:00 local Helsinki time so the next-day chart updates promptly.
  */
 export function nextDelayMs(now: Date): number {
-  const hourStr = new Intl.DateTimeFormat('en-US', {
-    timeZone: HELSINKI,
-    hour: 'numeric',
-    hour12: false,
-  }).format(now);
-  const hour = Number.parseInt(hourStr, 10);
+  const hour = Number.parseInt(helsinkiHour24.format(now), 10);
   const inPublishWindow = hour >= 13 && hour < 16;
   return inPublishWindow ? PUBLISH_WINDOW_INTERVAL_MS : DEFAULT_INTERVAL_MS;
 }

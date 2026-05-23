@@ -1,19 +1,7 @@
+import { dayHeader, parseLocalDate, t, timeHm } from '@home-dashboard/i18n';
 import type { CalendarEvent } from '@home-dashboard/shared';
 import type { CSSProperties } from 'react';
-import { LOCALE, t } from '../../../i18n/t.js';
 import * as styles from './CalendarDayGroup.css.js';
-
-const dayHeaderFormatter = new Intl.DateTimeFormat(LOCALE, {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-});
-
-const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
 
 interface CalendarDayGroupProps {
   day: string;
@@ -27,9 +15,7 @@ function barStyle(color: string | null): CSSProperties | undefined {
 export function CalendarDayGroup({ day, events }: CalendarDayGroupProps) {
   return (
     <li>
-      <div className={styles.dayLabel}>
-        {dayHeaderFormatter.format(new Date(`${day}T00:00:00`))}
-      </div>
+      <div className={styles.dayLabel}>{dayHeader.format(parseLocalDate(day))}</div>
       <ul className={styles.dayEvents}>
         {events.map((event) => (
           <li key={event.id} className={styles.event}>
@@ -39,7 +25,7 @@ export function CalendarDayGroup({ day, events }: CalendarDayGroupProps) {
               <div className={styles.eventWhen}>
                 {event.allDay
                   ? t('panel.calendar.allDay')
-                  : `${timeFormatter.format(new Date(event.startTime))} – ${timeFormatter.format(new Date(event.endTime))}`}
+                  : `${timeHm.format(new Date(event.startTime))} – ${timeHm.format(new Date(event.endTime))}`}
                 {event.location ? <span> · {event.location}</span> : null}
               </div>
             </div>

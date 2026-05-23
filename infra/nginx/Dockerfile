@@ -8,6 +8,7 @@ WORKDIR /repo
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY apps/dashboard/package.json ./apps/dashboard/
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
@@ -16,10 +17,12 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
       --filter './packages/tsconfig'
 
 COPY packages/shared ./packages/shared
+COPY packages/i18n ./packages/i18n
 COPY packages/tsconfig ./packages/tsconfig
 COPY apps/dashboard ./apps/dashboard
 
 RUN pnpm --filter @home-dashboard/shared build \
+ && pnpm --filter @home-dashboard/i18n build \
  && pnpm --filter @home-dashboard/dashboard build
 
 FROM nginxinc/nginx-unprivileged:alpine AS runtime

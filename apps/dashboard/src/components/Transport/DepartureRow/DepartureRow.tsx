@@ -1,8 +1,7 @@
+import { departureToDate, t, timeHm } from '@home-dashboard/i18n';
 import type { TransportDeparture } from '@home-dashboard/shared';
-import { departureToDate } from '@home-dashboard/shared';
 import { Bus, Ship, TrainFront, TramFront } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
-import { LOCALE, t } from '../../../i18n/t.js';
 import { Badge } from '../../common/Badge/Badge.js';
 import { MetroMark } from '../../common/MetroMark/MetroMark.js';
 import * as styles from './DepartureRow.css.js';
@@ -16,12 +15,6 @@ const VEHICLE_ICONS: Record<TransportDeparture['vehicleType'], IconComponent> = 
   TRAIN: TrainFront,
   FERRY: Ship,
 };
-
-const timeFormatter = new Intl.DateTimeFormat(LOCALE, {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
 
 function formatMinutesAway(departure: TransportDeparture): {
   label: string;
@@ -40,7 +33,7 @@ function formatMinutesAway(departure: TransportDeparture): {
     return { label: t('panel.transport.minAway', { minutes }), soon: minutes <= 3 };
   }
 
-  return { label: timeFormatter.format(when), soon: false };
+  return { label: timeHm.format(when), soon: false };
 }
 
 interface DepartureRowProps {

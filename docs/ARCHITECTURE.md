@@ -139,17 +139,29 @@ home-dashboard/
     │       └── migrations/
     │           ├── 001_initial.ts
     │           └── ...
-    ├── shared/                     # Shared types and utilities
+    ├── shared/                     # Shared TypeScript types (calendar, todo, transport, weather, electricity, api)
     │   ├── package.json
     │   ├── tsconfig.json
     │   └── src/
     │       ├── types/
+    │       │   ├── api.ts
     │       │   ├── calendar.ts
+    │       │   ├── electricity.ts
     │       │   ├── todo.ts
     │       │   ├── transport.ts
     │       │   └── weather.ts
-    │       └── utils/
-    │           └── date.ts
+    │       └── index.ts
+    ├── i18n/                       # Locale, timezone, date formatters & predicates, t() catalog
+    │   ├── package.json
+    │   ├── tsconfig.json
+    │   └── src/
+    │       ├── locale.ts           # LOCALE='fi-FI' + TIMEZONE='Europe/Helsinki'
+    │       ├── formatters.ts       # Intl.DateTimeFormat singletons (timeHm, dayHeader, hourShort, …)
+    │       ├── dates.ts            # diffDays, horizonFromOffset, parseLocalDate, parseEventStart, departureToDate, …
+    │       ├── t.ts                # t(key, params) with FI primary + EN fallback
+    │       ├── fi.json
+    │       ├── en.json
+    │       └── index.ts
     └── tsconfig/                   # Shared TypeScript configs
         ├── package.json
         ├── base.json
@@ -228,7 +240,13 @@ Two separate long-running services that fetch external data and persist it to SQ
 
 #### @home-dashboard/shared
 - TypeScript type definitions shared between frontend and backend
-- Utility functions (date formatting, etc.)
+
+#### @home-dashboard/i18n
+- `LOCALE` (`fi-FI`) + `TIMEZONE` (`Europe/Helsinki`) constants — the single source of truth for both
+- Shape-named `Intl.DateTimeFormat` singletons (`timeHm`, `hourShort`, `weekdayShort`, `dayHeader`, `dateLong`, `dueDateShort`, `dateMediumTimeShort`, `helsinkiDayKey`, `helsinkiHour24`) so each format shape exists once instead of being re-instantiated per component
+- Local-day date predicates (`diffDays`, `horizonFromOffset`, `parseLocalDate`, `parseEventStart`, `startOfLocalDay`) plus the Digitransit-specific `departureToDate` / `formatDepartureTime`
+- The `t(key, params)` translator and the `fi.json` / `en.json` catalogs (FI primary, EN fallback)
+- Consumed by the dashboard SPA, `worker-transport`, and `worker-electricity`
 
 #### @home-dashboard/tsconfig
 - Base TypeScript configurations extended by all apps/packages

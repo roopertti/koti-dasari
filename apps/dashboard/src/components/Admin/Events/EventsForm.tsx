@@ -1,8 +1,8 @@
+import { t } from '@home-dashboard/i18n';
 import type { CalendarEvent, CreateCalendarEventInput } from '@home-dashboard/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { createCalendarEvent, updateCalendarEvent } from '../../../api/calendar.js';
-import { t } from '../../../i18n/t.js';
 import { Button } from '../../common/Button/Button.js';
 import { Checkbox } from '../primitives/Checkbox/Checkbox.js';
 import { Field } from '../primitives/Field/Field.js';

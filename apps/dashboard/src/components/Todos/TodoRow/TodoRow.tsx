@@ -1,5 +1,5 @@
+import { dueDateShort, parseLocalDate, t } from '@home-dashboard/i18n';
 import type { Todo } from '@home-dashboard/shared';
-import { LOCALE, t } from '../../../i18n/t.js';
 import { Button } from '../../common/Button/Button.js';
 import * as styles from './TodoRow.css.js';
 
@@ -9,13 +9,8 @@ interface TodoRowProps {
   onToggle: (todo: Todo) => void;
 }
 
-const dueDateFormatter = new Intl.DateTimeFormat(LOCALE, {
-  day: 'numeric',
-  month: 'short',
-});
-
 function formatDueDate(dueDate: string): string {
-  return dueDateFormatter.format(new Date(`${dueDate.slice(0, 10)}T00:00:00`));
+  return dueDateShort.format(parseLocalDate(dueDate));
 }
 
 export function TodoRow({ todo, pending, onToggle }: TodoRowProps) {

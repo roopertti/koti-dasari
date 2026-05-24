@@ -147,6 +147,15 @@ export async function calendarRoutes(app: FastifyInstance) {
         });
       }
 
+      if (existing.source !== 'manual') {
+        return reply.status(403).send({
+          error: {
+            message: 'Synced calendar events are read-only',
+            code: 'READ_ONLY_SOURCE',
+          },
+        });
+      }
+
       const effectiveStart = startTime ?? existing.start_time;
       const effectiveEnd = endTime ?? existing.end_time;
       if (new Date(effectiveEnd) <= new Date(effectiveStart)) {
@@ -201,16 +210,28 @@ export async function calendarRoutes(app: FastifyInstance) {
       config: { rateLimit: WRITE_RATE_LIMIT },
     },
     async (request, reply) => {
-      const result = await app.db
-        .deleteFrom('calendar_events')
+      const existing = await app.db
+        .selectFrom('calendar_events')
+        .select(['id', 'source'])
         .where('id', '=', request.params.id)
         .executeTakeFirst();
 
-      if (result.numDeletedRows === 0n) {
+      if (!existing) {
         return reply.status(404).send({
           error: { message: 'Calendar event not found', code: 'NOT_FOUND' },
         });
       }
+
+      if (existing.source !== 'manual') {
+        return reply.status(403).send({
+          error: {
+            message: 'Synced calendar events are read-only',
+            code: 'READ_ONLY_SOURCE',
+          },
+        });
+      }
+
+      await app.db.deleteFrom('calendar_events').where('id', '=', request.params.id).execute();
       return reply.status(204).send();
     },
   );

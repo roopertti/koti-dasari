@@ -105,6 +105,12 @@ export const title = style({
   minWidth: 0,
 });
 
+export const sourceFlag = style({
+  marginRight: vars.space.xs,
+  fontSize: '0.95em',
+  flexShrink: 0,
+});
+
 export const more = style({
   fontSize: '0.85rem',
   color: vars.color.fgMuted,

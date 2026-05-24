@@ -1,8 +1,12 @@
 export type { ApiError, ApiResponse, HealthResponse } from './types/api.js';
-export type {
-  CalendarEvent,
-  CreateCalendarEventInput,
-  UpdateCalendarEventInput,
+export {
+  type CalendarEvent,
+  type CalendarEventSource,
+  type CreateCalendarEventInput,
+  FINNISH_HOLIDAYS_SOURCE,
+  isFinnishHolidaysEvent,
+  isManualEvent,
+  type UpdateCalendarEventInput,
 } from './types/calendar.js';
 export type { ElectricityPrice } from './types/electricity.js';
 export type {

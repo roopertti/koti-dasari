@@ -36,6 +36,7 @@
   "panel.calendar.title": "Kalenteri",
   "panel.calendar.empty": "Ei tulevia tapahtumia",
   "panel.calendar.allDay": "Koko päivä",
+  "panel.calendar.sourceFlag.holidays": "Suomen yleinen pyhäpäivä",
 
   "panel.todos.title": "Tehtävät",
   "panel.todos.empty": "Ei tehtäviä",

@@ -38,6 +38,11 @@ export const eventTitle = style({
   fontWeight: 500,
 });
 
+export const sourceFlag = style({
+  marginRight: vars.space.xs,
+  fontSize: '0.95em',
+});
+
 export const eventWhen = style({
   fontSize: '0.85rem',
   color: vars.color.fgMuted,

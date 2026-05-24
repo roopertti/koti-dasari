@@ -60,12 +60,17 @@ List calendar events, optionally filtered by date range.
       "endTime": "2026-04-15T09:30:00Z",
       "allDay": false,
       "color": "#4285f4",
+      "source": "manual",
       "createdAt": "2026-04-10T12:00:00Z",
       "updatedAt": "2026-04-10T12:00:00Z"
     }
   ]
 }
 ```
+
+`source` is either `"manual"` (user-created via admin UI) or `"ical:<feed-id>"` (populated by `worker-calendar`, e.g. `"ical:finnish-holidays"`). Synced events are read-only — `PUT` and `DELETE` against them return `403 READ_ONLY_SOURCE`.
+
+The iCal `UID` used internally for idempotent upsert is **not** exposed on the API — it is implementation detail of `worker-calendar` and is stripped from all responses.
 
 #### `GET /api/calendar/events/:id`
 
@@ -437,6 +442,7 @@ Health check endpoint (no auth required).
 | HTTP Status | Code | Description |
 |-------------|------|-------------|
 | 400 | `VALIDATION_ERROR` | Invalid request body or params |
+| 403 | `READ_ONLY_SOURCE` | Mutation attempted on a synced (non-manual) resource |
 | 404 | `NOT_FOUND` | Resource not found |
 | 500 | `INTERNAL_ERROR` | Unexpected server error |
 

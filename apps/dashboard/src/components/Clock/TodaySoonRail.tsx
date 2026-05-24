@@ -8,7 +8,7 @@ import {
   timeHm,
   weekdayShort,
 } from '@home-dashboard/i18n';
-import type { CalendarEvent, Todo } from '@home-dashboard/shared';
+import { type CalendarEvent, isFinnishHolidaysEvent, type Todo } from '@home-dashboard/shared';
 import { CalendarDays, ListTodo, type LucideIcon } from 'lucide-react';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents.js';
 import { useTodos } from '../../hooks/useTodos.js';
@@ -25,6 +25,7 @@ interface RailItem {
   title: string;
   when: string;
   sortAt: number;
+  sourceFlag?: { emoji: string; labelKey: string };
 }
 
 const KIND_ICONS: Record<Kind, LucideIcon> = {
@@ -54,6 +55,9 @@ function buildEventItems(events: CalendarEvent[], now: Date): RailItem[] {
     const when = event.allDay
       ? t('panel.calendar.allDay')
       : `${weekdayShort.format(start)} · ${timeHm.format(start)}`;
+    const sourceFlag = isFinnishHolidaysEvent(event)
+      ? { emoji: '🇫🇮', labelKey: 'panel.calendar.sourceFlag.holidays' }
+      : undefined;
     return [
       {
         key: `event-${event.id}`,
@@ -62,6 +66,7 @@ function buildEventItems(events: CalendarEvent[], now: Date): RailItem[] {
         title: event.title,
         when,
         sortAt: start.getTime(),
+        sourceFlag,
       },
     ];
   });
@@ -145,7 +150,19 @@ export function TodaySoonRail() {
               </span>
               <span className={styles.horizon}>{t(`rail.heading.${item.horizon}`)}</span>
               {item.when && <span className={styles.when}>{item.when}</span>}
-              <span className={styles.title}>{item.title}</span>
+              <span className={styles.title}>
+                {item.sourceFlag ? (
+                  <span
+                    className={styles.sourceFlag}
+                    role="img"
+                    aria-label={t(item.sourceFlag.labelKey)}
+                    title={t(item.sourceFlag.labelKey)}
+                  >
+                    {item.sourceFlag.emoji}
+                  </span>
+                ) : null}
+                {item.title}
+              </span>
             </li>
           );
         })}

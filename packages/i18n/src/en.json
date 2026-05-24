@@ -36,6 +36,7 @@
   "panel.calendar.title": "Calendar",
   "panel.calendar.empty": "No upcoming events",
   "panel.calendar.allDay": "All day",
+  "panel.calendar.sourceFlag.holidays": "Finnish public holiday",
 
   "panel.todos.title": "Todos",
   "panel.todos.empty": "No todos",

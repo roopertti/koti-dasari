@@ -4,6 +4,7 @@ import * as initial from './migrations/001_initial.js';
 import * as dropReminders from './migrations/002_drop_reminders.js';
 import * as settings from './migrations/003_settings.js';
 import * as electricityPrices from './migrations/004_electricity_prices.js';
+import * as calendarSource from './migrations/005_calendar_source.js';
 import type { Database } from './types.js';
 
 const migrations: Record<string, Migration> = {
@@ -11,6 +12,7 @@ const migrations: Record<string, Migration> = {
   '002_drop_reminders': dropReminders,
   '003_settings': settings,
   '004_electricity_prices': electricityPrices,
+  '005_calendar_source': calendarSource,
 };
 
 class StaticMigrationProvider implements MigrationProvider {

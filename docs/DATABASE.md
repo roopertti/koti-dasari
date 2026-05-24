@@ -17,7 +17,7 @@ PRAGMA foreign_keys = ON;
 
 ### calendar_events
 
-Stores calendar events with start/end times and optional recurrence.
+Stores calendar events with start/end times. Each row carries a `source` discriminator so the admin UI can scope editing to user-created (`manual`) events and exclude synced feeds.
 
 ```sql
 CREATE TABLE calendar_events (
@@ -29,13 +29,23 @@ CREATE TABLE calendar_events (
   end_time      TEXT NOT NULL,  -- ISO 8601 datetime
   all_day       INTEGER NOT NULL DEFAULT 0,  -- boolean
   color         TEXT,           -- hex color for UI display
+  source        TEXT NOT NULL DEFAULT 'manual',  -- 'manual' | 'ical:<feed-id>'
+  ical_uid      TEXT,           -- iCal UID for idempotent upsert (synced rows only)
   created_at    TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX idx_calendar_events_start ON calendar_events(start_time);
 CREATE INDEX idx_calendar_events_end ON calendar_events(end_time);
+CREATE UNIQUE INDEX idx_calendar_events_source_uid
+  ON calendar_events(source, ical_uid) WHERE ical_uid IS NOT NULL;
 ```
+
+`source` values:
+- `manual` — user-created via the admin UI
+- `ical:<feed-id>` — populated by `worker-calendar` from an iCal feed; currently `ical:finnish-holidays` for the Google-published Finnish public holidays calendar
+
+Synced rows are write-protected by the API (`POST/PUT/DELETE /api/calendar/events` return `403 READ_ONLY_SOURCE` if the row's `source` is not `manual`).
 
 ### todos
 
@@ -223,6 +233,8 @@ interface CalendarEventTable {
   end_time: string;
   all_day: number;
   color: string | null;
+  source: Generated<string>;
+  ical_uid: string | null;
   created_at: Generated<string>;
   updated_at: Generated<string>;
 }
@@ -340,3 +352,8 @@ The API server runs migrations on startup before accepting requests. Workers wai
 - Worker fetches every 30 min between 13:00–16:00 Europe/Helsinki (next-day publish window), every 60 min otherwise
 - Rows are upserted by `hour_start` so a re-publish for the same hour overwrites
 - Rows older than 48 hours are dropped on each cycle
+
+### Calendar (synced iCal feeds)
+- `worker-calendar` fetches once on startup, then daily at 03:00 Europe/Helsinki — aligned with the nightly DB backup, matching the natural change cadence of holiday/flag-day feeds
+- Upserts keyed by `(source, ical_uid)`; future-dated rows whose UID disappears from a feed are removed in the same transaction
+- Rows with `source != 'manual'` whose `end_time` is older than 90 days are pruned each cycle

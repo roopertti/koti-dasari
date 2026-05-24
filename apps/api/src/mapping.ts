@@ -40,7 +40,8 @@ function mapBooleans<T extends Record<string, unknown>>(row: T, fields: (keyof T
 
 export function mapEventRow(row: Selectable<CalendarEventTable>) {
   const mapped = mapRow(row);
-  return mapBooleans(mapped, ['allDay']);
+  const { icalUid: _icalUid, ...rest } = mapped;
+  return mapBooleans(rest, ['allDay']);
 }
 
 export function mapTodoRow(row: Selectable<TodoTable>) {

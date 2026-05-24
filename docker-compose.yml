@@ -134,3 +134,24 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+
+  worker-calendar:
+    image: ghcr.io/roopertti/koti-dasari/worker-calendar:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/worker-calendar/Dockerfile
+    environment:
+      DATABASE_PATH: /data/dashboard.db
+    volumes:
+      - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

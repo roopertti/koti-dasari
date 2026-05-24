@@ -121,13 +121,21 @@ home-dashboard/
 │   │       ├── index.ts
 │   │       ├── open-meteo.ts       # Open-Meteo API client
 │   │       └── scheduler.ts
-│   └── worker-electricity/         # porssisahko.net spot price fetcher
+│   ├── worker-electricity/         # porssisahko.net spot price fetcher
+│   │   ├── package.json
+│   │   ├── Dockerfile
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       ├── index.ts
+│   │       ├── porssisahko.ts      # porssisahko.net API client
+│   │       └── scheduler.ts
+│   └── worker-calendar/            # iCal subscription fetcher (e.g. Finnish holidays)
 │       ├── package.json
 │       ├── Dockerfile
 │       ├── tsconfig.json
 │       └── src/
 │           ├── index.ts
-│           ├── porssisahko.ts      # porssisahko.net API client
+│           ├── ical.ts             # fetch + ical.js parsing
 │           └── scheduler.ts
 └── packages/
     ├── db/                         # Shared database package
@@ -228,6 +236,14 @@ Two separate long-running services that fetch external data and persist it to SQ
 - Stores hourly prices (today + tomorrow when published) in c/kWh including 25.5% VAT
 - Smart cadence: every 30 min between 13:00–16:00 Europe/Helsinki (next-day publish window), every 60 min otherwise
 - Drops rows older than 48 hours each cycle
+- Stores data in SQLite via the shared `@home-dashboard/db` package
+
+#### worker-calendar
+- Fetches public iCal feeds and writes parsed VEVENTs into `calendar_events` with `source='ical:<feed-id>'`
+- v1 ships one hardcoded feed: Finnish public holidays from Google's `fi.finnish#holiday@group.v.calendar.google.com` (`source='ical:finnish-holidays'`)
+- Parsed with `ical.js`; per-VEVENT runtime validation via Zod, malformed rows are logged and skipped
+- Idempotent upsert keyed by `(source, ical_uid)`; future-dated rows that disappear from the feed are removed in the same transaction
+- Runs once on startup, then daily at 03:00 Europe/Helsinki (same slot as the nightly DB backup)
 - Stores data in SQLite via the shared `@home-dashboard/db` package
 
 ### Shared Packages

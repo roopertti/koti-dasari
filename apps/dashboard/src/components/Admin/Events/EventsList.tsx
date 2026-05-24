@@ -1,5 +1,5 @@
 import { dateMediumTimeShort, t } from '@home-dashboard/i18n';
-import type { CalendarEvent } from '@home-dashboard/shared';
+import { type CalendarEvent, isManualEvent } from '@home-dashboard/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteCalendarEvent, listCalendarEvents } from '../../../api/calendar.js';
 import { Button } from '../../common/Button/Button.js';
@@ -27,13 +27,15 @@ export function EventsList({ onEdit }: EventsListProps) {
     },
   });
 
+  const manualEvents = events.data?.filter(isManualEvent);
+
   return (
     <Section title={t('admin.events.list.title')}>
       {events.isLoading ? <Notice tone="info">{t('admin.loading')}</Notice> : null}
-      {events.data && events.data.length === 0 ? (
+      {manualEvents && manualEvents.length === 0 ? (
         <Notice tone="empty">{t('admin.events.list.empty')}</Notice>
       ) : null}
-      {events.data?.map((event) => (
+      {manualEvents?.map((event) => (
         <ListRow
           key={event.id}
           title={event.title}

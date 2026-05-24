@@ -253,12 +253,12 @@ Bring real calendars onto the dashboard via public iCal URLs (read-only).
 
 ### Tasks
 
-- [ ] Scaffold `apps/worker-calendar/` mirroring the existing worker pattern (TypeScript, runtime validation, graceful shutdown) — but with a daily-or-slower tick, not the high-frequency cadence of other workers
-- [ ] Fetch and parse a single public `.ics` URL (Finnish holidays v1); pick a small parser (`ical.js` or `node-ical`) — do not hand-roll iCal parsing
-- [ ] Add a `source` discriminator on `calendar_events` (`'manual' | 'ical:<feed-id>'`)
-- [ ] Persist iCal events idempotently keyed by their iCal `UID`
-- [ ] Render synced events visually distinct from manual ones in the dashboard (e.g. a small flag icon for the holiday feed)
-- [ ] Hide synced events from edit/delete in the admin UI (admin only manages `manual` events)
+- [x] Scaffold `apps/worker-calendar/` mirroring the existing worker pattern (TypeScript, runtime validation, graceful shutdown) — daily tick at 03:00 Europe/Helsinki (same slot as the nightly DB backup), plus once on startup
+- [x] Fetch and parse Google's `fi.finnish#holiday@group.v.calendar.google.com` `.ics` with `ical.js` (Mozilla). Per-VEVENT validation via Zod
+- [x] Add migration `005_calendar_source` — `source TEXT NOT NULL DEFAULT 'manual'` and `ical_uid TEXT` on `calendar_events`, plus a unique partial index on `(source, ical_uid)` where `ical_uid IS NOT NULL`
+- [x] Persist iCal events idempotently keyed by `(source, ical_uid)`; in the same transaction, drop future-dated rows whose UID disappears from the feed. Past rows expire via the 90-day stale cleanup
+- [x] Render synced events visually distinct on the kiosk (FI flag prefix in `CalendarDayGroup` and in the `TodaySoonRail`)
+- [x] Hide synced events from `EventsList` in the admin UI — admin only manages `manual` events. Defense-in-depth: the API's `PUT`/`DELETE /api/calendar/events/:id` return `403 READ_ONLY_SOURCE` if the row's `source` is not `manual`
 - [ ] **v2 (defer):** make iCal feed URLs configurable via the Phase 8 settings page so additional public feeds can be added without a redeploy
 
 **Dependency:** Phase 8 (admin scoping needs the source discriminator). Settings-page configurability is part of v2, not v1.

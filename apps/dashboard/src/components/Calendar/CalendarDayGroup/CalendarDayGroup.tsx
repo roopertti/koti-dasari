@@ -1,5 +1,5 @@
 import { dayHeader, parseLocalDate, t, timeHm } from '@home-dashboard/i18n';
-import type { CalendarEvent } from '@home-dashboard/shared';
+import { type CalendarEvent, isFinnishHolidaysEvent } from '@home-dashboard/shared';
 import type { CSSProperties } from 'react';
 import * as styles from './CalendarDayGroup.css.js';
 
@@ -21,7 +21,19 @@ export function CalendarDayGroup({ day, events }: CalendarDayGroupProps) {
           <li key={event.id} className={styles.event}>
             <div className={styles.eventBar} style={barStyle(event.color)} aria-hidden="true" />
             <div>
-              <div className={styles.eventTitle}>{event.title}</div>
+              <div className={styles.eventTitle}>
+                {isFinnishHolidaysEvent(event) ? (
+                  <span
+                    className={styles.sourceFlag}
+                    role="img"
+                    aria-label={t('panel.calendar.sourceFlag.holidays')}
+                    title={t('panel.calendar.sourceFlag.holidays')}
+                  >
+                    🇫🇮
+                  </span>
+                ) : null}
+                {event.title}
+              </div>
               <div className={styles.eventWhen}>
                 {event.allDay
                   ? t('panel.calendar.allDay')

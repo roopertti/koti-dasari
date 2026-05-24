@@ -26,6 +26,8 @@ export interface CalendarEventTable {
   end_time: string;
   all_day: Generated<number>;
   color: string | null;
+  source: Generated<string>;
+  ical_uid: string | null;
   created_at: Generated<string>;
   updated_at: Generated<string>;
 }

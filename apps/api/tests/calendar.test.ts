@@ -113,6 +113,26 @@ describe('Calendar Events API', () => {
     });
   });
 
+  async function insertSyncedEvent(overrides: Partial<{ id: string; ical_uid: string }> = {}) {
+    const id = overrides.id ?? 'synced-1';
+    await db
+      .insertInto('calendar_events')
+      .values({
+        id,
+        title: 'Vappu',
+        description: null,
+        location: null,
+        start_time: '2026-05-01T00:00:00.000Z',
+        end_time: '2026-05-02T00:00:00.000Z',
+        all_day: 1,
+        color: null,
+        source: 'ical:finnish-holidays',
+        ical_uid: overrides.ical_uid ?? '20260501_bbb@google.com',
+      })
+      .execute();
+    return id;
+  }
+
   describe('GET /api/calendar/events/:id', () => {
     it('returns a single event', async () => {
       const created = await app.inject({
@@ -131,6 +151,32 @@ describe('Calendar Events API', () => {
     it('returns 404 for nonexistent id', async () => {
       const res = await app.inject({ method: 'GET', url: '/api/calendar/events/nonexistent' });
       expect(res.statusCode).toBe(404);
+    });
+
+    it('exposes source on responses but hides icalUid', async () => {
+      const id = await insertSyncedEvent();
+
+      const single = await app.inject({ method: 'GET', url: `/api/calendar/events/${id}` });
+      expect(single.statusCode).toBe(200);
+      const singleData = single.json().data;
+      expect(singleData.source).toBe('ical:finnish-holidays');
+      expect(singleData).not.toHaveProperty('icalUid');
+      expect(singleData).not.toHaveProperty('ical_uid');
+
+      const list = await app.inject({ method: 'GET', url: '/api/calendar/events' });
+      const [row] = list.json().data;
+      expect(row.source).toBe('ical:finnish-holidays');
+      expect(row).not.toHaveProperty('icalUid');
+    });
+
+    it('defaults source to "manual" for events created via POST', async () => {
+      const created = await app.inject({
+        method: 'POST',
+        url: '/api/calendar/events',
+        headers: { cookie: cookieHeader },
+        payload: validEvent,
+      });
+      expect(created.json().data.source).toBe('manual');
     });
   });
 
@@ -164,6 +210,24 @@ describe('Calendar Events API', () => {
       });
       expect(res.statusCode).toBe(404);
     });
+
+    it('returns 403 READ_ONLY_SOURCE when updating a synced event', async () => {
+      const id = await insertSyncedEvent();
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/api/calendar/events/${id}`,
+        headers: { cookie: cookieHeader },
+        payload: { title: 'Tampered' },
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.json().error.code).toBe('READ_ONLY_SOURCE');
+
+      // Row is untouched.
+      const after = await app.inject({ method: 'GET', url: `/api/calendar/events/${id}` });
+      expect(after.json().data.title).toBe('Vappu');
+    });
   });
 
   describe('DELETE /api/calendar/events/:id', () => {
@@ -194,6 +258,23 @@ describe('Calendar Events API', () => {
         headers: { cookie: cookieHeader },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    it('returns 403 READ_ONLY_SOURCE when deleting a synced event', async () => {
+      const id = await insertSyncedEvent();
+
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/api/calendar/events/${id}`,
+        headers: { cookie: cookieHeader },
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.json().error.code).toBe('READ_ONLY_SOURCE');
+
+      // Row is still present.
+      const after = await app.inject({ method: 'GET', url: `/api/calendar/events/${id}` });
+      expect(after.statusCode).toBe(200);
     });
   });
 });

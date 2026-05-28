@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import * as styles from './Heading.css.js';
 
-type Level = 'page' | 'section' | 'panel';
+type Level = 'page' | 'section' | 'panel' | 'dialog';
 
 interface HeadingProps {
   level: Level;

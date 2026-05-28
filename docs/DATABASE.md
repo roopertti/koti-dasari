@@ -168,6 +168,24 @@ CREATE TABLE electricity_prices (
 );
 ```
 
+### news_items
+
+Recent news headlines fetched from an RSS feed (currently Yle's `majorHeadlines` feed) by `worker-news`. One row per feed item, idempotent on `guid`.
+
+```sql
+CREATE TABLE news_items (
+  guid          TEXT PRIMARY KEY,        -- RSS <guid> (or <link> as fallback)
+  title         TEXT NOT NULL,
+  link          TEXT NOT NULL,           -- Canonical article URL (also QR target)
+  summary       TEXT,                    -- Plain text (HTML stripped at fetch time)
+  published_at  TEXT NOT NULL,           -- ISO 8601 datetime
+  source        TEXT NOT NULL DEFAULT 'yle',
+  fetched_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_news_items_published_at ON news_items(published_at);
+```
+
 ### settings
 
 Key/value store for admin-tunable runtime settings (home location, transport radius, worker fetch intervals). Each value is a stringified number; the API parses to typed fields. Empty rows fall back to env defaults at the worker.
@@ -215,6 +233,7 @@ export interface Database {
   weather_current: WeatherCurrentTable;
   weather_hourly: WeatherHourlyTable;
   electricity_prices: ElectricityPriceTable;
+  news_items: NewsItemTable;
   settings: SettingsTable;
 }
 
@@ -314,6 +333,16 @@ interface ElectricityPriceTable {
   price_cents_per_kwh: number;
   fetched_at: Generated<string>;
 }
+
+interface NewsItemTable {
+  guid: string;
+  title: string;
+  link: string;
+  summary: string | null;
+  published_at: string;
+  source: Generated<string>;
+  fetched_at: Generated<string>;
+}
 ```
 
 ## Migration Strategy
@@ -357,3 +386,8 @@ The API server runs migrations on startup before accepting requests. Workers wai
 - `worker-calendar` fetches once on startup, then daily at 03:00 Europe/Helsinki — aligned with the nightly DB backup, matching the natural change cadence of holiday/flag-day feeds
 - Upserts keyed by `(source, ical_uid)`; future-dated rows whose UID disappears from a feed are removed in the same transaction
 - Rows with `source != 'manual'` whose `end_time` is older than 90 days are pruned each cycle
+
+### News
+- `worker-news` fetches Yle's `majorHeadlines` RSS feed every ~15 minutes (`NEWS_INTERVAL_MS` env override)
+- HTML is stripped from `<description>` before persisting so the panel doesn't have to sanitize on every render
+- Upserts keyed by `guid`; rows older than 7 days are pruned each cycle

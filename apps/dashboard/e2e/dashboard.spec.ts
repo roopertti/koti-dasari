@@ -31,6 +31,7 @@ async function stubReads(page: Page, overrides: Record<string, unknown> = {}) {
     'weather/current': WEATHER_CURRENT,
     'weather/forecast': EMPTY,
     'electricity/prices': EMPTY,
+    news: EMPTY,
     ...overrides,
   };
   for (const [suffix, body] of Object.entries(responses)) {
@@ -291,6 +292,78 @@ test.describe('dashboard', () => {
     await page.goto('/');
 
     await expect(page.getByTestId('electricity-status-pill')).toContainText('Kallis');
+  });
+
+  test('news panel renders headlines from the news feed', async ({ page }) => {
+    const now = new Date();
+    const data = [
+      {
+        guid: 'yle-1',
+        title: 'Tärkeä uutinen',
+        link: 'https://yle.fi/a/1',
+        summary: null,
+        publishedAt: new Date(now.getTime() - 5 * 60_000).toISOString(),
+        source: 'yle',
+        fetchedAt: now.toISOString(),
+      },
+      {
+        guid: 'yle-2',
+        title: 'Toinen uutinen',
+        link: 'https://yle.fi/a/2',
+        summary: null,
+        publishedAt: new Date(now.getTime() - 2 * 3_600_000).toISOString(),
+        source: 'yle',
+        fetchedAt: now.toISOString(),
+      },
+    ];
+    await stubReads(page, { news: { data } });
+
+    await page.goto('/');
+
+    const panel = page.getByTestId('panel-news');
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText('Uutiset');
+    await expect(panel).toContainText('Tärkeä uutinen');
+    await expect(panel).toContainText('Toinen uutinen');
+    await expect(panel.getByTestId('news-list').locator('> li')).toHaveCount(2);
+  });
+
+  test('tapping a news headline opens a QR modal', async ({ page }) => {
+    const now = new Date();
+    await stubReads(page, {
+      news: {
+        data: [
+          {
+            guid: 'yle-1',
+            title: 'Avattava juttu',
+            link: 'https://yle.fi/a/open-me',
+            summary: null,
+            publishedAt: new Date(now.getTime() - 60_000).toISOString(),
+            source: 'yle',
+            fetchedAt: now.toISOString(),
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    const panel = page.getByTestId('panel-news');
+    await expect(panel).toBeVisible();
+    await panel.getByText('Avattava juttu').click();
+
+    const modal = page.getByTestId('news-qr-modal');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByTestId('news-qr-image')).toBeVisible();
+    await expect(modal).toContainText('Avattava juttu');
+  });
+
+  test('news panel shows empty state when no items are available', async ({ page }) => {
+    await stubReads(page);
+
+    await page.goto('/');
+
+    await expect(page.getByTestId('panel-news')).toContainText('Ei uutisia saatavilla');
   });
 
   test('electricity panel shows "tomorrow pending" note when only today is published', async ({

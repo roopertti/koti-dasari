@@ -155,3 +155,28 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+
+  worker-news:
+    image: ghcr.io/roopertti/koti-dasari/worker-news:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/worker-news/Dockerfile
+    environment:
+      DATABASE_PATH: /data/dashboard.db
+      # Override Yle's default major-headlines feed (e.g. for testing).
+      NEWS_FEED_URL: ${NEWS_FEED_URL:-}
+      # Default cadence is 15 min (900000 ms).
+      NEWS_INTERVAL_MS: ${NEWS_INTERVAL_MS:-}
+    volumes:
+      - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

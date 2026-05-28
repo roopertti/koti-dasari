@@ -12,6 +12,7 @@ interface DashboardLayoutProps {
   calendar: ReactNode;
   todos: ReactNode;
   electricity: ReactNode;
+  news: ReactNode;
 }
 
 interface PageConfig {
@@ -44,7 +45,12 @@ const PAGES: PageConfig[] = [
   {
     labelKey: 'layout.pageTertiary',
     testId: 'page-tertiary',
-    renderContents: ({ electricity }) => <>{electricity}</>,
+    renderContents: ({ electricity, news }) => (
+      <>
+        {electricity}
+        {news}
+      </>
+    ),
   },
 ];
 

@@ -18,4 +18,11 @@ export const level = styleVariants({
     textTransform: 'uppercase',
     color: vars.color.fgMuted,
   },
+  dialog: {
+    ...base,
+    fontSize: vars.font.sizeMd,
+    fontWeight: vars.font.weightMedium,
+    textAlign: 'center',
+    maxWidth: '320px',
+  },
 });

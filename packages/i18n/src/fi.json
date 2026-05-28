@@ -1,7 +1,7 @@
 {
   "layout.pagePrimary": "Sää ja liikenne",
   "layout.pageSecondary": "Kalenteri ja tehtävät",
-  "layout.pageTertiary": "Sähkönhinta",
+  "layout.pageTertiary": "Sähkönhinta ja uutiset",
 
   "panel.electricity.title": "Sähkönhinta",
   "panel.electricity.unavailable": "Hinta ei saatavilla",
@@ -16,6 +16,17 @@
   "panel.electricity.status.normal": "Normaali",
   "panel.electricity.status.expensive": "Kallis",
   "panel.electricity.chartAriaLabel": "Sähkönhinnan tunnit",
+
+  "panel.news.title": "Uutiset",
+  "panel.news.loading": "Ladataan…",
+  "panel.news.empty": "Ei uutisia saatavilla",
+  "panel.news.openOnPhone": "Avaa puhelimella",
+  "panel.news.qrHint": "Skannaa QR-koodi avataksesi jutun puhelimella.",
+  "panel.news.close": "Sulje",
+  "panel.news.relativeNow": "juuri nyt",
+  "panel.news.relativeMin": "{minutes} min sitten",
+  "panel.news.relativeHour": "{hours} h sitten",
+  "panel.news.relativeDay": "{days} pv sitten",
 
   "panel.weather.title": "Sää",
   "panel.weather.unavailable": "Sää ei saatavilla",

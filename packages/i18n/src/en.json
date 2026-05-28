@@ -1,7 +1,7 @@
 {
   "layout.pagePrimary": "Weather and transport",
   "layout.pageSecondary": "Calendar and todos",
-  "layout.pageTertiary": "Electricity price",
+  "layout.pageTertiary": "Electricity price and news",
 
   "panel.electricity.title": "Electricity price",
   "panel.electricity.unavailable": "Price unavailable",
@@ -16,6 +16,17 @@
   "panel.electricity.status.normal": "Normal",
   "panel.electricity.status.expensive": "Expensive",
   "panel.electricity.chartAriaLabel": "Hourly electricity prices",
+
+  "panel.news.title": "News",
+  "panel.news.loading": "Loading…",
+  "panel.news.empty": "No news available",
+  "panel.news.openOnPhone": "Open on phone",
+  "panel.news.qrHint": "Scan the QR code to open this article on your phone.",
+  "panel.news.close": "Close",
+  "panel.news.relativeNow": "just now",
+  "panel.news.relativeMin": "{minutes} min ago",
+  "panel.news.relativeHour": "{hours} h ago",
+  "panel.news.relativeDay": "{days} d ago",
 
   "panel.weather.title": "Weather",
   "panel.weather.unavailable": "Weather unavailable",

@@ -15,6 +15,7 @@ export type {
   CalendarEventTable,
   Database,
   ElectricityPriceTable,
+  NewsItemTable,
   SettingsTable,
   TodoTable,
   TransportDepartureTable,

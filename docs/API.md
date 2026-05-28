@@ -379,6 +379,38 @@ Results are ordered ascending by `hourStart`. Tomorrow's prices appear after the
 
 ---
 
+### News (Read-only)
+
+Data populated by worker-news from an RSS feed (currently Yle's `majorHeadlines`). Read-only endpoint.
+
+#### `GET /api/news`
+
+List recent news headlines, ordered by `publishedAt` descending.
+
+**Query Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `limit` | number | Max results (default: 10, max: 50) |
+
+**Response:** `200 OK`
+```json
+{
+  "data": [
+    {
+      "guid": "yle-2026-05-24-001",
+      "title": "Otsikko uutisesta",
+      "link": "https://yle.fi/a/74-12345",
+      "summary": "Plain-text summary with HTML already stripped.",
+      "publishedAt": "2026-05-24T08:15:00.000Z",
+      "source": "yle",
+      "fetchedAt": "2026-05-24T08:30:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
 ### Admin
 
 Session-cookie authenticated routes for the admin panel. Cookie name: `home-dashboard-admin` (HttpOnly, SameSite=Lax, 14-day expiry). All return `503 ADMIN_DISABLED` if `ADMIN_PIN` or `ADMIN_SESSION_KEY` is unset.

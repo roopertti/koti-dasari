@@ -8,6 +8,7 @@ export interface Database {
   weather_current: WeatherCurrentTable;
   weather_hourly: WeatherHourlyTable;
   electricity_prices: ElectricityPriceTable;
+  news_items: NewsItemTable;
   settings: SettingsTable;
 }
 
@@ -105,5 +106,15 @@ export interface WeatherHourlyTable {
 export interface ElectricityPriceTable {
   hour_start: string;
   price_cents_per_kwh: number;
+  fetched_at: Generated<string>;
+}
+
+export interface NewsItemTable {
+  guid: string;
+  title: string;
+  link: string;
+  summary: string | null;
+  published_at: string;
+  source: Generated<string>;
   fetched_at: Generated<string>;
 }

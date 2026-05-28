@@ -129,13 +129,21 @@ home-dashboard/
 │   │       ├── index.ts
 │   │       ├── porssisahko.ts      # porssisahko.net API client
 │   │       └── scheduler.ts
-│   └── worker-calendar/            # iCal subscription fetcher (e.g. Finnish holidays)
+│   ├── worker-calendar/            # iCal subscription fetcher (e.g. Finnish holidays)
+│   │   ├── package.json
+│   │   ├── Dockerfile
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       ├── index.ts
+│   │       ├── ical.ts             # fetch + ical.js parsing
+│   │       └── scheduler.ts
+│   └── worker-news/                # Yle RSS news headlines fetcher
 │       ├── package.json
 │       ├── Dockerfile
 │       ├── tsconfig.json
 │       └── src/
 │           ├── index.ts
-│           ├── ical.ts             # fetch + ical.js parsing
+│           ├── yle-rss.ts          # fetch + fast-xml-parser parsing + HTML strip
 │           └── scheduler.ts
 └── packages/
     ├── db/                         # Shared database package
@@ -147,7 +155,7 @@ home-dashboard/
     │       └── migrations/
     │           ├── 001_initial.ts
     │           └── ...
-    ├── shared/                     # Shared TypeScript types (calendar, todo, transport, weather, electricity, api)
+    ├── shared/                     # Shared TypeScript types (calendar, todo, transport, weather, electricity, news, api)
     │   ├── package.json
     │   ├── tsconfig.json
     │   └── src/
@@ -155,6 +163,7 @@ home-dashboard/
     │       │   ├── api.ts
     │       │   ├── calendar.ts
     │       │   ├── electricity.ts
+    │       │   ├── news.ts
     │       │   ├── todo.ts
     │       │   ├── transport.ts
     │       │   └── weather.ts
@@ -244,6 +253,14 @@ Two separate long-running services that fetch external data and persist it to SQ
 - Parsed with `ical.js`; per-VEVENT runtime validation via Zod, malformed rows are logged and skipped
 - Idempotent upsert keyed by `(source, ical_uid)`; future-dated rows that disappear from the feed are removed in the same transaction
 - Runs once on startup, then daily at 03:00 Europe/Helsinki (same slot as the nightly DB backup)
+- Stores data in SQLite via the shared `@home-dashboard/db` package
+
+#### worker-news
+- Fetches Yle's `majorHeadlines` RSS feed (no API key needed) every ~15 minutes
+- Parses XML with `fast-xml-parser`; per-`<item>` runtime validation via Zod, malformed items are skipped
+- Strips HTML from `<description>` before persisting so the panel doesn't have to sanitize on render
+- Idempotent upsert keyed by `guid` (or `<link>` when `<guid>` is missing); rows older than 7 days are pruned each cycle
+- `NEWS_FEED_URL` env override allows pointing at a different RSS feed (e.g. for testing); `NEWS_INTERVAL_MS` overrides the cadence
 - Stores data in SQLite via the shared `@home-dashboard/db` package
 
 ### Shared Packages
@@ -337,7 +354,9 @@ docker-compose.yml
 ├── api                (Fastify server)                           Port: 3001 (internal only)
 ├── worker-transport   (Long-running Node.js process)             No port
 ├── worker-weather     (Long-running Node.js process)             No port
-└── worker-electricity (Long-running Node.js process)             No port
+├── worker-electricity (Long-running Node.js process)             No port
+├── worker-calendar    (Long-running Node.js process)             No port
+└── worker-news        (Long-running Node.js process)             No port
 ```
 
 - **NGINX is the single entry point** on port 80 — serves the dashboard static build and proxies `/api/*` to Fastify
@@ -387,7 +406,7 @@ SQLite supports concurrent reads but only one writer at a time. With WAL mode en
 
 ### Architecture
 
-Images are built in GitHub Actions on every push to `main` (`.github/workflows/build-and-push.yml`) and pushed to GHCR as `ghcr.io/roopertti/koti-dasari/{api,worker-transport,worker-weather,worker-electricity,nginx}` tagged `:latest` and `:<short-sha>`. The Pi only ever pulls — it never builds — so the 1 GB Pi 3 has no trouble keeping up.
+Images are built in GitHub Actions on every push to `main` (`.github/workflows/build-and-push.yml`) and pushed to GHCR as `ghcr.io/roopertti/koti-dasari/{api,worker-transport,worker-weather,worker-electricity,worker-calendar,worker-news,nginx}` tagged `:latest` and `:<short-sha>`. The Pi only ever pulls — it never builds — so the 1 GB Pi 3 has no trouble keeping up.
 
 ### One-time Pi Setup (`infra/setup-pi.sh`)
 
@@ -460,6 +479,8 @@ Restoring is a file copy: stop the stack, replace `data/dashboard.db` with the c
 | `TRANSPORT_RADIUS` | worker-transport | Stop search radius in meters (default: `500`) |
 | `TRANSPORT_INTERVAL_MS` | worker-transport | Fetch interval (default: `300000` / 5 min) |
 | `WEATHER_INTERVAL_MS` | worker-weather | Fetch interval (default: `1800000` / 30 min) |
+| `NEWS_FEED_URL` | worker-news | RSS feed URL (default: Yle `majorHeadlines`) |
+| `NEWS_INTERVAL_MS` | worker-news | Fetch interval (default: `900000` / 15 min) |
 | `PORT` | api | API server port (default: `3001`) |
 | `HOST_PORT` | nginx | Host port to bind nginx to (default: `80`) |
 | `API_KEYS` | api | Comma-separated client keys. Empty disables the `/api/*` key check |

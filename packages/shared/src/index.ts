@@ -9,6 +9,7 @@ export {
   type UpdateCalendarEventInput,
 } from './types/calendar.js';
 export type { ElectricityPrice } from './types/electricity.js';
+export type { NewsItem } from './types/news.js';
 export type {
   CreateTodoInput,
   ReorderTodoItem,

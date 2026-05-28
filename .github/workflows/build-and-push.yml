@@ -34,6 +34,8 @@ jobs:
             dockerfile: apps/worker-electricity/Dockerfile
           - service: worker-calendar
             dockerfile: apps/worker-calendar/Dockerfile
+          - service: worker-news
+            dockerfile: apps/worker-news/Dockerfile
           - service: nginx
             dockerfile: infra/nginx/Dockerfile
     steps:

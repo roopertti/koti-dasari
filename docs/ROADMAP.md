@@ -272,30 +272,30 @@ Add a dashboard panel showing Yle's main news headlines (pääuutiset). Yle (Fin
 ### Tasks
 
 #### Data layer
-- [ ] Add `news_items` table — `guid` (TEXT PK, RSS `<guid>` for idempotent upsert), `title`, `link`, `summary` (nullable, plain text after HTML strip), `published_at` (ISO 8601), `source` (TEXT, default `'yle'` — leaves room for additional feeds later), `fetched_at`. Migration `005_news_items` (next number after `004_electricity_prices`)
-- [ ] Add Kysely table type in `packages/db/types.ts` and `NewsItem` DTO in `packages/shared`. Zod schema for the parsed RSS shape lives next to the worker, matching the Open-Meteo / electricity worker pattern
+- [x] Add `news_items` table — `guid` (TEXT PK, RSS `<guid>` for idempotent upsert), `title`, `link`, `summary` (nullable, plain text after HTML strip), `published_at` (ISO 8601), `source` (TEXT, default `'yle'` — leaves room for additional feeds later), `fetched_at`. Migration `006_news_items` _(numbered after Phase 11's `005_calendar_source`, not `005` as originally stated)_
+- [x] Add Kysely table type in `packages/db/types.ts` and `NewsItem` DTO in `packages/shared`. Zod schema for the parsed RSS shape lives next to the worker, matching the Open-Meteo / electricity worker pattern
 
 #### Worker
-- [ ] Scaffold `apps/worker-news/` mirroring `worker-weather` (TypeScript, scheduling, graceful shutdown, runtime validation, stale cleanup)
-- [ ] Fetch the Yle pääuutiset RSS feed every ~15 min; parse with a tiny dependency (e.g. `fast-xml-parser`) or hand-rolled regex if the feed shape is stable enough; upsert by `guid`
-- [ ] Strip HTML from `<description>` before persisting so the panel doesn't have to sanitize on every render
-- [ ] Drop rows older than 7 days each cycle to keep the table small
-- [ ] Env var `NEWS_FEED_URL` overrides the default (in case Yle changes the path); `NEWS_INTERVAL_MS` overrides the cadence
+- [x] Scaffold `apps/worker-news/` mirroring `worker-weather` (TypeScript, scheduling, graceful shutdown, runtime validation, stale cleanup)
+- [x] Fetch the Yle pääuutiset RSS feed every ~15 min; parse with `fast-xml-parser` (rejected the hand-rolled-regex alternative — Yle's feed embeds CDATA + HTML in `<description>` and regex would be brittle); upsert by `guid`
+- [x] Strip HTML from `<description>` before persisting so the panel doesn't have to sanitize on every render
+- [x] Drop rows older than 7 days each cycle to keep the table small
+- [x] Env var `NEWS_FEED_URL` overrides the default (in case Yle changes the path); `NEWS_INTERVAL_MS` overrides the cadence
 
 #### API
-- [ ] Add `GET /api/news?limit=` (camelCase response, snake_case DB), default `limit=10`, ordered by `published_at DESC`
-- [ ] Integration tests for the route
+- [x] Add `GET /api/news?limit=` (camelCase response, snake_case DB), default `limit=10`, ordered by `published_at DESC`
+- [x] Integration tests for the route
 
 #### Frontend
-- [ ] Build `News` panel: list of N most recent headlines, each showing title + relative time (e.g. "12 min sitten"). Titles wrap to 2 lines max with ellipsis. Tapping a row opens the QR-code modal described below
-- [ ] If headline is clicked, there should appear a QR code that can be read with mobile phone to open the actual article on mobile device. QR code can be displayed on a closable modal
-- [ ] Empty / loading / error states via the existing `PanelMessage` primitive
-- [ ] Add Finnish + English translations for panel labels and the "no news available" empty state
-- [ ] Playwright E2E for panel render + headline list
+- [x] Build `News` panel: list of N most recent headlines, each showing title + relative time (e.g. "12 min sitten"). Titles wrap to 2 lines max with ellipsis. Tapping a row opens the QR-code modal described below
+- [x] If headline is clicked, there should appear a QR code that can be read with mobile phone to open the actual article on mobile device. QR code can be displayed on a closable modal (uses native `<dialog>`; dismiss via Esc or the close button)
+- [x] Empty / loading / error states via the existing `PanelMessage` primitive
+- [x] Add Finnish + English translations for panel labels and the "no news available" empty state
+- [x] Playwright E2E for panel render + headline list
 
 #### Infra & docs
-- [ ] Add Dockerfile for `apps/worker-news/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
-- [ ] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
+- [x] Add Dockerfile for `apps/worker-news/` (node:24-slim) and wire into `docker-compose.yml` + `build-and-push.yml`
+- [x] Update `docs/DATABASE.md`, `docs/API.md`, `docs/ARCHITECTURE.md` for the new table, route, and worker
 
 **Dependency:** None — independent of Phases 7–11 and 13–19. Best landed after Phase 10 (i18n package) so the new panel's strings go straight into `@home-dashboard/i18n` instead of being migrated later.
 

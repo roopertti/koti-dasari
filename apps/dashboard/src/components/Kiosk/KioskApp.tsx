@@ -3,6 +3,7 @@ import { Clock } from '../Clock/Clock.js';
 import { TodaySoonRail } from '../Clock/TodaySoonRail.js';
 import { ElectricityPanel } from '../Electricity/ElectricityPanel.js';
 import { DashboardLayout } from '../Layout/DashboardLayout.js';
+import { NewsPanel } from '../News/NewsPanel.js';
 import { TodosPanel } from '../Todos/TodosPanel.js';
 import { TransportPanel } from '../Transport/TransportPanel.js';
 import { WeatherPanel } from '../Weather/WeatherPanel.js';
@@ -21,6 +22,7 @@ export function KioskApp() {
       calendar={<CalendarPanel />}
       todos={<TodosPanel />}
       electricity={<ElectricityPanel />}
+      news={<NewsPanel />}
     />
   );
 }

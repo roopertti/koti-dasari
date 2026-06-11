@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Build context: repo root (so workspace deps resolve). See docker-compose.yml.
 
-FROM node:24-alpine@sha256:fb71d01345f11b708a3553c66e7c74074f2d506400ea81973343d915cb64eef0 AS build
+FROM node:26-alpine@sha256:3ad34ca6292aec4a91d8ddeb9229e29d9c2f689efd0dd242860889ac71842eba AS build
 RUN npm install -g corepack@latest && corepack enable
 WORKDIR /repo
 

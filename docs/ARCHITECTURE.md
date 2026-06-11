@@ -338,6 +338,21 @@ Rotating: replace the entry in `API_KEYS`, restart the api, redeploy that client
 
 Out of the box, a second client gets reads on every panel plus the todo-toggle write. To create/edit/delete events or todos from that client, a human still has to log in via `POST /api/admin/login` from a browser — there is intentionally no API-key bypass for destructive operations.
 
+## Security Model
+
+The project targets a **LAN-only threat model** — no public ingress, no TLS termination, no per-user accounts. The Pi is reachable only on its local network.
+
+Access control is covered in [Authentication Strategy](#authentication-strategy) above: the API-key gate on `/api/*` (validated with a timing-safe compare), the admin session cookie required for every destructive mutation (login is rate-limited to 5 attempts / 15 min), and the same-origin nginx that eliminates the CORS surface.
+
+**Container hardening** (`docker-compose.yml`):
+- Every service drops all Linux capabilities (`cap_drop: ALL`), runs with `no-new-privileges: true`, and runs non-root — `node` for the api/workers, the `nginxinc/nginx-unprivileged` image for the proxy.
+- `api` and all five workers run on a read-only root filesystem with a `tmpfs` mount for `/tmp`.
+- No host networking — services communicate only over the Compose bridge network; only nginx publishes a port.
+
+**Secrets** live solely in `.env` on the host (gitignored, `chmod 600`) — never baked into an image or committed.
+
+**Accepted trade-off — HTTP, not HTTPS.** The admin session cookie uses `secure: false`, because setting it would block login over plain-HTTP LAN. To expose this beyond the LAN, terminate TLS at a reverse proxy in front of nginx and flip the cookie to `secure: true`.
+
 ## Docker Architecture
 
 ```

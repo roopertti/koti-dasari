@@ -1,0 +1,39 @@
+version: 2
+
+# Dependabot keeps Docker base image digests and GitHub Actions versions
+# up to date. npm/pnpm updates are intentionally left to manual review +
+# `pnpm audit` (CI gate) — the lockfile is the source of truth and
+# bulk-bumping transitive deps tends to produce noisy PRs.
+
+updates:
+  # Pinned `FROM image:tag@sha256:...` digests in every Dockerfile.
+  - package-ecosystem: docker
+    directories:
+      - /apps/api
+      - /apps/worker-transport
+      - /apps/worker-weather
+      - /apps/worker-electricity
+      - /apps/worker-calendar
+      - /apps/worker-news
+      - /infra/nginx
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: chore(docker)
+
+  # `uses: actions/checkout@v4` etc. in the two workflow files.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: chore(ci)

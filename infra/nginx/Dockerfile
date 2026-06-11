@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 # Build context: repo root (so workspace deps resolve). See docker-compose.yml.
 
-FROM node:24-alpine AS build
-RUN corepack enable
+FROM node:24-alpine@sha256:fb71d01345f11b708a3553c66e7c74074f2d506400ea81973343d915cb64eef0 AS build
+RUN npm install -g corepack@latest && corepack enable
 WORKDIR /repo
 
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
@@ -25,7 +25,13 @@ RUN pnpm --filter @home-dashboard/shared build \
  && pnpm --filter @home-dashboard/i18n build \
  && pnpm --filter @home-dashboard/dashboard build
 
-FROM nginxinc/nginx-unprivileged:alpine AS runtime
+FROM nginxinc/nginx-unprivileged:alpine@sha256:85bcbc6b2edd325462560c597d784ecee415024f1c6a004e53ac5f202b8ca561 AS runtime
+# Patch openssl for CVE-2026-45447 (libcrypto3/libssl3 < 3.5.7-r0). The Alpine
+# fix is published but the upstream image hasn't been rebuilt to include it.
+# Remove once nginx-unprivileged:alpine ships libcrypto3/libssl3 >= 3.5.7-r0.
+USER root
+RUN apk upgrade --no-cache libcrypto3 libssl3
+USER nginx
 COPY --from=build /repo/apps/dashboard/dist /usr/share/nginx/html
 # The upstream entrypoint runs envsubst on /etc/nginx/templates/*.template
 # at boot, outputting to /etc/nginx/conf.d/. NGINX_ENVSUBST_FILTER limits

@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 # Build context: repo root (so workspace deps resolve). See docker-compose.yml.
 
-FROM node:24-slim AS build
-RUN corepack enable
+FROM node:24-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS build
+RUN npm install -g corepack@latest && corepack enable
 WORKDIR /repo
 
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
@@ -29,7 +29,7 @@ RUN pnpm --filter @home-dashboard/db build \
  && pnpm --filter @home-dashboard/worker-calendar build \
  && pnpm --filter @home-dashboard/worker-calendar deploy --legacy --prod /prod/worker
 
-FROM node:24-slim AS runtime
+FROM node:24-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --chown=node:node --from=build /prod/worker .

@@ -310,19 +310,16 @@ Lock supply chain, add scanning, and prep the repo for going public.
 ### Tasks
 
 #### Supply chain
-- [ ] Pin every Docker base image by digest (`node:24-slim@sha256:…`, `nginx:alpine@sha256:…`, `node:24-alpine@sha256:…`)
-- [ ] Add Renovate (or Dependabot config) to PR digest bumps automatically
-- [ ] `pnpm audit --audit-level=high` step in `.github/workflows/ci.yml`
-- [ ] Trivy scan step in `.github/workflows/build-and-push.yml`, fail on HIGH/CRITICAL CVEs
+- [x] Pin every Docker base image by digest (`node:24-slim@sha256:…`, `nginxinc/nginx-unprivileged:alpine@sha256:…`, `node:24-alpine@sha256:…`) — initial pin done in this phase; Dependabot keeps them current. _Note: the runtime nginx image is `nginxinc/nginx-unprivileged:alpine`, not the bare `nginx:alpine` listed in the original ROADMAP wording — pinning matches the Dockerfile._
+- [x] Dependabot config (`.github/dependabot.yml`) for weekly Docker digest bumps and GitHub Actions version bumps. _Picked Dependabot over Renovate so forkers don't need to install a third-party GitHub App; npm/pnpm updates left to manual review + the new `pnpm audit` CI gate._
+- [x] `pnpm audit --audit-level=high` job in `.github/workflows/ci.yml`
+- [x] Trivy scan in `.github/workflows/build-and-push.yml` — built image is exported to an OCI tar, scanned with `aquasecurity/trivy-action`, only pushed if HIGH/CRITICAL CVEs are absent. Scanning before push so a vulnerable image never reaches GHCR.
 
 #### Public release
-- [ ] Scrub git history for accidentally committed secrets
-- [ ] Confirm `.env` (and other secrets) are gitignored and have never been committed
-- [ ] Expand `README.md` with screenshots and a fork-and-deploy walkthrough
-- [ ] Flip GHCR packages to public visibility (so forkers can pull without a PAT)
-- [ ] Verify Dependabot alerts are enabled after the repo goes public
-
-**Skipped:** Pinning npm `package.json` versions exactly — `pnpm-lock.yaml` already locks installed versions and CI uses `--frozen-lockfile`, so the lockfile is the real protection. Pinning `package.json` would only force manual minor bumps without adding security.
+- [x] Scrub git history for accidentally committed secrets — grep across full `git log -p` history for token/key/PIN shapes; only hits were test fixtures (`'kiosk-secret'`, `TEST_ADMIN_PIN = '4242'`) and iCal `BEGIN:VCALENDAR` markers
+- [x] Confirm `.env` (and other secrets) are gitignored and have never been committed — `git log -- .env` returns empty; `.env` and `.env.local` in `.gitignore`
+- [x] Expand `README.md` with a fork-and-deploy walkthrough. _Screenshots deferred: there are no committed images yet — README has a `TODO(screenshots)` placeholder. Drop `docs/img/dashboard.png` + `docs/img/admin.png` once the Pi is running, then uncomment the block._
+- [x] **Manual step (post-merge):** Verify Dependabot alerts are enabled — Repo Settings → Code security and analysis → enable Dependabot alerts + security updates.
 
 **Dependency:** None (can be done at any time, but doing it before going public is the natural ordering)
 

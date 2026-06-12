@@ -243,4 +243,75 @@ test.describe('admin', () => {
     await expect.poll(() => capturedBody).not.toBeNull();
     expect(capturedBody).toEqual({ homeLatitude: 60.5 });
   });
+
+  test('shows an error toast when a save fails', async ({ page }) => {
+    await stubAdminSession(page, true);
+    await stubEmptyReads(page);
+
+    await page.route(apiPath('admin/settings'), (route, request) => {
+      if (request.method() === 'PUT') {
+        return route.fulfill({
+          status: 500,
+          json: { error: { message: 'boom', code: 'INTERNAL_ERROR' } },
+        });
+      }
+      return route.fulfill({ json: { data: {} } });
+    });
+
+    await page.goto('/admin/settings');
+    await page.getByLabel('Kotipaikan leveysaste').fill('60.5');
+    await page.getByRole('button', { name: 'Tallenna' }).click();
+
+    const toast = page.getByTestId('toast');
+    await expect(toast).toBeVisible();
+    await expect(toast).toHaveAttribute('data-tone', 'error');
+    // INTERNAL_ERROR resolves to its localized string, not the raw server message.
+    await expect(toast).toContainText('Palvelinvirhe, yritä uudelleen');
+  });
+
+  test('maps a known API error code to a localized toast on delete failure', async ({ page }) => {
+    await stubAdminSession(page, true);
+    await stubEmptyReads(page);
+
+    await page.route(apiPath('calendar/events'), (route, request) => {
+      if (request.method() === 'GET') {
+        return route.fulfill({
+          json: {
+            data: [
+              {
+                id: 'evt-1',
+                title: 'Synced event',
+                description: null,
+                location: null,
+                startTime: '2026-05-20T07:00:00.000Z',
+                endTime: '2026-05-20T08:00:00.000Z',
+                allDay: false,
+                color: null,
+                source: 'manual',
+                icalUid: null,
+                createdAt: '2026-05-17T08:00:00.000Z',
+                updatedAt: '2026-05-17T08:00:00.000Z',
+              },
+            ],
+          },
+        });
+      }
+      if (request.method() === 'DELETE') {
+        return route.fulfill({
+          status: 403,
+          json: { error: { message: 'read only', code: 'READ_ONLY_SOURCE' } },
+        });
+      }
+      return route.continue();
+    });
+
+    page.on('dialog', (dialog) => dialog.accept());
+
+    await page.goto('/admin/events');
+    await page.getByRole('button', { name: 'Poista' }).click();
+
+    const toast = page.getByTestId('toast');
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText('Tätä kohdetta ei voi muokata (synkronoitu lähde)');
+  });
 });

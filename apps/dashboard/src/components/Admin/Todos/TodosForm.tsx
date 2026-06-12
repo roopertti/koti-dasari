@@ -2,8 +2,10 @@ import { t } from '@home-dashboard/i18n';
 import type { CreateTodoInput, Todo, TodoPriority } from '@home-dashboard/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
+import { errorToMessage } from '../../../api/client.js';
 import { createTodo, updateTodo } from '../../../api/todos.js';
 import { Button } from '../../common/Button/Button.js';
+import { useToast } from '../../common/Toast/useToast.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';
 import { FormActions } from '../primitives/FormActions/FormActions.js';
@@ -43,6 +45,7 @@ interface TodosFormProps {
 
 export function TodosForm({ initial, onDone }: TodosFormProps) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [form, setForm] = useState<FormState>(() => (initial ? todoToForm(initial) : emptyForm()));
   const [error, setError] = useState<string | null>(null);
 
@@ -62,9 +65,10 @@ export function TodosForm({ initial, onDone }: TodosFormProps) {
     },
     onSuccess: () => {
       invalidateEverywhere(qc);
+      toast.success(t('admin.todos.saved'));
       onDone();
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err) => toast.error(errorToMessage(err)),
   });
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {

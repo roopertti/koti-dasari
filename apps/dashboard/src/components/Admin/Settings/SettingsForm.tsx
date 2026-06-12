@@ -2,7 +2,9 @@ import { t } from '@home-dashboard/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { type AdminSettings, updateAdminSettings } from '../../../api/admin.js';
+import { errorToMessage } from '../../../api/client.js';
 import { Button } from '../../common/Button/Button.js';
+import { useToast } from '../../common/Toast/useToast.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';
 import { FormActions } from '../primitives/FormActions/FormActions.js';
@@ -63,27 +65,21 @@ interface SettingsFormProps {
 
 export function SettingsForm({ initial }: SettingsFormProps) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [form, setForm] = useState<FormState>(() => fromSettings(initial));
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
     mutationFn: (patch: AdminSettings) => updateAdminSettings(patch),
     onSuccess: (data) => {
       qc.setQueryData(SETTINGS_KEY, data);
       setForm(fromSettings(data));
-      setStatusMsg(t('admin.settings.saved'));
-      setError(null);
+      toast.success(t('admin.settings.saved'));
     },
-    onError: (err: Error) => {
-      setError(err.message);
-      setStatusMsg(null);
-    },
+    onError: (err) => toast.error(errorToMessage(err)),
   });
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatusMsg(null);
     save.mutate(toPatch(form));
   }
 
@@ -147,16 +143,6 @@ export function SettingsForm({ initial }: SettingsFormProps) {
             onChange={(e) => setForm({ ...form, weatherIntervalMs: e.target.value })}
           />
         </Field>
-        {statusMsg ? (
-          <Notice tone="info" fullWidth>
-            {statusMsg}
-          </Notice>
-        ) : null}
-        {error ? (
-          <Notice tone="error" fullWidth>
-            {error}
-          </Notice>
-        ) : null}
         <FormActions>
           <Button type="submit" variant="primary" disabled={save.isPending}>
             {save.isPending ? t('admin.form.saving') : t('admin.settings.save')}

@@ -27,7 +27,7 @@ Build the Fastify API server with full CRUD operations.
 
 - [x] Scaffold `apps/api/` with Fastify + TypeScript
 - [x] Create app factory (`app.ts`) with plugin registration
-- [x] Implement CORS plugin
+- [x] Implement CORS plugin _(later removed — the same-origin nginx setup makes `/api/*` calls non-cross-origin, so no CORS plugin ships today)_
 - [x] Implement API key auth plugin (optional, env-driven)
 - [x] Implement health check route (`GET /api/health`)
 - [x] Implement calendar events routes (full CRUD)
@@ -331,13 +331,13 @@ Smaller polish phase. Surface mutation failures to the admin operator (Phase 6 d
 
 ### Tasks
 
-- [ ] Add a lightweight toast primitive in `components/common/Toast/` (Vanilla Extract, no extra dep) with a `useToast()` hook backed by a context provider mounted at the admin route root
-- [ ] Wire `onError` on the silent admin delete mutations (`EventsList`, `TodosList`) to show the API error message as a toast
-- [ ] Move the inline `setError(err.message)` pattern in `EventsForm` / `TodosForm` / `SettingsForm` to toasts so success and failure feedback are consistent
-- [ ] Restore the lost `console.error` on the kiosk `TodosPanel` toggle mutation (regression from the recent useMutation refactor) — kiosk stays toast-free per Phase 6
-- [ ] Map known API error codes (`{ error: { message, code } }`) to localized strings via `t()` (FI primary, EN fallback) instead of surfacing raw `err.message`
-- [ ] Add a separate error boundary at the admin route so an admin crash doesn't take down the kiosk SPA
-- [ ] Playwright: assert a toast appears when a mutation fails (mock the API to 500)
+- [x] Add a lightweight toast primitive in `components/common/Toast/` (Vanilla Extract, no extra dep) with a `useToast()` hook backed by a context provider mounted at the admin route root. `ToastProvider` renders a fixed viewport with auto-dismissing toasts (success 4s, error 6s) and is mounted inside `AdminApp` so the kiosk stays toast-free
+- [x] Wire `onError` on the silent admin delete mutations (`EventsList`, `TodosList`) to show the API error message as a toast
+- [x] Move the inline `setError(err.message)` pattern in `EventsForm` / `TodosForm` / `SettingsForm` to toasts. _Scope decision: **API outcomes only** — save success + API failures are toasts; client-side validation (required / end-after-start) stays inline near the form via `Notice`, since that feedback is immediate and field-local. `SettingsForm` (no client validation) dropped its inline status/error `Notice`s entirely._
+- [x] Restore the lost `console.error` on the kiosk `TodosPanel` toggle mutation (regression from the recent useMutation refactor) — kiosk stays toast-free per Phase 6
+- [x] Map known API error codes (`{ error: { message, code } }`) to localized strings via `t()` (FI primary, EN fallback) instead of surfacing raw `err.message`. Lives in `@home-dashboard/i18n` as `apiErrorMessage(code, fallback)` (keys `error.api.<CODE>`); the dashboard's `errorToMessage(err)` adapter narrows `ApiRequestError` and falls back to the raw server message for unknown codes. _Note: `VALIDATION_ERROR` maps to a generic localized string, so the server's field-level detail is dropped — client-side validation already covers the common cases._
+- [x] Add a separate error boundary at the admin route so an admin crash recovers locally. _Spec framing tweak: kiosk and admin are already route-isolated in `App.tsx` (only one mounts at a time), so this can't "take down the kiosk SPA" regardless — the value is localized recovery without bubbling to the root boundary. Implemented by reusing the existing `ErrorBoundary` around `AdminApp`'s content._
+- [x] Playwright: assert a toast appears when a mutation fails (mock the API to 500) — plus a second test asserting a known error code (`READ_ONLY_SOURCE`) maps to its localized toast string
 
 **Dependency:** Phase 8 (admin UI exists). Best landed before Phase 13 so forkers see polished admin UX out of the box. Can stack with Phase 10 (i18n) — the error-code map naturally lives in the new `@home-dashboard/i18n` package if Phase 10 has shipped.
 

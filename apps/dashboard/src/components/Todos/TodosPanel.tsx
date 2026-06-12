@@ -15,6 +15,8 @@ export function TodosPanel() {
   const toggle = useMutation({
     mutationFn: (id: string) => toggleTodo(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+    // Kiosk stays toast-free (Phase 6) — log so a failed toggle isn't silently swallowed.
+    onError: (err) => console.error('[TodosPanel] toggle failed', err),
   });
 
   const isPending = (todo: Todo) => toggle.isPending && toggle.variables === todo.id;

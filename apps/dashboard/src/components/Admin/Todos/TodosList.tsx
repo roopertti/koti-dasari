@@ -1,8 +1,10 @@
 import { t } from '@home-dashboard/i18n';
 import type { Todo } from '@home-dashboard/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { errorToMessage } from '../../../api/client.js';
 import { deleteTodo, listTodos } from '../../../api/todos.js';
 import { Button } from '../../common/Button/Button.js';
+import { useToast } from '../../common/Toast/useToast.js';
 import { ListRow } from '../primitives/ListRow/ListRow.js';
 import { Notice } from '../primitives/Notice/Notice.js';
 import { Section } from '../primitives/Section/Section.js';
@@ -14,6 +16,7 @@ interface TodosListProps {
 
 export function TodosList({ onEdit }: TodosListProps) {
   const qc = useQueryClient();
+  const toast = useToast();
 
   const todos = useQuery({
     queryKey: TODOS_KEY,
@@ -25,6 +28,7 @@ export function TodosList({ onEdit }: TodosListProps) {
     onSuccess: () => {
       invalidateEverywhere(qc);
     },
+    onError: (err) => toast.error(errorToMessage(err)),
   });
 
   return (

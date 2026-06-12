@@ -3,7 +3,9 @@ import type { CalendarEvent, CreateCalendarEventInput } from '@home-dashboard/sh
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { createCalendarEvent, updateCalendarEvent } from '../../../api/calendar.js';
+import { errorToMessage } from '../../../api/client.js';
 import { Button } from '../../common/Button/Button.js';
+import { useToast } from '../../common/Toast/useToast.js';
 import { Checkbox } from '../primitives/Checkbox/Checkbox.js';
 import { Field } from '../primitives/Field/Field.js';
 import { Form } from '../primitives/Form/Form.js';
@@ -67,6 +69,7 @@ interface EventsFormProps {
 
 export function EventsForm({ initial, onDone }: EventsFormProps) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [form, setForm] = useState<FormState>(() => (initial ? eventToForm(initial) : emptyForm()));
   const [error, setError] = useState<string | null>(null);
 
@@ -88,9 +91,10 @@ export function EventsForm({ initial, onDone }: EventsFormProps) {
     },
     onSuccess: () => {
       invalidateEverywhere(qc);
+      toast.success(t('admin.events.saved'));
       onDone();
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err) => toast.error(errorToMessage(err)),
   });
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {

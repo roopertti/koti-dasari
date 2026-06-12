@@ -2,7 +2,9 @@ import { dateMediumTimeShort, t } from '@home-dashboard/i18n';
 import { type CalendarEvent, isManualEvent } from '@home-dashboard/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteCalendarEvent, listCalendarEvents } from '../../../api/calendar.js';
+import { errorToMessage } from '../../../api/client.js';
 import { Button } from '../../common/Button/Button.js';
+import { useToast } from '../../common/Toast/useToast.js';
 import { ListRow } from '../primitives/ListRow/ListRow.js';
 import { Notice } from '../primitives/Notice/Notice.js';
 import { Section } from '../primitives/Section/Section.js';
@@ -14,6 +16,7 @@ interface EventsListProps {
 
 export function EventsList({ onEdit }: EventsListProps) {
   const qc = useQueryClient();
+  const toast = useToast();
 
   const events = useQuery({
     queryKey: EVENTS_KEY,
@@ -25,6 +28,7 @@ export function EventsList({ onEdit }: EventsListProps) {
     onSuccess: () => {
       invalidateEverywhere(qc);
     },
+    onError: (err) => toast.error(errorToMessage(err)),
   });
 
   const manualEvents = events.data?.filter(isManualEvent);

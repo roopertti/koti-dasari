@@ -72,6 +72,13 @@
   "error.title": "Näyttö kaatui",
   "error.reload": "Lataa uudelleen",
 
+  "error.api.ADMIN_DISABLED": "Hallinta ei ole käytössä",
+  "error.api.NOT_FOUND": "Kohdetta ei löytynyt",
+  "error.api.READ_ONLY_SOURCE": "Tätä kohdetta ei voi muokata (synkronoitu lähde)",
+  "error.api.UNAUTHORIZED": "Istunto on vanhentunut, kirjaudu uudelleen",
+  "error.api.VALIDATION_ERROR": "Tarkista syötetyt tiedot",
+  "error.api.INTERNAL_ERROR": "Palvelinvirhe, yritä uudelleen",
+
   "admin.title": "Hallinta",
   "admin.loading": "Ladataan…",
   "admin.unavailable": "Hallinta ei saatavilla",
@@ -135,6 +142,10 @@
   "admin.settings.weatherIntervalMs": "Sään hakuväli (ms)",
   "admin.settings.save": "Tallenna",
   "admin.settings.saved": "Tallennettu",
+
+  "admin.events.saved": "Tapahtuma tallennettu",
+  "admin.todos.saved": "Tehtävä tallennettu",
+  "admin.toast.dismiss": "Sulje ilmoitus",
 
   "weather.code.0": "Selkeää",
   "weather.code.1": "Pääosin selkeää",

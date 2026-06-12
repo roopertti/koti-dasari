@@ -1,5 +1,5 @@
 export * from './calendar.js';
-export { ApiRequestError, apiRequest } from './client.js';
+export { ApiRequestError, apiRequest, errorToMessage } from './client.js';
 export * from './electricity.js';
 export * from './news.js';
 export * from './todos.js';

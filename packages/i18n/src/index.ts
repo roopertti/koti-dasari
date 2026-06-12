@@ -1,3 +1,4 @@
+export { apiErrorMessage } from './apiErrors.js';
 export {
   departureToDate,
   diffDays,

@@ -72,6 +72,13 @@
   "error.title": "Dashboard crashed",
   "error.reload": "Reload",
 
+  "error.api.ADMIN_DISABLED": "Admin is disabled",
+  "error.api.NOT_FOUND": "Item not found",
+  "error.api.READ_ONLY_SOURCE": "This item can't be edited (synced source)",
+  "error.api.UNAUTHORIZED": "Session expired, please sign in again",
+  "error.api.VALIDATION_ERROR": "Check the entered values",
+  "error.api.INTERNAL_ERROR": "Server error, please try again",
+
   "admin.title": "Admin",
   "admin.loading": "Loading…",
   "admin.unavailable": "Admin unavailable",
@@ -135,6 +142,10 @@
   "admin.settings.weatherIntervalMs": "Weather fetch interval (ms)",
   "admin.settings.save": "Save",
   "admin.settings.saved": "Saved",
+
+  "admin.events.saved": "Event saved",
+  "admin.todos.saved": "Todo saved",
+  "admin.toast.dismiss": "Dismiss notification",
 
   "weather.code.0": "Clear",
   "weather.code.1": "Mainly clear",

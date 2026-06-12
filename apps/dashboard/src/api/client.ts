@@ -1,3 +1,4 @@
+import { apiErrorMessage } from '@home-dashboard/i18n';
 import type { ApiError, ApiResponse } from '@home-dashboard/shared';
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api';
@@ -75,4 +76,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   return (parsed as ApiResponse<T>).data;
+}
+
+/**
+ * Turn a thrown error into a user-facing message. `ApiRequestError`s resolve via
+ * the localized error-code map (falling back to the server message for unknown
+ * codes); anything else surfaces its own message.
+ */
+export function errorToMessage(err: unknown): string {
+  if (err instanceof ApiRequestError) {
+    return apiErrorMessage(err.code, err.message);
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return String(err);
 }

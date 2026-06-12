@@ -100,8 +100,8 @@ home-dashboard/
 │   │   │   │   ├── transport.ts
 │   │   │   │   └── weather.ts
 │   │   │   ├── plugins/
-│   │   │   │   ├── auth.ts         # API key auth plugin
-│   │   │   │   └── cors.ts
+│   │   │   │   ├── apiKey.ts       # API key gate on /api/*
+│   │   │   │   └── adminSession.ts # Admin PIN login + session-cookie gate
 │   │   │   └── config.ts
 │   │   └── tests/
 │   │       └── *.test.ts           # Integration tests
@@ -206,7 +206,7 @@ home-dashboard/
 - **Kiosk vs. admin.** `App.tsx` is a thin router; everything below it lives in either `Kiosk/` (composes the dashboard panels) or `Admin/` (login, layout, feature pages). The kiosk panels themselves (`Calendar/`, `Clock/`, `Todos/`, `Transport/`, `Weather/`, `Layout/`) sit at the top of `components/` and are imported into `KioskApp`.
 - **Primitives** (`Admin/primitives/`) are single-purpose reusable components — `Button`, `Input`, `Field`, `Section`, `Heading`, `ListRow`, etc. One folder per primitive (`<Name>/<Name>.tsx` + `<Name>.css.ts`). Page-level code should compose primitives, not raw HTML. The term "widget" is reserved for self-contained features (a clock, a weather panel) — primitives are not widgets.
 - **Feature folders** (`Admin/Events/`, `Admin/Todos/`, `Admin/Settings/`) follow a page + form + list shape: a thin `*Page.tsx` orchestrator, a presentational `*Form.tsx` that owns its mutation, a `*List.tsx` that owns its query, and a `queries.ts` for shared query keys / invalidation.
-- **Common** (`common/`) holds cross-area utilities that aren't admin-specific (ErrorBoundary, Pagination, PanelMessage, Stack, FullScreenMessage, …).
+- **Common** (`common/`) holds cross-area utilities that aren't admin-specific (ErrorBoundary, Pagination, PanelMessage, Stack, FullScreenMessage, Toast, …). `Toast` is the admin-only feedback channel: `ToastProvider` + `useToast()` are mounted inside `AdminApp` (the kiosk stays toast-free per Phase 6); admin mutations surface success/failure through it.
 - **Styling.** Vanilla Extract; tokens in `src/styles/theme.css.ts`. Each component owns its own `.css.ts`. No global element selectors beyond minimal resets; no cross-component `.css.ts` imports — shared base styles live next to their consumers (e.g. `primitives/inputBase.css.ts` is composed by `Input`, `Textarea`, and `Select`).
 - **Side effects.** TanStack Query for data; a `key` prop for prop→state resets; `useEffect` is a last resort. Full rules in `.claude/skills/react-ui/SKILL.md`.
 
@@ -216,8 +216,8 @@ home-dashboard/
 - All CRUD operations for calendar events and todos
 - Read-only endpoints for weather and transport (data populated by workers)
 - Uses **Kysely** for type-safe SQL queries against SQLite
-- No authentication; reached same-origin via nginx on the local network (see Authentication Strategy)
-- CORS configured for local network access
+- API-key gate on `/api/*` plus an admin session-cookie gate on destructive mutations (see Authentication Strategy)
+- No CORS plugin: the SPA is served same-origin by nginx, so `/api/*` calls are never cross-origin and no `Access-Control-*` headers are needed
 
 ### Runtime Settings
 
@@ -279,6 +279,7 @@ Two separate long-running services that fetch external data and persist it to SQ
 - Shape-named `Intl.DateTimeFormat` singletons (`timeHm`, `hourShort`, `weekdayShort`, `dayHeader`, `dateLong`, `dueDateShort`, `dateMediumTimeShort`, `helsinkiDayKey`, `helsinkiHour24`) so each format shape exists once instead of being re-instantiated per component
 - Local-day date predicates (`diffDays`, `horizonFromOffset`, `parseLocalDate`, `parseEventStart`, `startOfLocalDay`) plus the Digitransit-specific `departureToDate` / `formatDepartureTime`
 - The `t(key, params)` translator and the `fi.json` / `en.json` catalogs (FI primary, EN fallback)
+- `apiErrorMessage(code, fallback)` — maps known API error codes (`error.api.<CODE>` keys) to localized strings, falling back to the raw server message for unknown codes
 - Consumed by the dashboard SPA, `worker-transport`, and `worker-electricity`
 
 #### @home-dashboard/tsconfig

@@ -28,6 +28,10 @@ export async function buildApp(options: AppOptions) {
   const auth = options.auth ?? DEFAULT_AUTH;
   const app = Fastify({
     logger: true,
+    // nginx is the only ingress and overwrites X-Forwarded-For with the real
+    // client address, so request.ip reflects the LAN client (not the nginx
+    // container) for per-client rate-limit keying and login-failure logging.
+    trustProxy: true,
     schemaErrorFormatter(errors) {
       const first = errors[0];
       const field =

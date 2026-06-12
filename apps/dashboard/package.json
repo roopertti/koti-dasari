@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@home-dashboard/tsconfig": "workspace:*",
-    "@playwright/test": "^1.49.0",
+    "@playwright/test": "^1.60.0",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Build context: repo root (so workspace deps resolve). See docker-compose.yml.
 
-FROM node:24-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS build
+FROM node:26-slim@sha256:95a34da32a840bd9b3b09a5b773591c16923e350174b1c50e1200c75bf15eaa9 AS build
 RUN npm install -g corepack@latest && corepack enable
 WORKDIR /repo
 
@@ -26,7 +26,7 @@ RUN pnpm --filter @home-dashboard/db build \
  && pnpm --filter @home-dashboard/api build \
  && pnpm --filter @home-dashboard/api deploy --legacy --prod /prod/api
 
-FROM node:24-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS runtime
+FROM node:26-slim@sha256:95a34da32a840bd9b3b09a5b773591c16923e350174b1c50e1200c75bf15eaa9 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --chown=node:node --from=build /prod/api .

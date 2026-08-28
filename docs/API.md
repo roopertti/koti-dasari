@@ -11,7 +11,7 @@ http://<raspberry-pi-ip>:3001
 Two opt-in layers (see `docs/ARCHITECTURE.md#authentication-strategy`):
 
 1. **API key (`x-api-key` header)** required on all `/api/*` when `API_KEYS` env is non-empty. Exempt: `/api/health`, `/api/admin/*`. The kiosk's nginx injects `KIOSK_API_KEY` automatically; remote clients must send the header themselves.
-2. **Admin session cookie** required on `/api/admin/settings` and on all destructive event/todo mutations (see the per-endpoint "Requires admin session cookie" notes below). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
+2. **Admin session cookie** required on the admin settings/sleep endpoints (`/api/admin/settings`, `/api/admin/sleep`, `/api/admin/sleep/override`) and on all destructive event/todo mutations (see the per-endpoint "Requires admin session cookie" notes below). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
 
 Reads (`GET`) on calendar, todos, transport, weather, and electricity require only the API key. The single mutation the kiosk needs — `PATCH /api/todos/:id/toggle` — also requires only the API key. Everything else that writes goes through the admin cookie.
 
@@ -450,7 +450,42 @@ Returns stored runtime settings (only keys the admin has set; absent keys mean "
 
 #### `PUT /api/admin/settings`
 
-Upserts the provided keys. Returns the updated stored snapshot. Each field is range-validated (`homeLatitude` ±90, `homeLongitude` ±180, `transportRadius` 50–10000m, `transportIntervalMs` 30s–1h, `weatherIntervalMs` 1min–6h).
+Upserts the provided keys. Returns the updated stored snapshot. Each field is range-validated (`homeLatitude` ±90, `homeLongitude` ±180, `transportRadius` 50–10000m, `transportIntervalMs` 30s–1h, `weatherIntervalMs` 1min–6h). Sleep config is **not** edited here — use the sleep endpoints below.
+
+#### `PUT /api/admin/sleep`
+
+Requires admin session cookie. Upserts night-sleep config; all fields optional. `start`/`end` must match `HH:MM` (24h). Returns the resolved sleep config.
+
+**Body:** `{ "enabled": true, "start": "23:00", "end": "06:30" }`
+
+**Response:** `200 OK` → `{ "data": { "enabled": true, "start": "23:00", "end": "06:30", "override": "auto", "overrideUntil": null } }`
+
+#### `POST /api/admin/sleep/override`
+
+Requires admin session cookie. Sets a manual override. `mode: "wake" | "sleep"` forces that state until the next schedule boundary (server computes `overrideUntil` in Helsinki time); `mode: "auto"` clears the override. Returns the resolved sleep config.
+
+**Body:** `{ "mode": "sleep" }`
+
+### Display Settings (Read-only)
+
+#### `GET /api/settings/display`
+
+API-key gated (not admin). Returns the display config the kiosk needs to render the sleep overlay — sleep window + current override only, never secrets.
+
+**Response:** `200 OK`
+```json
+{
+  "data": {
+    "sleep": {
+      "enabled": true,
+      "start": "23:00",
+      "end": "06:30",
+      "override": "auto",
+      "overrideUntil": null
+    }
+  }
+}
+```
 
 ---
 

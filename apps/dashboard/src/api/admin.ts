@@ -1,3 +1,4 @@
+import type { SleepOverrideMode, SleepSettings } from '@home-dashboard/shared';
 import { apiRequest } from './client.js';
 
 export interface AdminSession {
@@ -36,5 +37,22 @@ export function updateAdminSettings(patch: AdminSettings): Promise<AdminSettings
   return apiRequest<AdminSettings>('/admin/settings', {
     method: 'PUT',
     body: patch,
+  });
+}
+
+export interface SleepConfigPatch {
+  enabled?: boolean;
+  start?: string;
+  end?: string;
+}
+
+export function updateSleepSettings(patch: SleepConfigPatch): Promise<SleepSettings> {
+  return apiRequest<SleepSettings>('/admin/sleep', { method: 'PUT', body: patch });
+}
+
+export function setSleepOverride(mode: SleepOverrideMode): Promise<SleepSettings> {
+  return apiRequest<SleepSettings>('/admin/sleep/override', {
+    method: 'POST',
+    body: { mode },
   });
 }

@@ -188,7 +188,7 @@ CREATE INDEX idx_news_items_published_at ON news_items(published_at);
 
 ### settings
 
-Key/value store for admin-tunable runtime settings (home location, transport radius, worker fetch intervals). Each value is a stringified number; the API parses to typed fields. Empty rows fall back to env defaults at the worker.
+Key/value store for admin-tunable runtime settings (home location, transport radius, worker fetch intervals, night sleep mode). Values are stringified and decoded per-key by type (number / boolean / "HH:MM" string); missing keys fall back to `DEFAULT_SETTINGS` when resolved. The numeric tuning keys are also seeded from env at first boot.
 
 ```sql
 CREATE TABLE settings (
@@ -198,7 +198,10 @@ CREATE TABLE settings (
 );
 ```
 
-Known keys (snake_case in DB, camelCase in API): `home_latitude`, `home_longitude`, `transport_radius`, `transport_interval_ms`, `weather_interval_ms`.
+Known keys (snake_case in DB, camelCase in API):
+
+- Tuning (number): `home_latitude`, `home_longitude`, `transport_radius`, `transport_interval_ms`, `weather_interval_ms`
+- Night sleep (Phase 15): `sleep_enabled` (boolean), `sleep_start` / `sleep_end` (`"HH:MM"` local Helsinki time), `sleep_override` (`auto` | `wake` | `sleep`), `sleep_override_until` (ISO 8601 UTC, empty when no override). A manual override wins over the schedule until the stored instant passes, then the schedule resumes.
 
 ## WMO Weather Codes Reference
 

@@ -1,14 +1,16 @@
-import { createDatabaseWithRetry } from '@home-dashboard/db';
+import { createDatabaseWithRetry, DEFAULT_SETTINGS } from '@home-dashboard/db';
 import { startScheduler } from './scheduler.js';
 
 const databasePath = process.env.DATABASE_PATH || './dashboard.db';
 const apiKey = process.env.DIGITRANSIT_API_KEY;
 const defaults = {
-  homeLatitude: Number(process.env.HOME_LATITUDE) || 60.1699,
-  homeLongitude: Number(process.env.HOME_LONGITUDE) || 24.9384,
-  transportRadius: Number(process.env.TRANSPORT_RADIUS) || 500,
-  transportIntervalMs: Number(process.env.TRANSPORT_INTERVAL_MS) || 300_000,
-  weatherIntervalMs: Number(process.env.WEATHER_INTERVAL_MS) || 1_800_000,
+  ...DEFAULT_SETTINGS,
+  homeLatitude: Number(process.env.HOME_LATITUDE) || DEFAULT_SETTINGS.homeLatitude,
+  homeLongitude: Number(process.env.HOME_LONGITUDE) || DEFAULT_SETTINGS.homeLongitude,
+  transportRadius: Number(process.env.TRANSPORT_RADIUS) || DEFAULT_SETTINGS.transportRadius,
+  transportIntervalMs:
+    Number(process.env.TRANSPORT_INTERVAL_MS) || DEFAULT_SETTINGS.transportIntervalMs,
+  weatherIntervalMs: Number(process.env.WEATHER_INTERVAL_MS) || DEFAULT_SETTINGS.weatherIntervalMs,
 };
 
 if (!apiKey) {

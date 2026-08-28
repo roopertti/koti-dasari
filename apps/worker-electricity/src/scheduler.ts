@@ -1,4 +1,4 @@
-import type { Database } from '@home-dashboard/db';
+import { type Database, isAsleepNow, resolveSettings } from '@home-dashboard/db';
 import { helsinkiHour24 } from '@home-dashboard/i18n';
 import type { Kysely } from 'kysely';
 import { type ElectricityPriceEntry, fetchElectricityPrices } from './porssisahko.js';
@@ -24,6 +24,11 @@ export function startScheduler(config: ElectricitySchedulerConfig): () => void {
     running = true;
 
     try {
+      if (isAsleepNow(await resolveSettings(db))) {
+        console.log('[electricity] Sleep window active — skipping fetch');
+        return;
+      }
+
       console.log('[electricity] Fetching prices...');
       const entries = await fetchElectricityPrices();
 

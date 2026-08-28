@@ -9,6 +9,7 @@ import { calendarRoutes } from './routes/calendar.js';
 import { electricityRoutes } from './routes/electricity.js';
 import { healthRoutes } from './routes/health.js';
 import { newsRoutes } from './routes/news.js';
+import { settingsRoutes } from './routes/settings.js';
 import { todosRoutes } from './routes/todos.js';
 import { transportRoutes } from './routes/transport.js';
 import { weatherRoutes } from './routes/weather.js';
@@ -83,6 +84,7 @@ export async function buildApp(options: AppOptions) {
   await app.register(weatherRoutes, { prefix: '/api' });
   await app.register(electricityRoutes, { prefix: '/api' });
   await app.register(newsRoutes, { prefix: '/api' });
+  await app.register(settingsRoutes, { prefix: '/api' });
 
   return app;
 }

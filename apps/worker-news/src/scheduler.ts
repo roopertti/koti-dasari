@@ -1,4 +1,4 @@
-import type { Database } from '@home-dashboard/db';
+import { type Database, isAsleepNow, resolveSettings } from '@home-dashboard/db';
 import type { Kysely } from 'kysely';
 import { fetchYleNews, type NewsItemEntry } from './yle-rss.js';
 
@@ -24,6 +24,11 @@ export function startScheduler(config: NewsSchedulerConfig): () => void {
     running = true;
 
     try {
+      if (isAsleepNow(await resolveSettings(db))) {
+        console.log('[news] Sleep window active — skipping fetch');
+        return;
+      }
+
       console.log(`[news] Fetching headlines from ${feedUrl}...`);
       const entries = await fetchYleNews(feedUrl);
       await upsertItems(db, entries);

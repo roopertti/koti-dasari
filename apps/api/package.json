@@ -15,6 +15,7 @@
     "@fastify/rate-limit": "^10",
     "@fastify/secure-session": "^8",
     "@home-dashboard/db": "workspace:*",
+    "@home-dashboard/i18n": "workspace:*",
     "@home-dashboard/shared": "workspace:*",
     "fastify": "5.8.5",
     "fastify-plugin": "^5.0.0",

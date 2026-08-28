@@ -8,6 +8,7 @@ import { AdminLayout } from './AdminLayout.js';
 import { EventsPage } from './Events/EventsPage.js';
 import { LoginPage } from './Login/LoginPage.js';
 import { SettingsPage } from './Settings/SettingsPage.js';
+import { SleepPage } from './Sleep/SleepPage.js';
 import { TodosPage } from './Todos/TodosPage.js';
 
 export function AdminApp() {
@@ -41,6 +42,7 @@ function AdminRoutes() {
         <Route index element={<Navigate to="/admin/events" replace />} />
         <Route path="events" element={<EventsPage />} />
         <Route path="todos" element={<TodosPage />} />
+        <Route path="sleep" element={<SleepPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/admin/events" replace />} />
       </Routes>

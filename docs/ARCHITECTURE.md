@@ -221,7 +221,18 @@ home-dashboard/
 
 ### Runtime Settings
 
-Five tunables — home coordinates, transport search radius, and the two worker fetch intervals — live in a `settings` key/value table. The admin UI edits them via `/api/admin/settings`; both workers re-read the table on every tick, so changes take effect on the next cycle without a restart. Env values (`HOME_LATITUDE`, `HOME_LONGITUDE`, `TRANSPORT_RADIUS`, `TRANSPORT_INTERVAL_MS`, `WEATHER_INTERVAL_MS`) seed defaults at boot when no stored value exists. Secrets (`DIGITRANSIT_API_KEY`, `ADMIN_PIN`, keys) stay in env.
+Five tunables — home coordinates, transport search radius, and the two worker fetch intervals — live in a `settings` key/value table. The admin UI edits them via `/api/admin/settings`; both workers re-read the table on every tick, so changes take effect on the next cycle without a restart. Env values (`HOME_LATITUDE`, `HOME_LONGITUDE`, `TRANSPORT_RADIUS`, `TRANSPORT_INTERVAL_MS`, `WEATHER_INTERVAL_MS`) seed defaults at boot when no stored value exists. Secrets (`DIGITRANSIT_API_KEY`, `ADMIN_PIN`, keys) stay in env. The same `settings` table also holds the night-sleep config below; its codec decodes per-key by type (number / boolean / `HH:MM` string) and falls back to `DEFAULT_SETTINGS` for keys never written.
+
+### Night Sleep Mode (Phase 15)
+
+A scheduled "software dim" so the kiosk isn't burning the panel overnight. Configured in the admin UI (`/admin/sleep` → enable + sleep/wake `HH:MM` in Helsinki time) and stored in `settings` (`sleep_*` keys).
+
+- **Kiosk** polls the public, API-key-gated `GET /api/settings/display` (~30s) and computes "asleep now" client-side via the shared `isAsleep` predicate. While asleep it fades a near-black clock over the dashboard (the display stays powered, so the clock and touch-to-wake keep working). A tap wakes it for a short idle window, then it fades back.
+- **Manual override** (`POST /api/admin/sleep/override`, `wake`/`sleep`/`auto`) forces a state until the next schedule boundary — the server computes the expiry instant in Helsinki time, after which the schedule resumes on its own.
+- **Workers** (transport, weather, electricity, news) call `isAsleepNow(settings)` each tick and skip the fetch while asleep, still rescheduling normally — so they wake within one interval. `worker-calendar` is **not** gated (its 03:00 daily holiday sync falls inside the sleep window).
+- **Hardware power-off** via `vcgencmd display_power` is documented as optional/independent in `infra/setup-pi.sh`; it's a static schedule that can't track the dynamic admin window and loses the clock + touch-wake, so the software dim is the default.
+
+The "asleep" predicate and `SleepSettings` type live in `@home-dashboard/shared` (pure, no timezone dep); the Helsinki minute-of-day + next-boundary helpers live in `@home-dashboard/i18n`. `@home-dashboard/db` composes both into `isAsleepNow()` so workers and the API share one server-side entry point — which is why `db` now depends on `i18n` and `shared`.
 
 ### Workers
 
@@ -269,7 +280,8 @@ Two separate long-running services that fetch external data and persist it to SQ
 - Kysely database instance factory
 - Table type definitions
 - Migration files
-- Shared by: api, worker-transport, worker-weather
+- Typed `settings` codec (`DashboardSettings`, `resolveSettings`, `DEFAULT_SETTINGS`) plus the server-side sleep helpers `sleepFromSettings` / `isAsleepNow` (composes `@home-dashboard/shared` + `@home-dashboard/i18n`)
+- Shared by: api and all workers
 
 #### @home-dashboard/shared
 - TypeScript type definitions shared between frontend and backend

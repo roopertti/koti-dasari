@@ -6,9 +6,13 @@ import type { Database } from './types.js';
 
 export {
   type DashboardSettings,
+  DEFAULT_SETTINGS,
+  isAsleepNow,
   readSettings,
   resolveSettings,
+  type SleepOverrideMode,
   seedSettingsFromEnv,
+  sleepFromSettings,
   writeSettings,
 } from './settings.js';
 export type {

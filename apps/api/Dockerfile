@@ -8,6 +8,7 @@ WORKDIR /repo
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/db/package.json ./packages/db/
 COPY apps/api/package.json ./apps/api/
 
@@ -18,11 +19,13 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 
 COPY packages/db ./packages/db
 COPY packages/shared ./packages/shared
+COPY packages/i18n ./packages/i18n
 COPY packages/tsconfig ./packages/tsconfig
 COPY apps/api ./apps/api
 
-RUN pnpm --filter @home-dashboard/db build \
- && pnpm --filter @home-dashboard/shared build \
+RUN pnpm --filter @home-dashboard/shared build \
+ && pnpm --filter @home-dashboard/i18n build \
+ && pnpm --filter @home-dashboard/db build \
  && pnpm --filter @home-dashboard/api build \
  && pnpm --filter @home-dashboard/api deploy --legacy --prod /prod/api
 

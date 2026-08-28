@@ -24,6 +24,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <nav className={styles.nav} aria-label={t('admin.nav.label')}>
         <NavTab to="/admin/events">{t('admin.nav.events')}</NavTab>
         <NavTab to="/admin/todos">{t('admin.nav.todos')}</NavTab>
+        <NavTab to="/admin/sleep">{t('admin.nav.sleep')}</NavTab>
         <NavTab to="/admin/settings">{t('admin.nav.settings')}</NavTab>
       </nav>
       <main className={styles.main}>{children}</main>

@@ -4,25 +4,28 @@ import { TodaySoonRail } from '../Clock/TodaySoonRail.js';
 import { ElectricityPanel } from '../Electricity/ElectricityPanel.js';
 import { DashboardLayout } from '../Layout/DashboardLayout.js';
 import { NewsPanel } from '../News/NewsPanel.js';
+import { SleepOverlay } from '../Sleep/SleepOverlay.js';
 import { TodosPanel } from '../Todos/TodosPanel.js';
 import { TransportPanel } from '../Transport/TransportPanel.js';
 import { WeatherPanel } from '../Weather/WeatherPanel.js';
 
 export function KioskApp() {
   return (
-    <DashboardLayout
-      header={
-        <>
-          <Clock />
-          <TodaySoonRail />
-        </>
-      }
-      weather={<WeatherPanel />}
-      transport={<TransportPanel />}
-      calendar={<CalendarPanel />}
-      todos={<TodosPanel />}
-      electricity={<ElectricityPanel />}
-      news={<NewsPanel />}
-    />
+    <SleepOverlay>
+      <DashboardLayout
+        header={
+          <>
+            <Clock />
+            <TodaySoonRail />
+          </>
+        }
+        weather={<WeatherPanel />}
+        transport={<TransportPanel />}
+        calendar={<CalendarPanel />}
+        todos={<TodosPanel />}
+        electricity={<ElectricityPanel />}
+        news={<NewsPanel />}
+      />
+    </SleepOverlay>
   );
 }

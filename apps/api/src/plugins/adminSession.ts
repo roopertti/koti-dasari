@@ -1,7 +1,16 @@
 import { timingSafeEqual } from 'node:crypto';
 import fastifyCookie from '@fastify/cookie';
 import fastifySecureSession from '@fastify/secure-session';
-import { type DashboardSettings, readSettings, writeSettings } from '@home-dashboard/db';
+import {
+  type DashboardSettings,
+  readSettings,
+  resolveSettings,
+  type SleepOverrideMode,
+  sleepFromSettings,
+  writeSettings,
+} from '@home-dashboard/db';
+import { nextBoundaryInstant } from '@home-dashboard/i18n';
+import { parseHm } from '@home-dashboard/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
@@ -138,6 +147,75 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
       await writeSettings(app.db, request.body);
       const stored = await readSettings(app.db);
       return { data: stored };
+    },
+  );
+
+  const HHMM_PATTERN = '^([01][0-9]|2[0-3]):[0-5][0-9]$';
+
+  app.put<{ Body: { enabled?: boolean; start?: string; end?: string } }>(
+    '/api/admin/sleep',
+    {
+      preHandler: requireAdmin,
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            enabled: { type: 'boolean' },
+            start: { type: 'string', pattern: HHMM_PATTERN },
+            end: { type: 'string', pattern: HHMM_PATTERN },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
+    async (request) => {
+      const patch: Partial<DashboardSettings> = {};
+      if (request.body.enabled !== undefined) {
+        patch.sleepEnabled = request.body.enabled;
+      }
+      if (request.body.start !== undefined) {
+        patch.sleepStart = request.body.start;
+      }
+      if (request.body.end !== undefined) {
+        patch.sleepEnd = request.body.end;
+      }
+      await writeSettings(app.db, patch);
+      return { data: sleepFromSettings(await resolveSettings(app.db)) };
+    },
+  );
+
+  app.post<{ Body: { mode: SleepOverrideMode } }>(
+    '/api/admin/sleep/override',
+    {
+      preHandler: requireAdmin,
+      schema: {
+        body: {
+          type: 'object',
+          required: ['mode'],
+          properties: {
+            mode: { type: 'string', enum: ['auto', 'wake', 'sleep'] },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
+    async (request) => {
+      const { mode } = request.body;
+      if (mode === 'auto') {
+        await writeSettings(app.db, { sleepOverride: 'auto', sleepOverrideUntil: null });
+      } else {
+        // Override holds until the next schedule boundary (start or end),
+        // then the schedule resumes on its own.
+        const current = await resolveSettings(app.db);
+        const start = parseHm(current.sleepStart);
+        const end = parseHm(current.sleepEnd);
+        if (start === null || end === null) {
+          throw new Error('Invalid sleep schedule; cannot compute override expiry');
+        }
+        const until = nextBoundaryInstant(new Date(), start, end).toISOString();
+        await writeSettings(app.db, { sleepOverride: mode, sleepOverrideUntil: until });
+      }
+      return { data: sleepFromSettings(await resolveSettings(app.db)) };
     },
   );
 }

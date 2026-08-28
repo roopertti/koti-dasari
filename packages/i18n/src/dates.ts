@@ -1,4 +1,42 @@
+import { TIMEZONE } from './locale.js';
+
 export type Horizon = 'overdue' | 'today' | 'tomorrow' | 'thisWeek';
+
+const helsinkiHmParts = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TIMEZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
+/**
+ * Minutes since midnight (0–1439) in the dashboard's timezone (Helsinki),
+ * independent of where the host runs. Used by the sleep-window predicate.
+ */
+export function helsinkiMinutesOfDay(date: Date): number {
+  const parts = helsinkiHmParts.formatToParts(date);
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '0');
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value ?? '0');
+  // Some engines render midnight as 24; normalize back to 0.
+  return (hour % 24) * 60 + minute;
+}
+
+/**
+ * Earliest future instant whose Helsinki minute-of-day equals `minutesA` or
+ * `minutesB` — i.e. the next sleep-schedule boundary after `now`. Steps a minute
+ * at a time (DST-safe) and is bounded to 48h; a valid boundary is always < 24h
+ * away. Used to compute when a manual sleep override should auto-expire.
+ */
+export function nextBoundaryInstant(now: Date, minutesA: number, minutesB: number): Date {
+  for (let i = 1; i <= 48 * 60; i++) {
+    const candidate = new Date(now.getTime() + i * 60_000);
+    const minutes = helsinkiMinutesOfDay(candidate);
+    if (minutes === minutesA || minutes === minutesB) {
+      return candidate;
+    }
+  }
+  return new Date(now.getTime() + 24 * 60 * 60_000);
+}
 
 /**
  * Midnight (00:00) at the start of `date`'s calendar day, in the runtime's

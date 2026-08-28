@@ -7,6 +7,8 @@ WORKDIR /repo
 
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
 COPY packages/tsconfig/package.json ./packages/tsconfig/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/db/package.json ./packages/db/
 COPY apps/worker-weather/package.json ./apps/worker-weather/
 
@@ -16,10 +18,14 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
       --filter './packages/tsconfig'
 
 COPY packages/db ./packages/db
+COPY packages/shared ./packages/shared
+COPY packages/i18n ./packages/i18n
 COPY packages/tsconfig ./packages/tsconfig
 COPY apps/worker-weather ./apps/worker-weather
 
-RUN pnpm --filter @home-dashboard/db build \
+RUN pnpm --filter @home-dashboard/shared build \
+ && pnpm --filter @home-dashboard/i18n build \
+ && pnpm --filter @home-dashboard/db build \
  && pnpm --filter @home-dashboard/worker-weather build \
  && pnpm --filter @home-dashboard/worker-weather deploy --legacy --prod /prod/worker
 

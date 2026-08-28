@@ -23,9 +23,9 @@ COPY packages/shared ./packages/shared
 COPY packages/tsconfig ./packages/tsconfig
 COPY apps/worker-calendar ./apps/worker-calendar
 
-RUN pnpm --filter @home-dashboard/db build \
+RUN pnpm --filter @home-dashboard/shared build \
  && pnpm --filter @home-dashboard/i18n build \
- && pnpm --filter @home-dashboard/shared build \
+ && pnpm --filter @home-dashboard/db build \
  && pnpm --filter @home-dashboard/worker-calendar build \
  && pnpm --filter @home-dashboard/worker-calendar deploy --legacy --prod /prod/worker
 

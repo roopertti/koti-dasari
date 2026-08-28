@@ -10,6 +10,15 @@ export {
 } from './types/calendar.js';
 export type { ElectricityPrice } from './types/electricity.js';
 export type { NewsItem } from './types/news.js';
+export {
+  isAsleep,
+  isOverrideActive,
+  isValidHm,
+  parseHm,
+  type SleepOverrideMode,
+  type SleepSettings,
+  withinWindow,
+} from './types/sleep.js';
 export type {
   CreateTodoInput,
   ReorderTodoItem,

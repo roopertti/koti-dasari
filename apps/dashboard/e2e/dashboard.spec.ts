@@ -418,3 +418,43 @@ function makeTodo({ id, title, dayOffset, sortOrder = 0, priority = 'medium' }: 
     updatedAt: '2026-04-10T12:00:00Z',
   };
 }
+
+test.describe('kiosk sleep mode', () => {
+  const FAR_FUTURE = '2999-01-01T00:00:00.000Z';
+
+  function sleepDisplay(override: 'auto' | 'wake' | 'sleep', enabled = true) {
+    return {
+      data: {
+        sleep: {
+          enabled,
+          start: '23:00',
+          end: '06:30',
+          override,
+          overrideUntil: override === 'auto' ? null : FAR_FUTURE,
+        },
+      },
+    };
+  }
+
+  test('shows the sleep overlay when the display config is asleep, and a tap wakes it', async ({
+    page,
+  }) => {
+    await stubReads(page, { 'settings/display': sleepDisplay('sleep') });
+    await page.goto('/');
+
+    const overlay = page.getByTestId('sleep-overlay');
+    await expect(overlay).toHaveAttribute('data-asleep', 'true');
+
+    // A tap wakes the dashboard for the idle window.
+    await overlay.click();
+    await expect(overlay).toHaveAttribute('data-asleep', 'false');
+  });
+
+  test('stays awake when the schedule is disabled', async ({ page }) => {
+    await stubReads(page, { 'settings/display': sleepDisplay('auto', false) });
+    await page.goto('/');
+
+    await expect(page.getByTestId('sleep-overlay')).toHaveAttribute('data-asleep', 'false');
+    await expect(page.getByTestId('panel-weather')).toBeVisible();
+  });
+});

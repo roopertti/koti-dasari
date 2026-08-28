@@ -1,4 +1,9 @@
-import { type DashboardSettings, type Database, resolveSettings } from '@home-dashboard/db';
+import {
+  type DashboardSettings,
+  type Database,
+  isAsleepNow,
+  resolveSettings,
+} from '@home-dashboard/db';
 import { TIMEZONE } from '@home-dashboard/i18n';
 import type { Kysely } from 'kysely';
 import {
@@ -30,6 +35,11 @@ export function startScheduler(config: TransportSchedulerConfig): () => void {
     try {
       const settings = await resolveSettings(db, defaults);
       intervalMs = settings.transportIntervalMs;
+
+      if (isAsleepNow(settings)) {
+        console.log('[transport] Sleep window active — skipping fetch');
+        return;
+      }
 
       console.log(
         `[transport] Fetching nearby stops (lat=${settings.homeLatitude}, lon=${settings.homeLongitude}, radius=${settings.transportRadius}m)...`,

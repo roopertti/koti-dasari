@@ -314,4 +314,38 @@ test.describe('admin', () => {
     await expect(toast).toBeVisible();
     await expect(toast).toContainText('Tätä kohdetta ei voi muokata (synkronoitu lähde)');
   });
+
+  test('sleep tab renders the schedule and force-sleep posts an override', async ({ page }) => {
+    await stubAdminSession(page, true);
+    await stubEmptyReads(page);
+
+    const sleepConfig = {
+      enabled: false,
+      start: '23:00',
+      end: '06:30',
+      override: 'auto',
+      overrideUntil: null,
+    };
+    await page.route(apiPath('settings/display'), (route) =>
+      route.fulfill({ json: { data: { sleep: sleepConfig } } }),
+    );
+
+    let overrideBody: Record<string, unknown> | null = null;
+    await page.route(apiPath('admin/sleep/override'), (route, request) => {
+      overrideBody = JSON.parse(request.postData() ?? '{}');
+      return route.fulfill({
+        json: {
+          data: { ...sleepConfig, override: 'sleep', overrideUntil: '2999-01-01T00:00:00Z' },
+        },
+      });
+    });
+
+    await page.goto('/admin/sleep');
+
+    await expect(page.getByRole('heading', { name: 'Lepotila' }).first()).toBeVisible();
+    await expect(page.getByLabel('Nukkumaan')).toHaveValue('23:00');
+
+    await page.getByRole('button', { name: 'Nukuta nyt' }).click();
+    await expect.poll(() => overrideBody).toEqual({ mode: 'sleep' });
+  });
 });

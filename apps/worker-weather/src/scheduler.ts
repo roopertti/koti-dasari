@@ -1,4 +1,9 @@
-import { type DashboardSettings, type Database, resolveSettings } from '@home-dashboard/db';
+import {
+  type DashboardSettings,
+  type Database,
+  isAsleepNow,
+  resolveSettings,
+} from '@home-dashboard/db';
 import type { Kysely } from 'kysely';
 import { fetchWeather, type WeatherData } from './open-meteo.js';
 
@@ -23,6 +28,11 @@ export function startScheduler(config: WeatherSchedulerConfig): () => void {
     try {
       const settings = await resolveSettings(db, defaults);
       intervalMs = settings.weatherIntervalMs;
+
+      if (isAsleepNow(settings)) {
+        console.log('[weather] Sleep window active — skipping fetch');
+        return;
+      }
 
       console.log(
         `[weather] Fetching weather (lat=${settings.homeLatitude}, lon=${settings.homeLongitude})...`,

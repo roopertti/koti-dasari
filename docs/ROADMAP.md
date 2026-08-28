@@ -349,12 +349,17 @@ The kiosk screen burns power overnight while no one's watching. Sleep it on a sc
 
 ### Tasks
 
-- [ ] Admin settings: sleep start + end times (local time), on/off toggle, optional weekend override (e.g. later wake on Sat/Sun)
-- [ ] Frontend: during the sleep window, render a black (or near-black) screen showing only the current time; tap to wake temporarily, auto-resume sleep after a short idle window
-- [ ] Wake transition: fade the dashboard back in over ~400–600 ms rather than snapping — same fade when sleep starts. Easier on the eyes at 06:30 and at the night boundary
-- [ ] Backend: every worker (transport, weather, electricity, news) reads the sleep window from the `settings` table on each tick and skips fetching while asleep — same re-read-each-tick pattern existing settings use
-- [ ] Pi-side screen power: document a small systemd timer or cron job that calls `vcgencmd display_power 0/1` (or DPMS) at the sleep boundaries. Out of scope for the Node containers but referenced from `infra/setup-pi.sh` so forkers get it for free
-- [ ] Manual override in admin: a "force wake now" / "force sleep now" button so you can override the schedule without editing the window
+- [x] Admin settings: sleep start + end times (local time), on/off toggle. New `/admin/sleep` ("Lepotila") tab. _Weekend override deferred to v2 — v1 ships a single schedule for all 7 days (decided 2026-06-12)._
+- [x] Frontend: `SleepOverlay` renders a near-black screen showing only the current time during the sleep window; tap to wake temporarily (30s idle window, resets on interaction), auto-resumes sleep after. Effective state comes from the shared `isAsleep` predicate over the polled `GET /api/settings/display`
+- [x] Wake transition: 500 ms opacity fade on the overlay (both entering and leaving sleep)
+- [x] Backend: transport / weather / electricity / news call `isAsleepNow(settings)` each tick and skip the fetch while asleep (still rescheduling). _`worker-calendar` intentionally **excluded** — its 03:00 daily holiday sync falls inside the sleep window, so gating it would prevent the sync._
+- [x] Pi-side screen power: documented as **optional + independent** in `infra/setup-pi.sh`. _Decision (2026-06-12): software dim is primary (display stays powered so the clock + touch-to-wake work); `vcgencmd` is a coarse static-cron power-off that can't track the dynamic admin window and loses the clock when active._
+- [x] Manual override in admin: "force wake now" / "force sleep now" / "resume schedule" buttons (`POST /api/admin/sleep/override`). _Decision (2026-06-12): an override holds **until the next schedule boundary** (server computes the expiry in Helsinki time), then the schedule auto-resumes; "resume schedule" clears it early._
+
+**Implementation notes:**
+- Settings codec generalized from numeric-only to a type-aware registry (number / boolean / `HH:MM` string) to hold the `sleep_*` keys; no migration needed (the `settings` table is already k/v).
+- The sleep predicate + `SleepSettings` type live in `@home-dashboard/shared` (pure); Helsinki minute-of-day + next-boundary helpers in `@home-dashboard/i18n`; `@home-dashboard/db` composes them into `isAsleepNow()`. This added `i18n` + `shared` as `db` dependencies, which required adding those packages (and a build-order fix) to every backend Dockerfile.
+- The API gained `@home-dashboard/i18n` as a dependency (the "first real use" Phase 10 deferred) to compute override expiry.
 
 **Dependency:** Phase 8 (admin settings table + UI for the sleep window).
 

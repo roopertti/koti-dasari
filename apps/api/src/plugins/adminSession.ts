@@ -209,10 +209,10 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
         const current = await resolveSettings(app.db);
         const start = parseHm(current.sleepStart);
         const end = parseHm(current.sleepEnd);
-        const until =
-          start !== null && end !== null
-            ? nextBoundaryInstant(new Date(), start, end).toISOString()
-            : null;
+        if (start === null || end === null) {
+          throw new Error('Invalid sleep schedule; cannot compute override expiry');
+        }
+        const until = nextBoundaryInstant(new Date(), start, end).toISOString();
         await writeSettings(app.db, { sleepOverride: mode, sleepOverrideUntil: until });
       }
       return { data: sleepFromSettings(await resolveSettings(app.db)) };

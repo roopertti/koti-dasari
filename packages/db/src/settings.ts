@@ -81,9 +81,15 @@ function decode(spec: SettingSpec, raw: string): unknown {
       const num = Number(raw);
       return Number.isFinite(num) ? num : undefined;
     }
-    case 'boolean':
-      return raw === 'true';
-    case 'stringOrNull':
+    case 'boolean': {
+      if (raw === 'true') {
+        return true;
+      }
+      if (raw === 'false') {
+        return false;
+      }
+      return undefined;
+    }
       return raw === '' ? null : raw;
     default:
       return raw;

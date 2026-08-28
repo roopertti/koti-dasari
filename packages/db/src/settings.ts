@@ -90,7 +90,6 @@ function decode(spec: SettingSpec, raw: string): unknown {
       }
       return undefined;
     }
-      return raw === '' ? null : raw;
     default:
       return raw;
   }

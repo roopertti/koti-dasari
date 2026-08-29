@@ -2,6 +2,13 @@ import { style, styleVariants } from '@vanilla-extract/css';
 import { vars } from '../../../styles/theme.css.js';
 
 const base = style({
+  // Flex-centred rather than relying on the default inline layout: an inline
+  // <svg> child sits on the text baseline, so icon-only buttons would otherwise
+  // render with the descender gap as extra padding underneath.
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: vars.space.sm,
   font: 'inherit',
   color: 'inherit',
   background: 'transparent',

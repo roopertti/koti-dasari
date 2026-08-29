@@ -1,19 +1,25 @@
 import { dueDateShort, parseLocalDate, t } from '@home-dashboard/i18n';
 import type { Todo } from '@home-dashboard/shared';
+import { useId } from 'react';
 import { Button } from '../../common/Button/Button.js';
+import { VisuallyHidden } from '../../common/VisuallyHidden/VisuallyHidden.js';
 import * as styles from './TodoRow.css.js';
 
 interface TodoRowProps {
   todo: Todo;
   pending: boolean;
   onToggle: (todo: Todo) => void;
+  onOpen: (todo: Todo) => void;
+  /** Full-screen view: also show the todo's description under its metadata. */
+  detailed?: boolean;
 }
 
 function formatDueDate(dueDate: string): string {
   return dueDateShort.format(parseLocalDate(dueDate));
 }
 
-export function TodoRow({ todo, pending, onToggle }: TodoRowProps) {
+export function TodoRow({ todo, pending, onToggle, onOpen, detailed }: TodoRowProps) {
+  const hintId = useId();
   const state = todo.completed ? 'done' : 'active';
   const labelKey = todo.completed ? 'panel.todos.markUndoneLabel' : 'panel.todos.markDoneLabel';
   const buttonKey = todo.completed ? 'panel.todos.undo' : 'panel.todos.done';
@@ -22,19 +28,28 @@ export function TodoRow({ todo, pending, onToggle }: TodoRowProps) {
 
   return (
     <li className={styles.row[state]}>
-      <div className={styles.body}>
-        <div className={styles.title[state]}>{todo.title}</div>
+      <button
+        type="button"
+        className={styles.body}
+        onClick={() => onOpen(todo)}
+        aria-describedby={hintId}
+      >
+        <span className={styles.title[state]}>{todo.title}</span>
         {showMeta && (
-          <div className={styles.meta}>
+          <span className={styles.meta}>
             {showPriority && (
               <span className={styles.priority[todo.priority]}>
                 {t(`panel.todos.priority.${todo.priority}`)}
               </span>
             )}
             {todo.dueDate && <span>{formatDueDate(todo.dueDate)}</span>}
-          </div>
+          </span>
         )}
-      </div>
+        {detailed && todo.description ? (
+          <span className={styles.description}>{todo.description}</span>
+        ) : null}
+      </button>
+      <VisuallyHidden id={hintId}>{t('panel.todos.openHint')}</VisuallyHidden>
       <Button
         variant={todo.completed ? 'subtle' : 'primary'}
         onClick={() => onToggle(todo)}

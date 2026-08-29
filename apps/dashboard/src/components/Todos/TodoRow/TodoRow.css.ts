@@ -1,5 +1,6 @@
 import { style, styleVariants } from '@vanilla-extract/css';
 import { vars } from '../../../styles/theme.css.js';
+import { rowButtonBase } from '../../common/rowButtonBase.css.js';
 
 const rowBase = {
   display: 'flex',
@@ -17,6 +18,7 @@ export const row = styleVariants({
 });
 
 const titleBase = {
+  display: 'block',
   fontWeight: 500,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -44,10 +46,22 @@ export const priority = styleVariants({
   low: { ...priorityBase, color: vars.color.fgDim },
 });
 
-export const body = style({
-  flex: 1,
-  minWidth: 0,
-});
+export const body = style([
+  rowButtonBase,
+  {
+    flex: 1,
+    minWidth: 0,
+    padding: 0,
+    // Stretch to the row's full height so the whole row area opens the detail
+    // dialog. Without this the button is only as tall as its text, leaving dead
+    // zones above and below it inside the row.
+    alignSelf: 'stretch',
+    minHeight: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+]);
 
 export const meta = style({
   display: 'flex',
@@ -55,4 +69,13 @@ export const meta = style({
   fontSize: '0.8rem',
   color: vars.color.fgMuted,
   marginTop: vars.space.xs,
+});
+
+export const description = style({
+  display: 'block',
+  fontSize: vars.font.sizeSm,
+  color: vars.color.fgMuted,
+  marginTop: vars.space.sm,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
 });

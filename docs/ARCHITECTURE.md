@@ -80,7 +80,17 @@ home-dashboard/
 │   │   │   │   │       ├── Select/
 │   │   │   │   │       ├── Textarea/
 │   │   │   │   │       └── inputBase.css.ts   # Shared base style for Input/Textarea/Select
-│   │   │   │   └── common/         # Cross-area: ErrorBoundary, Pagination, PanelMessage, Stack, …
+│   │   │   │   └── common/         # Cross-area primitives + utilities (see below)
+│   │   │   │       ├── Button/         # Also used by the kiosk (icon-only variants included)
+│   │   │   │       ├── DetailDialog/   # Modal + DetailList shell for read-only kiosk detail views
+│   │   │   │       ├── DetailList/     # <dl> label/value grid used inside DetailDialog
+│   │   │   │       ├── ExpandButton/   # Header affordance that opens a panel full-screen
+│   │   │   │       ├── FocusablePanel/ # PanelShell + full-screen Modal (compact / expanded views)
+│   │   │   │       ├── Modal/          # Native <dialog> shell: backdrop tap, Escape, open animation
+│   │   │   │       ├── QRCode/         # Local QR rendering (news share codes + AdminQR)
+│   │   │   │       ├── VisuallyHidden/ # Screen-reader-only text (aria-describedby targets)
+│   │   │   │       ├── ErrorBoundary/, Pagination/, PanelMessage/, PanelShell/, Stack/, Toast/, …
+│   │   │   │       └── rowButtonBase.css.ts   # Shared base style for tappable kiosk rows
 │   │   │   ├── hooks/              # useAdminSession, useClock, useActivePage, usePointerSwipe, …
 │   │   │   ├── api/                # API client functions (admin, calendar, todos, transport, weather)
 │   │   │   ├── i18n/               # t() helper + fi.json / en.json catalogs
@@ -207,8 +217,8 @@ home-dashboard/
 - **Kiosk vs. admin.** `App.tsx` is a thin router; everything below it lives in either `Kiosk/` (composes the dashboard panels) or `Admin/` (login, layout, feature pages). The kiosk panels themselves (`Calendar/`, `Clock/`, `Todos/`, `Transport/`, `Weather/`, `Layout/`, `AdminQR/`) sit at the top of `components/` and are imported into `KioskApp`.
 - **Primitives** (`Admin/primitives/`) are single-purpose reusable components — `Button`, `Input`, `Field`, `Section`, `Heading`, `ListRow`, etc. One folder per primitive (`<Name>/<Name>.tsx` + `<Name>.css.ts`). Page-level code should compose primitives, not raw HTML. The term "widget" is reserved for self-contained features (a clock, a weather panel) — primitives are not widgets.
 - **Feature folders** (`Admin/Events/`, `Admin/Todos/`, `Admin/Settings/`) follow a page + form + list shape: a thin `*Page.tsx` orchestrator, a presentational `*Form.tsx` that owns its mutation, a `*List.tsx` that owns its query, and a `queries.ts` for shared query keys / invalidation.
-- **Common** (`common/`) holds cross-area utilities that aren't admin-specific (ErrorBoundary, Pagination, PanelMessage, Stack, FullScreenMessage, Toast, Modal, QRCode, …). `Toast` is the admin-only feedback channel: `ToastProvider` + `useToast()` are mounted inside `AdminApp` (the kiosk stays toast-free per Phase 6); admin mutations surface success/failure through it.
-- **Styling.** Vanilla Extract; tokens in `src/styles/theme.css.ts`. Each component owns its own `.css.ts`. No global element selectors beyond minimal resets; no cross-component `.css.ts` imports — shared base styles live next to their consumers (e.g. `primitives/inputBase.css.ts` is composed by `Input`, `Textarea`, and `Select`).
+- **Common** (`common/`) holds cross-area primitives and utilities that aren't admin-specific (`Button`, `Heading`, `Modal`, `PanelShell`, `QRCode`, `Stack`, `Text`, ErrorBoundary, Pagination, PanelMessage, FullScreenMessage, Toast, …), plus the kiosk detail-view primitives added in Phase 16: `FocusablePanel` (a panel that can expand full-screen), `ExpandButton`, `DetailDialog`, `DetailList`, and `VisuallyHidden`. `Toast` is the admin-only feedback channel: `ToastProvider` + `useToast()` are mounted inside `AdminApp` (the kiosk stays toast-free per Phase 6); admin mutations surface success/failure through it.
+- **Styling.** Vanilla Extract; tokens in `src/styles/theme.css.ts`. Each component owns its own `.css.ts`. No global element selectors beyond minimal resets; no cross-component `.css.ts` imports — shared base styles live next to their consumers (e.g. `primitives/inputBase.css.ts` is composed by `Input`, `Textarea`, and `Select`). When a base style is shared across *feature areas* rather than within one folder, it belongs in `common/` instead — `common/rowButtonBase.css.ts` (the tappable-row reset: full width, 44px touch minimum, inherited type, focus-visible ring) is composed by `Calendar/`, `Todos/`, and `News/` rows.
 - **Side effects.** TanStack Query for data; a `key` prop for prop→state resets; `useEffect` is a last resort. Full rules in `.claude/skills/react-ui/SKILL.md`.
 
 ### Mobile Admin Discovery (Phase 17)

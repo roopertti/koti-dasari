@@ -1,5 +1,6 @@
 import { style } from '@vanilla-extract/css';
 import { vars } from '../../../styles/theme.css.js';
+import { rowButtonBase } from '../../common/rowButtonBase.css.js';
 
 export const dayLabel = style({
   fontSize: '0.85rem',
@@ -18,20 +19,33 @@ export const dayEvents = style({
   listStyle: 'none',
 });
 
-export const event = style({
-  display: 'flex',
-  gap: vars.space.md,
-  padding: '10px 12px',
-  borderRadius: vars.radii.sm,
-  background: vars.color.bgPanelHover,
-  minHeight: vars.size.touchMin,
-});
+export const event = style([
+  rowButtonBase,
+  {
+    display: 'flex',
+    gap: vars.space.md,
+    padding: '10px 12px',
+    borderRadius: vars.radii.sm,
+    background: vars.color.bgPanelHover,
+    selectors: {
+      '&:active': {
+        background: vars.color.border,
+      },
+    },
+  },
+]);
 
 export const eventBar = style({
   width: '4px',
   borderRadius: '2px',
   flexShrink: 0,
   background: `var(--event-color, ${vars.color.accent})`,
+});
+
+export const eventText = style({
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: 0,
 });
 
 export const eventTitle = style({
@@ -48,4 +62,12 @@ export const eventWhen = style({
   color: vars.color.fgMuted,
   marginTop: vars.space.xs,
   fontVariantNumeric: 'tabular-nums',
+});
+
+export const eventDescription = style({
+  fontSize: vars.font.sizeSm,
+  color: vars.color.fgMuted,
+  marginTop: vars.space.sm,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
 });

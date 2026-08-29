@@ -403,6 +403,297 @@ test.describe('dashboard', () => {
     await expect(page.getByTestId('panel-news')).toContainText('Ei uutisia saatavilla');
   });
 
+  test('tapping a todo row opens its read-only detail dialog', async ({ page }) => {
+    await stubReads(page, {
+      todos: {
+        data: [
+          {
+            id: 'todo-detail',
+            title: 'Vie roskat',
+            description: 'Biojäte ja pahvi maanantaina.',
+            completed: false,
+            priority: 'high',
+            dueDate: '2026-09-01',
+            sortOrder: 0,
+            createdAt: '2026-08-20T08:00:00Z',
+            updatedAt: '2026-08-20T08:00:00Z',
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    // The visible row content stays the accessible name; the "open details" hint is
+    // only a description, so a screen reader still announces priority and due date.
+    const row = page.getByRole('button', { name: /^Vie roskat/ });
+    await expect(row).toHaveAccessibleName(/korkea/);
+    await expect(row).toHaveAccessibleDescription('Avaa tehtävän tiedot');
+    await row.click();
+
+    const dialog = page.getByTestId('todo-detail-dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Vie roskat');
+    await expect(dialog).toContainText('Kesken');
+    await expect(dialog).toContainText('korkea');
+    await expect(dialog.getByTestId('todo-detail-dialog-description')).toContainText(
+      'Biojäte ja pahvi maanantaina.',
+    );
+    // Read-only on the kiosk: no edit or delete affordances.
+    await expect(dialog.getByRole('button', { name: /Muokkaa|Poista/ })).toHaveCount(0);
+
+    await dialog.getByTestId('todo-detail-dialog-close').click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test('a todo without a description says so in the detail dialog', async ({ page }) => {
+    await stubReads(page, {
+      todos: {
+        data: [
+          {
+            id: 'todo-bare',
+            title: 'Soita lääkärille',
+            description: null,
+            completed: true,
+            priority: 'medium',
+            dueDate: null,
+            sortOrder: 0,
+            createdAt: '2026-08-20T08:00:00Z',
+            updatedAt: '2026-08-20T08:00:00Z',
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /^Soita lääkärille/ }).click();
+
+    const dialog = page.getByTestId('todo-detail-dialog');
+    await expect(dialog).toContainText('Ei kuvausta');
+    await expect(dialog).toContainText('Valmis');
+  });
+
+  test('tapping a calendar event opens its detail dialog, dismissible by backdrop tap', async ({
+    page,
+  }) => {
+    await stubReads(page, {
+      'calendar/events': {
+        data: [
+          {
+            id: 'evt-1',
+            title: 'Hammaslääkäri',
+            description: 'Muista Kela-kortti.',
+            location: 'Kamppi',
+            startTime: '2026-09-02T07:00:00.000Z',
+            endTime: '2026-09-02T08:00:00.000Z',
+            allDay: false,
+            color: null,
+            source: 'manual',
+            createdAt: '2026-08-20T08:00:00Z',
+            updatedAt: '2026-08-20T08:00:00Z',
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /^Hammaslääkäri/ }).click();
+
+    const dialog = page.getByTestId('event-detail-dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Kamppi');
+    await expect(dialog).toContainText('Lisätty käsin');
+    await expect(dialog.getByTestId('event-detail-dialog-description')).toContainText(
+      'Muista Kela-kortti.',
+    );
+
+    // Tapping the backdrop (the top-left corner is outside the centred dialog) closes it.
+    await page.mouse.click(5, 5);
+    await expect(dialog).toBeHidden();
+  });
+
+  test('expanding the transport panel shows all departures grouped by stop', async ({ page }) => {
+    const departures = Array.from({ length: 14 }, (_, i) => ({
+      id: `dep-${i}`,
+      stopId: i % 2 === 0 ? 'HSL:1' : 'HSL:2',
+      routeShortName: `${550 + i}`,
+      headsign: `Kohde ${i}`,
+      scheduledDeparture: 40_000 + i * 120,
+      realtimeDeparture: null,
+      departureDelay: 0,
+      isRealtime: false,
+      serviceDay: '2026-08-29',
+      vehicleType: 'BUS',
+      fetchedAt: '2026-08-29T08:00:00Z',
+    }));
+
+    await stubReads(page, {
+      'transport/departures': { data: departures },
+      'transport/stops': {
+        data: [
+          {
+            id: 'HSL:1',
+            name: 'Rautatientori',
+            code: 'H1234',
+            platform: '3',
+            latitude: 60.17,
+            longitude: 24.94,
+            vehicleType: 'BUS',
+            distanceM: 120,
+            createdAt: '2026-08-01T00:00:00Z',
+            updatedAt: '2026-08-01T00:00:00Z',
+          },
+          {
+            id: 'HSL:2',
+            name: 'Kaisaniemi',
+            code: 'H4321',
+            platform: null,
+            latitude: 60.18,
+            longitude: 24.95,
+            vehicleType: 'BUS',
+            distanceM: 260,
+            createdAt: '2026-08-01T00:00:00Z',
+            updatedAt: '2026-08-01T00:00:00Z',
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    // The compact panel caps the list at 10 of the 14 departures.
+    const panel = page.getByTestId('panel-transport');
+    await expect(panel.locator('ul > li')).toHaveCount(10);
+
+    await page.getByTestId('panel-transport-expand').click();
+
+    const expanded = page.getByTestId('panel-transport-expanded');
+    await expect(expanded).toBeVisible();
+    await expect(expanded).toContainText('Rautatientori');
+    await expect(expanded).toContainText('laituri 3');
+    await expect(expanded).toContainText('Kaisaniemi');
+    // All 14 departures, split across the two stop groups.
+    await expect(expanded.getByTestId('transport-stop-groups').locator('> li')).toHaveCount(2);
+    await expect(expanded.getByText(/Kohde \d+/)).toHaveCount(14);
+
+    await expanded.getByTestId('panel-transport-expanded-close').click();
+    await expect(expanded).toBeHidden();
+  });
+
+  test('the expanded calendar panel still opens event detail dialogs', async ({ page }) => {
+    await stubReads(page, {
+      'calendar/events': {
+        data: [
+          {
+            id: 'evt-2',
+            title: 'Kokous',
+            description: 'Neljännesvuosikatsaus.',
+            location: null,
+            startTime: '2026-09-03T07:00:00.000Z',
+            endTime: '2026-09-03T08:00:00.000Z',
+            allDay: false,
+            color: null,
+            source: 'manual',
+            createdAt: '2026-08-20T08:00:00Z',
+            updatedAt: '2026-08-20T08:00:00Z',
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    await page.getByTestId('panel-calendar-expand').click();
+
+    const expanded = page.getByTestId('panel-calendar-expanded');
+    await expect(expanded).toBeVisible();
+    // The full-screen view surfaces the description inline as well.
+    await expect(expanded).toContainText('Neljännesvuosikatsaus.');
+
+    await expanded.getByRole('button', { name: /^Kokous/ }).click();
+    await expect(page.getByTestId('event-detail-dialog')).toBeVisible();
+  });
+
+  test('the expanded weather panel shows the full 24-hour forecast', async ({ page }) => {
+    const now = Date.now();
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      forecastTime: new Date(now + i * 3_600_000).toISOString(),
+      temperature: 8,
+      apparentTemp: 6,
+      weatherCode: 2,
+      precipitation: 0,
+      precipitationProbability: 0,
+      windSpeed: 12,
+      windDirection: 200,
+      humidity: 70,
+      cloudCover: 40,
+      fetchedAt: new Date(now).toISOString(),
+    }));
+    await stubReads(page, { 'weather/forecast': { data: hours } });
+
+    await page.goto('/');
+
+    // Compact shows half a day.
+    const panel = page.getByTestId('panel-weather');
+    await expect(panel.locator('ul > li')).toHaveCount(12);
+
+    await page.getByTestId('panel-weather-expand').click();
+
+    const expanded = page.getByTestId('panel-weather-expanded');
+    await expect(expanded).toBeVisible();
+    await expect(expanded.locator('ul > li')).toHaveCount(24);
+  });
+
+  test('the QR modal opens on top of the expanded news panel', async ({ page }) => {
+    const now = Date.now();
+    await stubReads(page, {
+      news: {
+        data: [
+          {
+            guid: 'yle-1',
+            title: 'Laajennettu juttu',
+            link: 'https://yle.fi/a/expanded',
+            summary: 'Tiivistelmä näkyy vain laajennetussa näkymässä.',
+            publishedAt: new Date(now - 60_000).toISOString(),
+            source: 'yle',
+            fetchedAt: new Date(now).toISOString(),
+          },
+        ],
+      },
+    });
+
+    await page.goto('/');
+
+    await page.getByTestId('panel-news-expand').click();
+
+    const expanded = page.getByTestId('panel-news-expanded');
+    // The summary is the extra detail the full-screen view adds.
+    await expect(expanded).toContainText('Tiivistelmä näkyy vain laajennetussa näkymässä.');
+
+    await expanded.getByText('Laajennettu juttu').click();
+
+    const qr = page.getByTestId('news-qr-modal');
+    await expect(qr).toBeVisible();
+    await expect(qr.getByTestId('news-qr-image')).toBeVisible();
+
+    // Escape closes only the topmost dialog; the expanded panel stays open.
+    await page.keyboard.press('Escape');
+    await expect(qr).toBeHidden();
+    await expect(expanded).toBeVisible();
+  });
+
+  test('panels with no data offer no expand affordance', async ({ page }) => {
+    await stubReads(page);
+
+    await page.goto('/');
+
+    await expect(page.getByTestId('panel-calendar')).toContainText('Ei tulevia tapahtumia');
+    await expect(page.getByTestId('panel-calendar-expand')).toHaveCount(0);
+    await expect(page.getByTestId('panel-todos-expand')).toHaveCount(0);
+  });
+
   test('electricity panel shows "tomorrow pending" note when only today is published', async ({
     page,
   }) => {

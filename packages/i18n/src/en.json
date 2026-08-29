@@ -42,6 +42,15 @@
   "panel.transport.minAway": "{minutes} min",
   "panel.transport.liveLabel": "tracked live",
 
+  "kiosk.adminQr.open": "Open admin QR codes",
+  "kiosk.adminQr.title": "Admin on your phone",
+  "kiosk.adminQr.hint": "Scan a code with your phone camera. Address: {origin}",
+  "kiosk.adminQr.close": "Close",
+  "kiosk.adminQr.codeAlt": "QR code: {target}",
+  "kiosk.adminQr.target.admin": "Admin",
+  "kiosk.adminQr.target.newEvent": "New event",
+  "kiosk.adminQr.target.newTodo": "New todo",
+
   "pagination.label": "Dashboard pages",
 
   "panel.calendar.title": "Calendar",

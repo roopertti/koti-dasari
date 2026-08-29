@@ -358,6 +358,43 @@ test.describe('dashboard', () => {
     await expect(modal).toContainText('Avattava juttu');
   });
 
+  test('the header QR button opens a modal with codes for the admin entry points', async ({
+    page,
+  }) => {
+    await stubReads(page);
+    await page.goto('/');
+
+    const trigger = page.getByTestId('admin-qr-button');
+    await expect(trigger).toBeVisible();
+    // Touch target minimum from the kiosk conventions.
+    const box = await trigger.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+
+    await trigger.click();
+
+    const modal = page.getByTestId('admin-qr-modal');
+    await expect(modal).toBeVisible();
+    await expect(modal).toContainText('Hallinta puhelimella');
+
+    // One code per admin entry point, each rendered as a real image.
+    await expect(modal.getByTestId('admin-qr-list').locator('> li')).toHaveCount(3);
+    for (const key of ['admin', 'newEvent', 'newTodo']) {
+      await expect(modal.getByTestId(`admin-qr-code-${key}`)).toBeVisible();
+    }
+
+    // Codes are encoded locally as data URIs — no network round trip.
+    const src = await modal.getByTestId('admin-qr-code-admin').getAttribute('src');
+    expect(src).toMatch(/^data:image\/png;base64,/);
+
+    // The origin the kiosk was reached by is shown as a typo-able fallback.
+    const origin = new URL(page.url()).origin;
+    await expect(modal).toContainText(origin);
+
+    await modal.getByTestId('admin-qr-close').click();
+    await expect(modal).toBeHidden();
+  });
+
   test('news panel shows empty state when no items are available', async ({ page }) => {
     await stubReads(page);
 
@@ -419,8 +456,28 @@ function makeTodo({ id, title, dayOffset, sortOrder = 0, priority = 'medium' }: 
   };
 }
 
+const NEWS_ITEM = {
+  guid: 'yle-1',
+  title: 'Iltajuttu',
+  link: 'https://yle.fi/a/late',
+  summary: null,
+  publishedAt: '2026-04-17T20:00:00.000Z',
+  source: 'yle',
+  fetchedAt: '2026-04-17T20:00:00.000Z',
+};
+
+async function openAdminQrDialog(page: Page) {
+  await page.getByTestId('admin-qr-button').click();
+}
+
+async function openNewsQrDialog(page: Page) {
+  await page.getByTestId('panel-news').getByText(NEWS_ITEM.title).click();
+}
+
 test.describe('kiosk sleep mode', () => {
   const FAR_FUTURE = '2999-01-01T00:00:00.000Z';
+  // Mirrors REFRESH_MS in useDisplaySettings.
+  const DISPLAY_POLL_MS = 30_000;
 
   function sleepDisplay(override: 'auto' | 'wake' | 'sleep', enabled = true) {
     return {
@@ -449,6 +506,47 @@ test.describe('kiosk sleep mode', () => {
     await overlay.click();
     await expect(overlay).toHaveAttribute('data-asleep', 'false');
   });
+
+  // A <dialog> opened with showModal() lives in the browser's top layer, which
+  // paints above the sleep overlay whatever its z-index. Without an explicit
+  // teardown these dialogs would stay lit through the whole sleep window.
+  for (const dialog of [
+    { name: 'admin QR', open: openAdminQrDialog, testId: 'admin-qr-modal' },
+    { name: 'news QR', open: openNewsQrDialog, testId: 'news-qr-modal' },
+  ]) {
+    test(`closes the ${dialog.name} dialog when the sleep window begins`, async ({ page }) => {
+      let mode: 'wake' | 'sleep' = 'wake';
+      await page.route(apiPath('settings/display'), (route) =>
+        route.fulfill({
+          json: {
+            data: {
+              sleep: {
+                enabled: true,
+                start: '23:00',
+                end: '06:30',
+                override: mode,
+                overrideUntil: FAR_FUTURE,
+              },
+            },
+          },
+        }),
+      );
+      await stubReads(page, { news: { data: [NEWS_ITEM] } });
+
+      // Lets us jump the 30s display-config poll instead of waiting it out.
+      await page.clock.install();
+      await page.goto('/');
+      await dialog.open(page);
+      await expect(page.getByTestId(dialog.testId)).toBeVisible();
+
+      // The sleep window arrives while the dialog is still open.
+      mode = 'sleep';
+      await page.clock.fastForward(DISPLAY_POLL_MS + 1_000);
+      await expect(page.getByTestId('sleep-overlay')).toHaveAttribute('data-asleep', 'true');
+
+      await expect(page.getByTestId(dialog.testId)).toBeHidden();
+    });
+  }
 
   test('stays awake when the schedule is disabled', async ({ page }) => {
     await stubReads(page, { 'settings/display': sleepDisplay('auto', false) });

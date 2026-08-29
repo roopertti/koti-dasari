@@ -51,6 +51,7 @@ home-dashboard/
 │   │   │   ├── App.tsx             # Top-level router: /admin/* → AdminApp, /* → KioskApp
 │   │   │   ├── components/
 │   │   │   │   ├── Kiosk/          # KioskApp — composes the dashboard panels
+│   │   │   │   ├── AdminQR/        # Kiosk header affordance — QR codes to the admin UI
 │   │   │   │   ├── Layout/         # DashboardLayout, kiosk chrome (paging, swipe)
 │   │   │   │   ├── Calendar/       # Kiosk panel
 │   │   │   │   ├── Clock/          # Kiosk panel — Clock + Today & Soon rail
@@ -203,12 +204,20 @@ home-dashboard/
 
 #### Component conventions
 
-- **Kiosk vs. admin.** `App.tsx` is a thin router; everything below it lives in either `Kiosk/` (composes the dashboard panels) or `Admin/` (login, layout, feature pages). The kiosk panels themselves (`Calendar/`, `Clock/`, `Todos/`, `Transport/`, `Weather/`, `Layout/`) sit at the top of `components/` and are imported into `KioskApp`.
+- **Kiosk vs. admin.** `App.tsx` is a thin router; everything below it lives in either `Kiosk/` (composes the dashboard panels) or `Admin/` (login, layout, feature pages). The kiosk panels themselves (`Calendar/`, `Clock/`, `Todos/`, `Transport/`, `Weather/`, `Layout/`, `AdminQR/`) sit at the top of `components/` and are imported into `KioskApp`.
 - **Primitives** (`Admin/primitives/`) are single-purpose reusable components — `Button`, `Input`, `Field`, `Section`, `Heading`, `ListRow`, etc. One folder per primitive (`<Name>/<Name>.tsx` + `<Name>.css.ts`). Page-level code should compose primitives, not raw HTML. The term "widget" is reserved for self-contained features (a clock, a weather panel) — primitives are not widgets.
 - **Feature folders** (`Admin/Events/`, `Admin/Todos/`, `Admin/Settings/`) follow a page + form + list shape: a thin `*Page.tsx` orchestrator, a presentational `*Form.tsx` that owns its mutation, a `*List.tsx` that owns its query, and a `queries.ts` for shared query keys / invalidation.
-- **Common** (`common/`) holds cross-area utilities that aren't admin-specific (ErrorBoundary, Pagination, PanelMessage, Stack, FullScreenMessage, Toast, …). `Toast` is the admin-only feedback channel: `ToastProvider` + `useToast()` are mounted inside `AdminApp` (the kiosk stays toast-free per Phase 6); admin mutations surface success/failure through it.
+- **Common** (`common/`) holds cross-area utilities that aren't admin-specific (ErrorBoundary, Pagination, PanelMessage, Stack, FullScreenMessage, Toast, Modal, QRCode, …). `Toast` is the admin-only feedback channel: `ToastProvider` + `useToast()` are mounted inside `AdminApp` (the kiosk stays toast-free per Phase 6); admin mutations surface success/failure through it.
 - **Styling.** Vanilla Extract; tokens in `src/styles/theme.css.ts`. Each component owns its own `.css.ts`. No global element selectors beyond minimal resets; no cross-component `.css.ts` imports — shared base styles live next to their consumers (e.g. `primitives/inputBase.css.ts` is composed by `Input`, `Textarea`, and `Select`).
 - **Side effects.** TanStack Query for data; a `key` prop for prop→state resets; `useEffect` is a last resort. Full rules in `.claude/skills/react-ui/SKILL.md`.
+
+### Mobile Admin Discovery (Phase 17)
+
+Reaching the admin UI from a phone used to mean typing the Pi's LAN address by hand. A QR button in the kiosk header (`components/AdminQR/`) opens a dialog with one code per admin entry point — `/admin/`, `/admin/events`, and `/admin/todos`.
+
+- **Origin.** `adminQrTargets(window.location.origin)` builds the absolute URLs at render time, so the codes point at whatever IP or hostname the kiosk itself was reached by — nothing to configure per deployment. The origin is also printed under the codes as a fallback for typing by hand. *Caveat:* if the kiosk browser is ever pointed at `http://localhost`, the codes will encode `localhost` and won't resolve from a phone — the kiosk must be opened via its LAN address.
+- **No `/new` routes.** `/admin/events` and `/admin/todos` already render an empty create form at the top of the page, so they double as the "new event" / "new todo" targets.
+- **Encoding** is local via the `qrcode` package (already a dependency for the news panel's share codes) — no network call, no external QR service. `common/QRCode/` is the shared primitive; the news modal renders through it too.
 
 ### Backend API (api)
 
@@ -229,6 +238,7 @@ A scheduled "software dim" so the kiosk isn't burning the panel overnight. Confi
 
 - **Kiosk** polls the public, API-key-gated `GET /api/settings/display` (~30s) and computes "asleep now" client-side via the shared `isAsleep` predicate. While asleep it fades a near-black clock over the dashboard (the display stays powered, so the clock and touch-to-wake keep working). A tap wakes it for a short idle window, then it fades back.
 - **Manual override** (`POST /api/admin/sleep/override`, `wake`/`sleep`/`auto`) forces a state until the next schedule boundary — the server computes the expiry instant in Helsinki time, after which the schedule resumes on its own.
+- **Top-layer dialogs.** The overlay cannot cover everything by itself: a `<dialog>` opened with `showModal()` lives in the browser's *top layer* and paints above any `z-index`, so an open dialog would stay lit for the whole sleep window. `SleepOverlay` therefore publishes the effective state on `SleepContext`; kiosk dialogs read `useIsAsleep()` and close themselves (`NewsPanel`, `AdminQRButton`).
 - **Workers** (transport, weather, electricity, news) call `isAsleepNow(settings)` each tick and skip the fetch while asleep, still rescheduling normally — so they wake within one interval. `worker-calendar` is **not** gated (its 03:00 daily holiday sync falls inside the sleep window).
 - **Hardware power-off** via `vcgencmd display_power` is documented as optional/independent in `infra/setup-pi.sh`; it's a static schedule that can't track the dynamic admin window and loses the clock + touch-wake, so the software dim is the default.
 

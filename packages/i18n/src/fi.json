@@ -42,6 +42,15 @@
   "panel.transport.minAway": "{minutes} min",
   "panel.transport.liveLabel": "seurataan reaaliajassa",
 
+  "kiosk.adminQr.open": "Avaa hallinnan QR-koodit",
+  "kiosk.adminQr.title": "Hallinta puhelimella",
+  "kiosk.adminQr.hint": "Skannaa koodi puhelimen kameralla. Osoite: {origin}",
+  "kiosk.adminQr.close": "Sulje",
+  "kiosk.adminQr.codeAlt": "QR-koodi: {target}",
+  "kiosk.adminQr.target.admin": "Hallinta",
+  "kiosk.adminQr.target.newEvent": "Uusi tapahtuma",
+  "kiosk.adminQr.target.newTodo": "Uusi tehtävä",
+
   "pagination.label": "Näytön sivut",
 
   "panel.calendar.title": "Kalenteri",

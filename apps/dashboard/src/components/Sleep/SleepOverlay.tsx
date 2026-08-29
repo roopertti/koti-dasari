@@ -3,8 +3,8 @@ import { isAsleep } from '@home-dashboard/shared';
 import { type ReactNode, useState } from 'react';
 import { useClock } from '../../hooks/useClock.js';
 import { useDisplaySettings } from '../../hooks/useDisplaySettings.js';
-import { SleepContext } from './sleepContext.js';
 import * as styles from './SleepOverlay.css.js';
+import { SleepContext } from './sleepContext.js';
 
 // How long a tap keeps the dashboard awake before it fades back to sleep.
 const WAKE_MS = 30_000;

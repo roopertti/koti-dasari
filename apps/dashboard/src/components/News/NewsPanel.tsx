@@ -6,7 +6,6 @@ import { getNews } from '../../api/news.js';
 import { useNow } from '../../hooks/useNow.js';
 import { FocusablePanel } from '../common/FocusablePanel/FocusablePanel.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
-import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { useIsAsleep } from '../Sleep/useIsAsleep.js';
 import * as styles from './NewsPanel.css.js';
 import { NewsRow } from './NewsRow/NewsRow.js';

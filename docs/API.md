@@ -11,7 +11,7 @@ http://<raspberry-pi-ip>:3001
 Two opt-in layers (see `docs/ARCHITECTURE.md#authentication-strategy`):
 
 1. **API key (`x-api-key` header)** required on all `/api/*` when `API_KEYS` env is non-empty. Exempt: `/api/health`, `/api/admin/*`. The kiosk's nginx injects `KIOSK_API_KEY` automatically; remote clients must send the header themselves.
-2. **Admin session cookie** required on the admin settings/sleep endpoints (`/api/admin/settings`, `/api/admin/sleep`, `/api/admin/sleep/override`) and on all destructive event/todo mutations (see the per-endpoint "Requires admin session cookie" notes below). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
+2. **Admin session cookie** required on the admin settings/sleep/rotation endpoints (`/api/admin/settings`, `/api/admin/sleep`, `/api/admin/sleep/override`, `/api/admin/rotation`) and on all destructive event/todo mutations (see the per-endpoint "Requires admin session cookie" notes below). Obtained via `POST /api/admin/login`. Returns `401 UNAUTHORIZED` if missing; returns `503 ADMIN_DISABLED` when admin is not configured.
 
 Reads (`GET`) on calendar, todos, transport, weather, and electricity require only the API key. The single mutation the kiosk needs — `PATCH /api/todos/:id/toggle` — also requires only the API key. Everything else that writes goes through the admin cookie.
 
@@ -450,7 +450,7 @@ Returns stored runtime settings (only keys the admin has set; absent keys mean "
 
 #### `PUT /api/admin/settings`
 
-Upserts the provided keys. Returns the updated stored snapshot. Each field is range-validated (`homeLatitude` ±90, `homeLongitude` ±180, `transportRadius` 50–10000m, `transportIntervalMs` 30s–1h, `weatherIntervalMs` 1min–6h). Sleep config is **not** edited here — use the sleep endpoints below.
+Upserts the provided keys. Returns the updated stored snapshot. Each field is range-validated (`homeLatitude` ±90, `homeLongitude` ±180, `transportRadius` 50–10000m, `transportIntervalMs` 30s–1h, `weatherIntervalMs` 1min–6h). Sleep and rotation config are **not** edited here — use the dedicated endpoints below.
 
 #### `PUT /api/admin/sleep`
 
@@ -466,11 +466,19 @@ Requires admin session cookie. Sets a manual override. `mode: "wake" | "sleep"` 
 
 **Body:** `{ "mode": "sleep" }`
 
+#### `PUT /api/admin/rotation`
+
+Requires admin session cookie. Upserts the idle page-rotation config; all fields optional. `intervalMs` is how long a page is shown (5s–10min), `idleMs` how long the screen must go untouched before rotation starts (30s–1h). Returns the resolved rotation config.
+
+**Body:** `{ "enabled": true, "intervalMs": 30000, "idleMs": 120000 }`
+
+**Response:** `200 OK` → `{ "data": { "enabled": true, "intervalMs": 30000, "idleMs": 120000 } }`
+
 ### Display Settings (Read-only)
 
 #### `GET /api/settings/display`
 
-API-key gated (not admin). Returns the display config the kiosk needs to render the sleep overlay — sleep window + current override only, never secrets.
+API-key gated (not admin). Returns the display config the kiosk needs to render itself — the sleep window + current override and the idle page-rotation config, never secrets.
 
 **Response:** `200 OK`
 ```json
@@ -482,6 +490,11 @@ API-key gated (not admin). Returns the display config the kiosk needs to render 
       "end": "06:30",
       "override": "auto",
       "overrideUntil": null
+    },
+    "rotation": {
+      "enabled": true,
+      "intervalMs": 30000,
+      "idleMs": 120000
     }
   }
 }

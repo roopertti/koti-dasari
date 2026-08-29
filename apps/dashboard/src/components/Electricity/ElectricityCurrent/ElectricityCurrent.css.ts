@@ -22,7 +22,7 @@ export const priceValue = style({
   color: vars.color.fg,
   '@media': {
     [mq.pi]: {
-      fontSize: '3.5rem',
+      fontSize: '2.6rem',
     },
   },
 });
@@ -46,4 +46,9 @@ export const labelRow = style({
 
 export const statsRow = style({
   marginTop: vars.space.sm,
+  '@media': {
+    [mq.pi]: {
+      marginTop: vars.space.xs,
+    },
+  },
 });

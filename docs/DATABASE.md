@@ -202,6 +202,7 @@ Known keys (snake_case in DB, camelCase in API):
 
 - Tuning (number): `home_latitude`, `home_longitude`, `transport_radius`, `transport_interval_ms`, `weather_interval_ms`
 - Night sleep (Phase 15): `sleep_enabled` (boolean), `sleep_start` / `sleep_end` (`"HH:MM"` local Helsinki time), `sleep_override` (`auto` | `wake` | `sleep`), `sleep_override_until` (ISO 8601 UTC, empty when no override). A manual override wins over the schedule until the stored instant passes, then the schedule resumes.
+- Idle page rotation (Phase 18): `rotate_enabled` (boolean, default `true`), `rotate_interval_ms` (number, how long each page is shown), `rotate_idle_ms` (number, untouched time before rotation starts). Kiosk-only display config — no worker reads them.
 
 ## WMO Weather Codes Reference
 

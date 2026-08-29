@@ -25,7 +25,7 @@ export const forecast = style({
     [mq.pi]: {
       gridAutoColumns: 'minmax(auto, 1fr)',
       gap: '4px',
-      paddingTop: '10px',
+      paddingTop: vars.space.sm,
     },
   },
 });
@@ -37,6 +37,12 @@ export const hour = style({
   gap: '4px',
   padding: '4px 2px',
   fontVariantNumeric: 'tabular-nums',
+  '@media': {
+    [mq.pi]: {
+      gap: '2px',
+      padding: '2px',
+    },
+  },
 });
 
 export const time = style({
@@ -56,6 +62,11 @@ export const icon = style({
   color: vars.color.fgMuted,
   fontSize: '1.6rem',
   lineHeight: 1,
+  '@media': {
+    [mq.pi]: {
+      fontSize: '1.3rem',
+    },
+  },
 });
 
 export const temp = style({

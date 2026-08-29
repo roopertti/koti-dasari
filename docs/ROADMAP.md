@@ -422,10 +422,17 @@ Nice-to-have. Today only the currently-paged panels are visible at once. Tighter
 
 ### Tasks
 
-- [ ] Tighten panel heights so more panels fit per page (target: ~3 stacked panels per page instead of the current 2). Verify on the actual Pi touchscreen resolution before locking the heights in
-- [ ] **Design call to settle first:** pure timed page-cycling is jarring if a viewer is mid-read. Recommended approach is to cycle only after N minutes of no touch input, pausing immediately when touched and resuming after another idle window. The denser layout above is the primary win; cycling is a fallback for content that still doesn't fit
-- [ ] If cycling stays: add page-indicator dots so a glance shows which page you're on
-- [ ] Admin settings: rotate interval, idle timeout before rotation starts, on/off toggle
+- [x] Tighten panel heights so more panels fit per page (3 stacked panels per page, down from 2 — six panels now fit on two pages instead of three). Verified against the Pi's **720×1280 portrait** screen (confirmed 2026-08-29) by rendering the kiosk at that viewport: no page scrolls, every panel fits. Density is scoped to the existing `mq.pi` breakpoint, so the desktop/tablet layout is untouched
+- [x] **Design call settled (2026-08-29):** idle-gated cycling, not timed. `useAutoRotate` advances one page every `intervalMs`, but only once the screen has gone `idleMs` without a pointer press; any touch restarts the countdown. A window-level capture listener catches presses on panel buttons, so it also covers the existing swipe gesture
+- [x] Page-indicator dots — already shipped as the `Pagination` primitive in the original kiosk layout; the dot count follows `PAGES.length`, so it dropped from three dots to two on its own
+- [x] Admin settings: rotate interval, idle timeout, on/off toggle. New `/admin/rotation` ("Sivunvaihto") tab writing `rotate_*` keys via `PUT /api/admin/rotation`; the kiosk reads them from the existing `GET /api/settings/display` payload alongside the sleep config
+
+**Implementation notes:**
+- Page regrouping: page 1 = weather + transport + electricity ("right now" glance), page 2 = calendar + todos + news. `NewsPanel` switched from `grow="auto"` to `fill` so it takes its share of the page and scrolls internally rather than pushing the page taller.
+- Rotation defaults to **on** (30 s per page, 120 s idle) — unlike sleep mode, which ships off. Idle gating makes it unobtrusive enough that an opt-in toggle would just hide the feature.
+- `ROTATION_LIMITS` lives in `@home-dashboard/shared` so the API's request schema and the admin form's input bounds can't drift apart. The admin form talks seconds and converts to the stored milliseconds.
+- Fixed in passing: `SleepForm` overwrote the whole `settings/display` cache entry (`setQueryData(key, { sleep })`), which would have dropped the new `rotation` half. Both forms now patch the entry in place.
+- Rotation is held while a `<dialog open>` is on screen (detail dialogs, news QR modal) or the tab is hidden — a reader who has stopped touching the screen is not idle. _Decision (2026-08-28): an open modal holds the page._
 
 **Dependency:** Phase 8 (admin settings for the rotate options).
 

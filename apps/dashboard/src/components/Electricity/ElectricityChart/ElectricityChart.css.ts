@@ -1,11 +1,16 @@
 import { style } from '@vanilla-extract/css';
-import { vars } from '../../../styles/theme.css.js';
+import { mq, vars } from '../../../styles/theme.css.js';
 
 export const chart = style({
   display: 'block',
   width: '100%',
   height: 'auto',
   maxHeight: '260px',
+  '@media': {
+    [mq.pi]: {
+      maxHeight: '150px',
+    },
+  },
 });
 
 export const axis = style({

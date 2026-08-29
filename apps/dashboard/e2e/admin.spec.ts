@@ -2,6 +2,16 @@ import { expect, type Page, test } from '@playwright/test';
 
 const apiPath = (suffix: string) => new RegExp(`/api/${suffix}(\\?|/|$)`);
 
+const ROTATION_CONFIG = { enabled: true, intervalMs: 30_000, idleMs: 120_000 };
+
+const SLEEP_CONFIG = {
+  enabled: false,
+  start: '23:00',
+  end: '06:30',
+  override: 'auto',
+  overrideUntil: null,
+};
+
 async function stubAdminSession(page: Page, authed: boolean) {
   await page.route(apiPath('admin/session'), (route) =>
     route.fulfill({
@@ -327,7 +337,7 @@ test.describe('admin', () => {
       overrideUntil: null,
     };
     await page.route(apiPath('settings/display'), (route) =>
-      route.fulfill({ json: { data: { sleep: sleepConfig } } }),
+      route.fulfill({ json: { data: { sleep: sleepConfig, rotation: ROTATION_CONFIG } } }),
     );
 
     let overrideBody: Record<string, unknown> | null = null;
@@ -347,5 +357,35 @@ test.describe('admin', () => {
 
     await page.getByRole('button', { name: 'Nukuta nyt' }).click();
     await expect.poll(() => overrideBody).toEqual({ mode: 'sleep' });
+  });
+
+  test('rotation tab renders the config and saving PUTs millisecond values', async ({ page }) => {
+    await stubAdminSession(page, true);
+    await stubEmptyReads(page);
+
+    await page.route(apiPath('settings/display'), (route) =>
+      route.fulfill({ json: { data: { sleep: SLEEP_CONFIG, rotation: ROTATION_CONFIG } } }),
+    );
+
+    let putBody: Record<string, unknown> | null = null;
+    await page.route(apiPath('admin/rotation'), (route, request) => {
+      putBody = JSON.parse(request.postData() ?? '{}');
+      return route.fulfill({
+        json: { data: { enabled: true, intervalMs: 45_000, idleMs: 180_000 } },
+      });
+    });
+
+    await page.goto('/admin/rotation');
+
+    // Seconds in the form, milliseconds on the wire.
+    await expect(page.getByLabel('Vaihtoväli (s)')).toHaveValue('30');
+    await expect(page.getByLabel('Odotusaika kosketuksen jälkeen (s)')).toHaveValue('120');
+
+    await page.getByLabel('Vaihtoväli (s)').fill('45');
+    await page.getByLabel('Odotusaika kosketuksen jälkeen (s)').fill('180');
+    await page.getByRole('button', { name: 'Tallenna' }).click();
+
+    await expect(page.getByTestId('toast')).toContainText('Sivunvaihto tallennettu');
+    expect(putBody).toEqual({ enabled: true, intervalMs: 45_000, idleMs: 180_000 });
   });
 });

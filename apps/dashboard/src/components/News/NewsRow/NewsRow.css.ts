@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css';
-import { vars } from '../../../styles/theme.css.js';
+import { mq, vars } from '../../../styles/theme.css.js';
 import { rowButtonBase } from '../../common/rowButtonBase.css.js';
 
 export const row = style([
@@ -11,6 +11,11 @@ export const row = style([
     padding: `${vars.space.sm} ${vars.space.md}`,
     borderRadius: vars.radii.sm,
     background: vars.color.bgPanelHover,
+    '@media': {
+      [mq.pi]: {
+        padding: `6px ${vars.space.md}`,
+      },
+    },
   },
 ]);
 

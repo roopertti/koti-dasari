@@ -17,9 +17,10 @@ const rowBase = {
   fontSize: '1.15rem',
   '@media': {
     [mq.pi]: {
-      gridTemplateColumns: '36px 68px 1fr auto',
-      gap: vars.space.md,
-      minHeight: '60px',
+      gridTemplateColumns: '32px 60px 1fr auto',
+      gap: vars.space.sm,
+      padding: '4px 8px',
+      minHeight: '46px',
     },
   },
 } as const;
@@ -45,6 +46,11 @@ export const route = style({
   fontSize: '1.5rem',
   fontVariantNumeric: 'tabular-nums',
   letterSpacing: '-0.02em',
+  '@media': {
+    [mq.pi]: {
+      fontSize: '1.3rem',
+    },
+  },
 });
 
 export const headsign = style({
@@ -55,7 +61,7 @@ export const headsign = style({
   fontSize: '1.1rem',
   '@media': {
     [mq.pi]: {
-      fontSize: '1.15rem',
+      fontSize: '1.05rem',
     },
   },
 });
@@ -69,7 +75,7 @@ const timeBase = {
   fontSize: '1.25rem',
   '@media': {
     [mq.pi]: {
-      fontSize: '1.3rem',
+      fontSize: '1.15rem',
     },
   },
 } as const;

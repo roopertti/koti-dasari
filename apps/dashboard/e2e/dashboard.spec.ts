@@ -2,6 +2,21 @@ import { expect, type Page, test } from '@playwright/test';
 
 const EMPTY = { data: [] };
 
+const SLEEP_OFF = {
+  enabled: false,
+  start: '23:00',
+  end: '06:30',
+  override: 'auto',
+  overrideUntil: null,
+};
+
+const ROTATION_OFF = { enabled: false, intervalMs: 30_000, idleMs: 120_000 };
+
+/** Idle-gated rotation with test-sized timings; `idleMs` is set per test. */
+function rotatingDisplay(rotation: { enabled: boolean; intervalMs: number; idleMs: number }) {
+  return { data: { sleep: SLEEP_OFF, rotation } };
+}
+
 const WEATHER_CURRENT = {
   data: {
     temperature: 8.5,
@@ -32,6 +47,8 @@ async function stubReads(page: Page, overrides: Record<string, unknown> = {}) {
     'weather/forecast': EMPTY,
     'electricity/prices': EMPTY,
     news: EMPTY,
+    // Rotation off by default so page-dependent assertions stay put.
+    'settings/display': { data: { sleep: SLEEP_OFF, rotation: ROTATION_OFF } },
     ...overrides,
   };
   for (const [suffix, body] of Object.entries(responses)) {
@@ -780,6 +797,7 @@ test.describe('kiosk sleep mode', () => {
           override,
           overrideUntil: override === 'auto' ? null : FAR_FUTURE,
         },
+        rotation: ROTATION_OFF,
       },
     };
   }
@@ -807,6 +825,9 @@ test.describe('kiosk sleep mode', () => {
   ]) {
     test(`closes the ${dialog.name} dialog when the sleep window begins`, async ({ page }) => {
       let mode: 'wake' | 'sleep' = 'wake';
+      await stubReads(page, { news: { data: [NEWS_ITEM] } });
+      // Registered after stubReads: Playwright tries the most recently added
+      // route first, so this dynamic handler shadows the static display stub.
       await page.route(apiPath('settings/display'), (route) =>
         route.fulfill({
           json: {
@@ -818,11 +839,11 @@ test.describe('kiosk sleep mode', () => {
                 override: mode,
                 overrideUntil: FAR_FUTURE,
               },
+              rotation: ROTATION_OFF,
             },
           },
         }),
       );
-      await stubReads(page, { news: { data: [NEWS_ITEM] } });
 
       // Lets us jump the 30s display-config poll instead of waiting it out.
       await page.clock.install();
@@ -845,5 +866,108 @@ test.describe('kiosk sleep mode', () => {
 
     await expect(page.getByTestId('sleep-overlay')).toHaveAttribute('data-asleep', 'false');
     await expect(page.getByTestId('panel-weather')).toBeVisible();
+  });
+});
+
+test.describe('idle auto-rotate', () => {
+  test('advances pages on its own once the screen has been idle, and wraps around', async ({
+    page,
+  }) => {
+    await stubReads(page, {
+      'settings/display': rotatingDisplay({ enabled: true, intervalMs: 400, idleMs: 400 }),
+    });
+    await page.goto('/');
+
+    const dots = page.getByTestId('pagination').locator('span');
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page');
+
+    await expect(dots.nth(1)).toHaveAttribute('aria-current', 'page', { timeout: 5000 });
+    // Two pages only — the next tick wraps back to the first.
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page', { timeout: 5000 });
+  });
+
+  test('each touch restarts the idle countdown, then rotation resumes hands-off', async ({
+    page,
+  }) => {
+    await stubReads(page, {
+      'settings/display': rotatingDisplay({ enabled: true, intervalMs: 300, idleMs: 1500 }),
+    });
+    await page.goto('/');
+
+    const dots = page.getByTestId('pagination').locator('span');
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page');
+
+    // Tap across a span far longer than the idle window, but with each tap
+    // inside it: every tap restarts the countdown, so the page must hold even
+    // though the rotate interval elapses many times over.
+    for (let i = 0; i < 3; i++) {
+      await page.getByTestId('panel-weather').click();
+      await page.waitForTimeout(1000);
+    }
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page');
+
+    // Hands off — the countdown finally runs out and rotation takes over.
+    await expect(dots.nth(1)).toHaveAttribute('aria-current', 'page', { timeout: 5000 });
+  });
+
+  test('an open dialog holds the page even though nobody is touching the screen', async ({
+    page,
+  }) => {
+    const now = new Date();
+    await stubReads(page, {
+      news: {
+        data: [
+          {
+            guid: 'yle-1',
+            title: 'Skannattava juttu',
+            link: 'https://yle.fi/a/scan-me',
+            summary: null,
+            publishedAt: new Date(now.getTime() - 60_000).toISOString(),
+            source: 'yle',
+            fetchedAt: now.toISOString(),
+          },
+        ],
+      },
+      'settings/display': rotatingDisplay({ enabled: true, intervalMs: 300, idleMs: 400 }),
+    });
+    await page.goto('/');
+
+    const dots = page.getByTestId('pagination').locator('span');
+    const scrollLeft = () =>
+      page.evaluate(() => {
+        const pages = document.querySelector('[data-testid="page-primary"]')?.parentElement;
+        return Math.round(pages?.scrollLeft ?? -1);
+      });
+
+    // Opening the QR modal scrolls the news panel's page into view.
+    await page.getByTestId('panel-news').getByText('Skannattava juttu').click();
+    const modal = page.getByTestId('news-qr-modal');
+    await expect(modal).toBeVisible();
+
+    // Someone scanning the code has stopped touching the screen, but the page
+    // must not slide out from under the dialog. Sample the raw scroll offset
+    // rather than the dots: a rotating page mid-animation passes through every
+    // dot state, which a retrying assertion would happily accept.
+    const parked = await scrollLeft();
+    for (let i = 0; i < 4; i++) {
+      await page.waitForTimeout(400);
+      expect(await scrollLeft()).toBe(parked);
+    }
+    await expect(modal).toBeVisible();
+
+    // Closing it releases the hold.
+    await page.getByTestId('news-qr-modal-close').click();
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page', { timeout: 5000 });
+  });
+
+  test('does not rotate when the admin has turned rotation off', async ({ page }) => {
+    await stubReads(page, {
+      'settings/display': rotatingDisplay({ enabled: false, intervalMs: 200, idleMs: 200 }),
+    });
+    await page.goto('/');
+
+    const dots = page.getByTestId('pagination').locator('span');
+    await page.waitForTimeout(1500);
+    await expect(dots.nth(0)).toHaveAttribute('aria-current', 'page');
   });
 });

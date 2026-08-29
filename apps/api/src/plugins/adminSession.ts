@@ -5,12 +5,13 @@ import {
   type DashboardSettings,
   readSettings,
   resolveSettings,
+  rotationFromSettings,
   type SleepOverrideMode,
   sleepFromSettings,
   writeSettings,
 } from '@home-dashboard/db';
 import { nextBoundaryInstant } from '@home-dashboard/i18n';
-import { parseHm } from '@home-dashboard/shared';
+import { parseHm, ROTATION_LIMITS } from '@home-dashboard/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
@@ -216,6 +217,46 @@ async function plugin(app: FastifyInstance, options: AdminPluginOptions) {
         await writeSettings(app.db, { sleepOverride: mode, sleepOverrideUntil: until });
       }
       return { data: sleepFromSettings(await resolveSettings(app.db)) };
+    },
+  );
+
+  app.put<{ Body: { enabled?: boolean; intervalMs?: number; idleMs?: number } }>(
+    '/api/admin/rotation',
+    {
+      preHandler: requireAdmin,
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            enabled: { type: 'boolean' },
+            intervalMs: {
+              type: 'integer',
+              minimum: ROTATION_LIMITS.intervalMs.min,
+              maximum: ROTATION_LIMITS.intervalMs.max,
+            },
+            idleMs: {
+              type: 'integer',
+              minimum: ROTATION_LIMITS.idleMs.min,
+              maximum: ROTATION_LIMITS.idleMs.max,
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
+    async (request) => {
+      const patch: Partial<DashboardSettings> = {};
+      if (request.body.enabled !== undefined) {
+        patch.rotateEnabled = request.body.enabled;
+      }
+      if (request.body.intervalMs !== undefined) {
+        patch.rotateIntervalMs = request.body.intervalMs;
+      }
+      if (request.body.idleMs !== undefined) {
+        patch.rotateIdleMs = request.body.idleMs;
+      }
+      await writeSettings(app.db, patch);
+      return { data: rotationFromSettings(await resolveSettings(app.db)) };
     },
   );
 }

@@ -74,7 +74,6 @@ export function NewsPanel() {
       <FocusablePanel
         title={t('panel.news.title')}
         testId="panel-news"
-        grow="auto"
         expandable={hasNews && hasSummaries}
         compact={renderCompact()}
         expanded={

@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css';
-import { vars } from '../../../styles/theme.css.js';
+import { mq, vars } from '../../../styles/theme.css.js';
 import { rowButtonBase } from '../../common/rowButtonBase.css.js';
 
 export const dayLabel = style({
@@ -8,6 +8,11 @@ export const dayLabel = style({
   textTransform: 'uppercase',
   letterSpacing: vars.font.letterSpacingWide,
   marginBottom: '6px',
+  '@media': {
+    [mq.pi]: {
+      marginBottom: '2px',
+    },
+  },
 });
 
 export const dayEvents = style({
@@ -27,6 +32,12 @@ export const event = style([
     padding: '10px 12px',
     borderRadius: vars.radii.sm,
     background: vars.color.bgPanelHover,
+    minHeight: vars.size.touchMin,
+    '@media': {
+      [mq.pi]: {
+        padding: '6px 10px',
+      },
+    },
     selectors: {
       '&:active': {
         background: vars.color.border,

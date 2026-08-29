@@ -25,7 +25,7 @@ export const currentIcon = style({
   lineHeight: 1,
   '@media': {
     [mq.pi]: {
-      fontSize: '4.5rem',
+      fontSize: '3.2rem',
     },
   },
 });
@@ -38,7 +38,7 @@ export const currentTemp = style({
   letterSpacing: '-0.03em',
   '@media': {
     [mq.pi]: {
-      fontSize: '3.5rem',
+      fontSize: '2.9rem',
     },
   },
 });
@@ -56,4 +56,9 @@ export const currentLabel = style({
 export const statsRow = style({
   gridColumn: '1 / -1',
   marginTop: vars.space.sm,
+  '@media': {
+    [mq.pi]: {
+      marginTop: vars.space.xs,
+    },
+  },
 });

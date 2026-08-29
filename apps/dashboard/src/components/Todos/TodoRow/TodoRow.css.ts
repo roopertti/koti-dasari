@@ -1,5 +1,5 @@
 import { style, styleVariants } from '@vanilla-extract/css';
-import { vars } from '../../../styles/theme.css.js';
+import { mq, vars } from '../../../styles/theme.css.js';
 import { rowButtonBase } from '../../common/rowButtonBase.css.js';
 
 const rowBase = {
@@ -10,6 +10,11 @@ const rowBase = {
   borderRadius: vars.radii.sm,
   background: vars.color.bgPanelHover,
   minHeight: vars.size.touchMin,
+  '@media': {
+    [mq.pi]: {
+      padding: '4px 10px',
+    },
+  },
 } as const;
 
 export const row = styleVariants({

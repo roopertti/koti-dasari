@@ -52,7 +52,7 @@ home-dashboard/
 │   │   │   ├── components/
 │   │   │   │   ├── Kiosk/          # KioskApp — composes the dashboard panels
 │   │   │   │   ├── AdminQR/        # Kiosk header affordance — QR codes to the admin UI
-│   │   │   │   ├── Layout/         # DashboardLayout, kiosk chrome (paging, swipe)
+│   │   │   │   ├── Layout/         # DashboardLayout, kiosk chrome (paging, swipe, idle auto-rotate)
 │   │   │   │   ├── Calendar/       # Kiosk panel
 │   │   │   │   ├── Clock/          # Kiosk panel — Clock + Today & Soon rail
 │   │   │   │   ├── Todos/          # Kiosk panel
@@ -64,6 +64,8 @@ home-dashboard/
 │   │   │   │   │   ├── Events/            # Events page = EventsPage + Form + List + queries
 │   │   │   │   │   ├── Todos/             # Todos page (same shape as Events)
 │   │   │   │   │   ├── Settings/          # Settings page = container + presentational SettingsForm
+│   │   │   │   │   ├── Sleep/             # Night sleep schedule + manual override
+│   │   │   │   │   ├── Rotation/          # Idle page-rotation config
 │   │   │   │   │   ├── Login/             # LoginPage (shown when not authed)
 │   │   │   │   │   └── primitives/        # Reusable single-purpose components (see below)
 │   │   │   │   │       ├── Button/        # Button.tsx + Button.css.ts (one folder per primitive)
@@ -91,7 +93,7 @@ home-dashboard/
 │   │   │   │       ├── VisuallyHidden/ # Screen-reader-only text (aria-describedby targets)
 │   │   │   │       ├── ErrorBoundary/, Pagination/, PanelMessage/, PanelShell/, Stack/, Toast/, …
 │   │   │   │       └── rowButtonBase.css.ts   # Shared base style for tappable kiosk rows
-│   │   │   ├── hooks/              # useAdminSession, useClock, useActivePage, usePointerSwipe, …
+│   │   │   ├── hooks/              # useAdminSession, useClock, useActivePage, usePointerSwipe, useAutoRotate, …
 │   │   │   ├── api/                # API client functions (admin, calendar, todos, transport, weather)
 │   │   │   ├── i18n/               # t() helper + fi.json / en.json catalogs
 │   │   │   ├── types/
@@ -216,7 +218,7 @@ home-dashboard/
 
 - **Kiosk vs. admin.** `App.tsx` is a thin router; everything below it lives in either `Kiosk/` (composes the dashboard panels) or `Admin/` (login, layout, feature pages). The kiosk panels themselves (`Calendar/`, `Clock/`, `Todos/`, `Transport/`, `Weather/`, `Layout/`, `AdminQR/`) sit at the top of `components/` and are imported into `KioskApp`.
 - **Primitives** (`Admin/primitives/`) are single-purpose reusable components — `Button`, `Input`, `Field`, `Section`, `Heading`, `ListRow`, etc. One folder per primitive (`<Name>/<Name>.tsx` + `<Name>.css.ts`). Page-level code should compose primitives, not raw HTML. The term "widget" is reserved for self-contained features (a clock, a weather panel) — primitives are not widgets.
-- **Feature folders** (`Admin/Events/`, `Admin/Todos/`, `Admin/Settings/`) follow a page + form + list shape: a thin `*Page.tsx` orchestrator, a presentational `*Form.tsx` that owns its mutation, a `*List.tsx` that owns its query, and a `queries.ts` for shared query keys / invalidation.
+- **Feature folders** (`Admin/Events/`, `Admin/Todos/`, `Admin/Settings/`, `Admin/Sleep/`, `Admin/Rotation/`) follow a page + form + list shape: a thin `*Page.tsx` orchestrator, a presentational `*Form.tsx` that owns its mutation, a `*List.tsx` that owns its query, and a `queries.ts` for shared query keys / invalidation.
 - **Common** (`common/`) holds cross-area primitives and utilities that aren't admin-specific (`Button`, `Heading`, `Modal`, `PanelShell`, `QRCode`, `Stack`, `Text`, ErrorBoundary, Pagination, PanelMessage, FullScreenMessage, Toast, …), plus the kiosk detail-view primitives added in Phase 16: `FocusablePanel` (a panel that can expand full-screen), `ExpandButton`, `DetailDialog`, `DetailList`, and `VisuallyHidden`. `Toast` is the admin-only feedback channel: `ToastProvider` + `useToast()` are mounted inside `AdminApp` (the kiosk stays toast-free per Phase 6); admin mutations surface success/failure through it.
 - **Styling.** Vanilla Extract; tokens in `src/styles/theme.css.ts`. Each component owns its own `.css.ts`. No global element selectors beyond minimal resets; no cross-component `.css.ts` imports — shared base styles live next to their consumers (e.g. `primitives/inputBase.css.ts` is composed by `Input`, `Textarea`, and `Select`). When a base style is shared across *feature areas* rather than within one folder, it belongs in `common/` instead — `common/rowButtonBase.css.ts` (the tappable-row reset: full width, 44px touch minimum, inherited type, focus-visible ring) is composed by `Calendar/`, `Todos/`, and `News/` rows.
 - **Side effects.** TanStack Query for data; a `key` prop for prop→state resets; `useEffect` is a last resort. Full rules in `.claude/skills/react-ui/SKILL.md`.
@@ -240,7 +242,7 @@ Reaching the admin UI from a phone used to mean typing the Pi's LAN address by h
 
 ### Runtime Settings
 
-Five tunables — home coordinates, transport search radius, and the two worker fetch intervals — live in a `settings` key/value table. The admin UI edits them via `/api/admin/settings`; both workers re-read the table on every tick, so changes take effect on the next cycle without a restart. Env values (`HOME_LATITUDE`, `HOME_LONGITUDE`, `TRANSPORT_RADIUS`, `TRANSPORT_INTERVAL_MS`, `WEATHER_INTERVAL_MS`) seed defaults at boot when no stored value exists. Secrets (`DIGITRANSIT_API_KEY`, `ADMIN_PIN`, keys) stay in env. The same `settings` table also holds the night-sleep config below; its codec decodes per-key by type (number / boolean / `HH:MM` string) and falls back to `DEFAULT_SETTINGS` for keys never written.
+Five tunables — home coordinates, transport search radius, and the two worker fetch intervals — live in a `settings` key/value table. The admin UI edits them via `/api/admin/settings`; both workers re-read the table on every tick, so changes take effect on the next cycle without a restart. Env values (`HOME_LATITUDE`, `HOME_LONGITUDE`, `TRANSPORT_RADIUS`, `TRANSPORT_INTERVAL_MS`, `WEATHER_INTERVAL_MS`) seed defaults at boot when no stored value exists. Secrets (`DIGITRANSIT_API_KEY`, `ADMIN_PIN`, keys) stay in env. The same `settings` table also holds the night-sleep and page-rotation config below; its codec decodes per-key by type (number / boolean / `HH:MM` string) and falls back to `DEFAULT_SETTINGS` for keys never written.
 
 ### Night Sleep Mode (Phase 15)
 
@@ -253,6 +255,15 @@ A scheduled "software dim" so the kiosk isn't burning the panel overnight. Confi
 - **Hardware power-off** via `vcgencmd display_power` is documented as optional/independent in `infra/setup-pi.sh`; it's a static schedule that can't track the dynamic admin window and loses the clock + touch-wake, so the software dim is the default.
 
 The "asleep" predicate and `SleepSettings` type live in `@home-dashboard/shared` (pure, no timezone dep); the Helsinki minute-of-day + next-boundary helpers live in `@home-dashboard/i18n`. `@home-dashboard/db` composes both into `isAsleepNow()` so workers and the API share one server-side entry point — which is why `db` now depends on `i18n` and `shared`.
+
+### Kiosk Pages & Idle Auto-Rotate (Phase 18)
+
+The kiosk shows six panels across two horizontally snapped pages — weather + transport + electricity, then calendar + todos + news — with dot indicators under them. Panels are sized so all three fit the Pi's 720×1280 portrait screen without the page itself scrolling; individual panels still scroll their own body when their list is longer than the space given.
+
+- **Rotation** is configured in the admin UI (`/admin/rotation`) and stored in `settings` (`rotate_*` keys), served to the kiosk on the same `GET /api/settings/display` payload as the sleep config.
+- **Idle-gated, not timed.** `useAutoRotate` advances one page every `intervalMs`, but only after the screen has gone `idleMs` without a pointer press — a touch anywhere restarts the countdown, so a viewer mid-read is never yanked away. A window-level capture listener catches presses on panel buttons too, which also covers the swipe gesture.
+- **Manual swipe** (`usePointerSwipe`) is unchanged and always available; rotation simply resumes once the screen goes quiet again.
+- **An open modal holds the page.** A detail dialog or news QR modal (native `<dialog open>`) pauses rotation even though nobody is touching the screen — someone reading a modal, or scanning a QR code with their phone, is the opposite of idle. A hidden (backgrounded) tab is held for the same reason.
 
 ### Workers
 

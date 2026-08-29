@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { setSleepOverride, updateSleepSettings } from '../../../api/admin.js';
 import { errorToMessage } from '../../../api/client.js';
+import type { DisplaySettings } from '../../../api/settings.js';
 import { DISPLAY_SETTINGS_KEY } from '../../../hooks/useDisplaySettings.js';
 import { Button } from '../../common/Button/Button.js';
 import { useToast } from '../../common/Toast/useToast.js';
@@ -51,7 +52,10 @@ export function SleepForm({ initial }: SleepFormProps) {
   }));
 
   function applyResult(sleep: SleepSettings) {
-    qc.setQueryData(DISPLAY_SETTINGS_KEY, { sleep });
+    // Patch in place — the display query also carries the rotation config.
+    qc.setQueryData<DisplaySettings>(DISPLAY_SETTINGS_KEY, (previous) =>
+      previous ? { ...previous, sleep } : previous,
+    );
   }
 
   const save = useMutation({

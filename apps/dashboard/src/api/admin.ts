@@ -1,4 +1,4 @@
-import type { SleepOverrideMode, SleepSettings } from '@home-dashboard/shared';
+import type { RotationSettings, SleepOverrideMode, SleepSettings } from '@home-dashboard/shared';
 import { apiRequest } from './client.js';
 
 export interface AdminSession {
@@ -55,4 +55,14 @@ export function setSleepOverride(mode: SleepOverrideMode): Promise<SleepSettings
     method: 'POST',
     body: { mode },
   });
+}
+
+export interface RotationConfigPatch {
+  enabled?: boolean;
+  intervalMs?: number;
+  idleMs?: number;
+}
+
+export function updateRotationSettings(patch: RotationConfigPatch): Promise<RotationSettings> {
+  return apiRequest<RotationSettings>('/admin/rotation', { method: 'PUT', body: patch });
 }

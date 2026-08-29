@@ -10,6 +10,7 @@ export {
   isAsleepNow,
   readSettings,
   resolveSettings,
+  rotationFromSettings,
   type SleepOverrideMode,
   seedSettingsFromEnv,
   sleepFromSettings,

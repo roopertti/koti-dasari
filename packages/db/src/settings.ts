@@ -1,5 +1,5 @@
 import { helsinkiMinutesOfDay } from '@home-dashboard/i18n';
-import { isAsleep, type SleepSettings } from '@home-dashboard/shared';
+import { isAsleep, type RotationSettings, type SleepSettings } from '@home-dashboard/shared';
 import type { Kysely } from 'kysely';
 import type { Database } from './types.js';
 
@@ -18,6 +18,10 @@ export interface DashboardSettings {
   sleepOverride: SleepOverrideMode;
   // ISO 8601 UTC instant the manual override expires at; null when none.
   sleepOverrideUntil: string | null;
+  // Idle-gated page rotation on the kiosk (Phase 18).
+  rotateEnabled: boolean;
+  rotateIntervalMs: number;
+  rotateIdleMs: number;
 }
 
 type SettingType = 'number' | 'boolean' | 'string' | 'stringOrNull';
@@ -38,6 +42,9 @@ const SPECS: Record<keyof DashboardSettings, SettingSpec> = {
   sleepEnd: { col: 'sleep_end', type: 'string' },
   sleepOverride: { col: 'sleep_override', type: 'string' },
   sleepOverrideUntil: { col: 'sleep_override_until', type: 'stringOrNull' },
+  rotateEnabled: { col: 'rotate_enabled', type: 'boolean' },
+  rotateIntervalMs: { col: 'rotate_interval_ms', type: 'number' },
+  rotateIdleMs: { col: 'rotate_idle_ms', type: 'number' },
 };
 
 /** Fallback values used to seed missing keys and to resolve a full settings object. */
@@ -52,6 +59,9 @@ export const DEFAULT_SETTINGS: DashboardSettings = {
   sleepEnd: '06:30',
   sleepOverride: 'auto',
   sleepOverrideUntil: null,
+  rotateEnabled: true,
+  rotateIntervalMs: 30_000,
+  rotateIdleMs: 120_000,
 };
 
 /** Project resolved settings down to the sleep subset (camel field rename). */
@@ -62,6 +72,15 @@ export function sleepFromSettings(s: DashboardSettings): SleepSettings {
     end: s.sleepEnd,
     override: s.sleepOverride,
     overrideUntil: s.sleepOverrideUntil,
+  };
+}
+
+/** Project resolved settings down to the page-rotation subset. */
+export function rotationFromSettings(s: DashboardSettings): RotationSettings {
+  return {
+    enabled: s.rotateEnabled,
+    intervalMs: s.rotateIntervalMs,
+    idleMs: s.rotateIdleMs,
   };
 }
 

@@ -11,6 +11,11 @@ export {
 export type { ElectricityPrice } from './types/electricity.js';
 export type { NewsItem } from './types/news.js';
 export {
+  nextPageIndex,
+  ROTATION_LIMITS,
+  type RotationSettings,
+} from './types/rotation.js';
+export {
   isAsleep,
   isOverrideActive,
   isValidHm,

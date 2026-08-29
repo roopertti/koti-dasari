@@ -22,7 +22,7 @@ export const time = style({
   lineHeight: 1,
   '@media': {
     [mq.pi]: {
-      fontSize: '5.5rem',
+      fontSize: '4.2rem',
     },
   },
 });

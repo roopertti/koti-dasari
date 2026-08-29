@@ -373,15 +373,24 @@ Nice-to-have kiosk UX. Today event/todo descriptions and full panel detail are n
 ### Tasks
 
 #### Detail dialogs
-- [ ] Tap on a todo row or calendar event opens a kiosk-friendly modal showing the full description plus available metadata (priority, due date, location, all-day flag, etc.)
-- [ ] Read-only on the kiosk — no edit affordances; admin UI remains the only editor
-- [ ] Touch-dismissible (tap outside or a large close button); modal sized for kiosk touch targets
-- [ ] Reuse existing primitives (e.g. promote `Heading`, `Section`, `Notice` out of `Admin/primitives/` to `common/` so both kiosk and admin share them) rather than introducing a parallel set
+- [x] Tap on a todo row or calendar event opens a kiosk-friendly modal showing the full description plus available metadata (todo: status / priority / due date; event: when + all-day, location, source)
+- [x] Read-only on the kiosk — no edit affordances; admin UI remains the only editor
+- [x] Touch-dismissible (backdrop tap, Escape, or the header close button); modal sized for kiosk touch targets
+- [x] Reuse existing primitives rather than introducing a parallel set. _Deviation from the original wording: `Heading` was **already** in `common/`, and `Section` / `Notice` were **not** promoted — `Section` is an admin card whose kiosk counterpart is `PanelShell`, and `Notice` overlaps `Text` / `PanelMessage`, so moving them would have put two competing primitives in `common/` instead of removing duplication. Reused instead: `Modal`, `Heading`, `Text`, `Button`, `Stack`, `PanelShell`, `PanelMessage`. Genuinely-missing primitives added to `common/`: `DetailList`/`DetailRow` (label/value grid), `DetailDialog` (metadata + description shell), `ExpandButton`, `FocusablePanel`, and a shared `rowButtonBase.css.ts` base style (mirroring the existing `Admin/primitives/inputBase.css.ts` pattern) so the three tappable row types share one focus ring and touch-target rule._
 
 #### Panel focus (tap to expand)
-- [ ] Tap a whole panel (e.g. transport, calendar, electricity chart) to expand it full-screen with more detail than the compact view shows — e.g. more departures, the full hourly forecast, the full electricity chart
-- [ ] Tap outside / a close affordance returns to the normal layout; doubles as a "see more" alternative to swiping between pages
-- [ ] Should compose with the detail dialog above (e.g. inside the expanded calendar panel, tapping an event still opens its detail dialog)
+- [x] Tap a panel's expand affordance to open it full-screen with more detail than the compact view shows. _Design call (2026-08-29): an explicit `⤢` button in the `PanelShell` header rather than "tap the whole panel" — panels live inside a horizontal swipe pager and already contain tappable rows (todo Done, todo/event detail, news QR), so a whole-panel tap target would fight both. The button is hidden while a panel has no data to expand._
+- [x] Tap outside / a close affordance returns to the normal layout; doubles as a "see more" alternative to swiping between pages
+- [x] Composes with the detail dialog (expanded calendar → tap event → detail dialog; expanded news → tap headline → QR modal). Nested `<dialog>`s stack in the top layer and Escape closes only the topmost
+- [x] Per-panel expanded content: **transport** — all 30 departures grouped by stop with name / code / platform / distance (compact shows the first 10 of the same fetch); **weather** — the full 24 h forecast (compact 12 h); **calendar** — full-screen day groups with each event's description inline; **todos** — full-screen rows with descriptions inline; **news** — headlines with their summary text. _Electricity deliberately excluded (2026-08-29) — the compact chart already shows the full published window._
+
+**Notes:**
+- `Modal` grew a `title` + built-in close button, a `full` size, backdrop tap-to-dismiss, and children that only mount while open (so an expanded panel's queries don't run in the background). `QRModal` was migrated onto that header, dropping its own heading + close button and the now-unused `panel.news.close` key.
+- `panel.todos.priority.medium` was missing from both catalogs — `TodoRow` only ever rendered non-medium priorities. Added, since the detail dialog always shows the priority.
+- One fetch feeds both views per panel (transport 30, weather 24 h), sliced down for the compact view, so expanding never triggers a refetch.
+- Icon-only buttons sat low in their box because an inline `<svg>` rides the text baseline; the `Button` base is now `inline-flex` + centred, which fixes the expand/close buttons and every future icon button at once.
+- Opening a modal fades + lifts the surface (180 ms) with the backdrop fading in behind it, disabled under `prefers-reduced-motion`. Closing stays instant: vanilla-extract has no `@starting-style` support, and an exit timer would defeat the "children only mount while open" guard.
+- Review follow-ups (2026-08-29): the close button now calls `dialog.close()` rather than `onClose` directly, leaving the native `close` event as the single path (it was firing twice per tap); tappable rows carry the action hint in `aria-describedby` + a `VisuallyHidden` span instead of an `aria-label`, so a screen reader still announces the row's visible metadata as the accessible name; and the expand button is additionally hidden when the full-screen view would show nothing new (weather with ≤ 12 forecast hours, news with no summaries).
 
 **Dependency:** None — independent UI work.
 

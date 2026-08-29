@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getNews } from '../../api/news.js';
 import { useNow } from '../../hooks/useNow.js';
+import { FocusablePanel } from '../common/FocusablePanel/FocusablePanel.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
-import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { useIsAsleep } from '../Sleep/useIsAsleep.js';
 import * as styles from './NewsPanel.css.js';
 import { NewsRow } from './NewsRow/NewsRow.js';
@@ -14,6 +14,23 @@ import { QRModal } from './QRModal/QRModal.js';
 const REFRESH_MS = 5 * 60_000;
 const TICK_MS = 60_000;
 const LIMIT = 8;
+
+interface NewsListProps {
+  items: NewsItem[];
+  onOpen: (item: NewsItem) => void;
+  now: Date;
+  detailed?: boolean;
+}
+
+function NewsList({ items, onOpen, now, detailed }: NewsListProps) {
+  return (
+    <ul className={styles.list} data-testid={detailed ? 'news-list-expanded' : 'news-list'}>
+      {items.map((item) => (
+        <NewsRow key={item.guid} item={item} onOpen={onOpen} now={now} detailed={detailed} />
+      ))}
+    </ul>
+  );
+}
 
 export function NewsPanel() {
   const news = useQuery({
@@ -32,7 +49,11 @@ export function NewsPanel() {
     setSelected(null);
   }
 
-  function renderContent() {
+  const hasNews = !!news.data && news.data.length > 0;
+  // Both views list the same N headlines; the summaries are what expanding adds.
+  const hasSummaries = !!news.data?.some((item) => item.summary);
+
+  function renderCompact() {
     if (news.isPending) {
       return <PanelMessage variant="loading">{t('panel.news.loading')}</PanelMessage>;
     }
@@ -41,27 +62,26 @@ export function NewsPanel() {
       return <PanelMessage variant="error">{news.error.message}</PanelMessage>;
     }
 
-    if (!news.data || news.data.length === 0) {
+    if (!hasNews) {
       return <PanelMessage variant="empty">{t('panel.news.empty')}</PanelMessage>;
     }
 
-    return (
-      <ul className={styles.list} data-testid="news-list">
-        {news.data.map((item) => (
-          <NewsRow key={item.guid} item={item} onOpen={setSelected} now={now} />
-        ))}
-      </ul>
-    );
+    return <NewsList items={news.data} onOpen={setSelected} now={now} />;
   }
 
   return (
-    <PanelShell title={t('panel.news.title')} testId="panel-news" grow="auto">
-      {renderContent()}
-      <QRModal
-        url={selected?.link ?? null}
-        title={selected?.title ?? null}
-        onClose={() => setSelected(null)}
+    <>
+      <FocusablePanel
+        title={t('panel.news.title')}
+        testId="panel-news"
+        grow="auto"
+        expandable={hasNews && hasSummaries}
+        compact={renderCompact()}
+        expanded={
+          hasNews ? <NewsList items={news.data} onOpen={setSelected} now={now} detailed /> : null
+        }
       />
-    </PanelShell>
+      <QRModal item={selected} onClose={() => setSelected(null)} />
+    </>
   );
 }

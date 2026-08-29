@@ -1,16 +1,44 @@
 import { t } from '@home-dashboard/i18n';
 import type { Todo } from '@home-dashboard/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toggleTodo } from '../../api/todos.js';
 import { useTodos } from '../../hooks/useTodos.js';
+import { FocusablePanel } from '../common/FocusablePanel/FocusablePanel.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
-import { PanelShell } from '../common/PanelShell/PanelShell.js';
 import { Stack } from '../common/Stack/Stack.js';
+import { TodoDetailDialog } from './TodoDetailDialog/TodoDetailDialog.js';
 import { TodoRow } from './TodoRow/TodoRow.js';
+
+interface TodoListProps {
+  todos: Todo[];
+  pendingId: string | null;
+  onToggle: (todo: Todo) => void;
+  onOpen: (todo: Todo) => void;
+  detailed?: boolean;
+}
+
+function TodoList({ todos, pendingId, onToggle, onOpen, detailed }: TodoListProps) {
+  return (
+    <Stack as="ul" gap="sm">
+      {todos.map((todo) => (
+        <TodoRow
+          key={todo.id}
+          todo={todo}
+          pending={pendingId === todo.id}
+          onToggle={onToggle}
+          onOpen={onOpen}
+          detailed={detailed}
+        />
+      ))}
+    </Stack>
+  );
+}
 
 export function TodosPanel() {
   const queryClient = useQueryClient();
   const { data } = useTodos();
+  const [selected, setSelected] = useState<Todo | null>(null);
 
   const toggle = useMutation({
     mutationFn: (id: string) => toggleTodo(id),
@@ -19,24 +47,32 @@ export function TodosPanel() {
     onError: (err) => console.error('[TodosPanel] toggle failed', err),
   });
 
-  const isPending = (todo: Todo) => toggle.isPending && toggle.variables === todo.id;
+  const pendingId = toggle.isPending ? (toggle.variables ?? null) : null;
+  const hasTodos = !!data && data.length > 0;
+
+  const listProps = {
+    todos: data ?? [],
+    pendingId,
+    onToggle: (todo: Todo) => toggle.mutate(todo.id),
+    onOpen: setSelected,
+  };
 
   return (
-    <PanelShell title={t('panel.todos.title')} testId="panel-todos">
-      {!data || data.length === 0 ? (
-        <PanelMessage variant="empty">{t('panel.todos.empty')}</PanelMessage>
-      ) : (
-        <Stack as="ul" gap="sm">
-          {data.map((todo) => (
-            <TodoRow
-              key={todo.id}
-              todo={todo}
-              pending={isPending(todo)}
-              onToggle={(t) => toggle.mutate(t.id)}
-            />
-          ))}
-        </Stack>
-      )}
-    </PanelShell>
+    <>
+      <FocusablePanel
+        title={t('panel.todos.title')}
+        testId="panel-todos"
+        expandable={hasTodos}
+        compact={
+          hasTodos ? (
+            <TodoList {...listProps} />
+          ) : (
+            <PanelMessage variant="empty">{t('panel.todos.empty')}</PanelMessage>
+          )
+        }
+        expanded={hasTodos ? <TodoList {...listProps} detailed /> : null}
+      />
+      <TodoDetailDialog todo={selected} onClose={() => setSelected(null)} />
+    </>
   );
 }

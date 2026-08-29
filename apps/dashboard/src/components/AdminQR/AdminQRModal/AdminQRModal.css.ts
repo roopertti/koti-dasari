@@ -1,5 +1,13 @@
 import { style } from '@vanilla-extract/css';
-import { mq, vars } from '../../../styles/theme.css.js';
+import { vars } from '../../../styles/theme.css.js';
+
+// The dialog body is plain block flow, so the codes and the address hint need
+// their own column gap — previously the removed footer button held them apart.
+export const body = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space.lg,
+});
 
 export const list = style({
   display: 'flex',
@@ -19,14 +27,4 @@ export const item = style({
   alignItems: 'center',
   gap: vars.space.sm,
   textAlign: 'center',
-});
-
-export const address = style({
-  fontFamily: vars.font.familyMono,
-  wordBreak: 'break-all',
-  '@media': {
-    [mq.pi]: {
-      fontSize: vars.font.sizeXs,
-    },
-  },
 });

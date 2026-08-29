@@ -20,9 +20,8 @@ export const level = styleVariants({
   },
   dialog: {
     ...base,
-    fontSize: vars.font.sizeMd,
-    fontWeight: vars.font.weightMedium,
-    textAlign: 'center',
-    maxWidth: '320px',
+    fontSize: '1.15rem',
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
 });

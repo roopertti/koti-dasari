@@ -10,8 +10,12 @@ type Size = 'auto' | 'full';
 interface ModalProps {
   open: boolean;
   onClose: () => void;
-  /** Rendered in the dialog header next to the close button. */
-  title?: string;
+  /**
+   * Rendered in the dialog header next to the close button, and referenced by
+   * `aria-labelledby`. Required: a titleless dialog has no accessible name and
+   * no visible close affordance, so every caller has to name its own dialog.
+   */
+  title: string;
   size?: Size;
   testId?: string;
   children: ReactNode;
@@ -54,27 +58,25 @@ export function Modal({ open, onClose, title, size = 'auto', testId, children }:
       ref={ref}
       className={styles.dialog[size]}
       data-testid={testId}
-      aria-labelledby={title ? titleId : undefined}
+      aria-labelledby={titleId}
       onClose={onClose}
       onClick={handleClick}
     >
       {open && (
         <div className={styles.surface}>
-          {title && (
-            <div className={styles.head}>
-              <Heading level="dialog" id={titleId}>
-                {title}
-              </Heading>
-              <Button
-                variant="subtle"
-                onClick={requestClose}
-                aria-label={t('dialog.close')}
-                data-testid={testId ? `${testId}-close` : undefined}
-              >
-                <X size="1.2em" aria-hidden="true" />
-              </Button>
-            </div>
-          )}
+          <div className={styles.head}>
+            <Heading level="dialog" id={titleId}>
+              {title}
+            </Heading>
+            <Button
+              variant="subtle"
+              onClick={requestClose}
+              aria-label={t('dialog.close')}
+              data-testid={testId ? `${testId}-close` : undefined}
+            >
+              <X size="1.2em" aria-hidden="true" />
+            </Button>
+          </div>
           <div className={styles.body}>{children}</div>
         </div>
       )}

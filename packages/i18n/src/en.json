@@ -2,11 +2,9 @@
   "layout.pagePrimary": "Weather and transport",
   "layout.pageSecondary": "Calendar and todos",
   "layout.pageTertiary": "Electricity price and news",
-
   "dialog.close": "Close",
   "dialog.noDescription": "No description",
   "panel.expandLabel": "Expand {title}",
-
   "panel.electricity.title": "Electricity price",
   "panel.electricity.unavailable": "Price unavailable",
   "panel.electricity.loading": "Loading…",
@@ -20,7 +18,6 @@
   "panel.electricity.status.normal": "Normal",
   "panel.electricity.status.expensive": "Expensive",
   "panel.electricity.chartAriaLabel": "Hourly electricity prices",
-
   "panel.news.title": "News",
   "panel.news.loading": "Loading…",
   "panel.news.empty": "No news available",
@@ -30,14 +27,12 @@
   "panel.news.relativeMin": "{minutes} min ago",
   "panel.news.relativeHour": "{hours} h ago",
   "panel.news.relativeDay": "{days} d ago",
-
   "panel.weather.title": "Weather",
   "panel.weather.unavailable": "Weather unavailable",
   "panel.weather.loading": "Loading…",
   "panel.weather.stat.feels": "Feels",
   "panel.weather.stat.humidity": "Humidity",
   "panel.weather.stat.wind": "Wind",
-
   "panel.transport.title": "Departures",
   "panel.transport.empty": "No upcoming departures",
   "panel.transport.loading": "Loading…",
@@ -47,18 +42,14 @@
   "panel.transport.stopUnknown": "Unknown stop",
   "panel.transport.platform": "platform {platform}",
   "panel.transport.distance": "{meters} m",
-
   "kiosk.adminQr.open": "Open admin QR codes",
   "kiosk.adminQr.title": "Admin on your phone",
   "kiosk.adminQr.hint": "Scan a code with your phone camera. Address: {origin}",
-  "kiosk.adminQr.close": "Close",
   "kiosk.adminQr.codeAlt": "QR code: {target}",
   "kiosk.adminQr.target.admin": "Admin",
   "kiosk.adminQr.target.newEvent": "New event",
   "kiosk.adminQr.target.newTodo": "New todo",
-
   "pagination.label": "Dashboard pages",
-
   "panel.calendar.title": "Calendar",
   "panel.calendar.empty": "No upcoming events",
   "panel.calendar.allDay": "All day",
@@ -69,7 +60,6 @@
   "panel.calendar.detail.source": "Source",
   "panel.calendar.detail.sourceManual": "Added manually",
   "panel.calendar.detail.sourceHolidays": "Finnish public holidays",
-
   "panel.todos.title": "Todos",
   "panel.todos.empty": "No todos",
   "panel.todos.done": "Done",
@@ -85,7 +75,6 @@
   "panel.todos.detail.statusActive": "In progress",
   "panel.todos.detail.priority": "Priority",
   "panel.todos.detail.due": "Due",
-
   "rail.label": "Today & soon",
   "rail.empty": "Nothing on the horizon",
   "rail.heading.overdue": "Overdue",
@@ -96,17 +85,14 @@
   "rail.item.todo": "Todo",
   "rail.moreOne": "+1 more",
   "rail.moreMany": "+{count} more",
-
   "error.title": "Dashboard crashed",
   "error.reload": "Reload",
-
   "error.api.ADMIN_DISABLED": "Admin is disabled",
   "error.api.NOT_FOUND": "Item not found",
   "error.api.READ_ONLY_SOURCE": "This item can't be edited (synced source)",
   "error.api.UNAUTHORIZED": "Session expired, please sign in again",
   "error.api.VALIDATION_ERROR": "Check the entered values",
   "error.api.INTERNAL_ERROR": "Server error, please try again",
-
   "admin.title": "Admin",
   "admin.loading": "Loading…",
   "admin.unavailable": "Admin unavailable",
@@ -116,20 +102,17 @@
   "admin.nav.todos": "Todos",
   "admin.nav.sleep": "Sleep",
   "admin.nav.settings": "Settings",
-
   "admin.login.title": "Sign in",
   "admin.login.pin": "PIN",
   "admin.login.submit": "Sign in",
   "admin.login.pending": "Signing in…",
   "admin.login.error": "Wrong PIN",
-
   "admin.form.create": "Create",
   "admin.form.update": "Update",
   "admin.form.saving": "Saving…",
   "admin.form.cancel": "Cancel",
   "admin.form.edit": "Edit",
   "admin.form.delete": "Delete",
-
   "admin.events.form.newTitle": "New event",
   "admin.events.form.editTitle": "Edit event",
   "admin.events.form.title": "Title",
@@ -145,7 +128,6 @@
   "admin.events.list.empty": "No events",
   "admin.events.list.allDay": "All day",
   "admin.events.list.confirmDelete": "Delete this event?",
-
   "admin.todos.form.newTitle": "New todo",
   "admin.todos.form.editTitle": "Edit todo",
   "admin.todos.form.title": "Title",
@@ -161,7 +143,6 @@
   "admin.todos.list.done": "done",
   "admin.todos.list.due": "due {date}",
   "admin.todos.list.confirmDelete": "Delete this todo?",
-
   "admin.settings.title": "Settings",
   "admin.settings.hint": "Empty fields fall back to server defaults. Workers re-read settings on every fetch cycle.",
   "admin.settings.homeLatitude": "Home latitude",
@@ -171,11 +152,9 @@
   "admin.settings.weatherIntervalMs": "Weather fetch interval (ms)",
   "admin.settings.save": "Save",
   "admin.settings.saved": "Saved",
-
   "admin.events.saved": "Event saved",
   "admin.todos.saved": "Todo saved",
   "admin.toast.dismiss": "Dismiss notification",
-
   "admin.sleep.title": "Sleep mode",
   "admin.sleep.hint": "At night the screen dims to show only the clock. A tap wakes it briefly. Times are Helsinki local time.",
   "admin.sleep.enabled": "Enabled",
@@ -192,7 +171,6 @@
   "admin.sleep.status.auto": "Schedule active",
   "admin.sleep.status.wake": "Forced awake until {time}",
   "admin.sleep.status.sleep": "Forced asleep until {time}",
-
   "weather.code.0": "Clear",
   "weather.code.1": "Mainly clear",
   "weather.code.2": "Partly cloudy",

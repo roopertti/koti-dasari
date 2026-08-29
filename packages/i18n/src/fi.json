@@ -2,11 +2,9 @@
   "layout.pagePrimary": "Sää ja liikenne",
   "layout.pageSecondary": "Kalenteri ja tehtävät",
   "layout.pageTertiary": "Sähkönhinta ja uutiset",
-
   "dialog.close": "Sulje",
   "dialog.noDescription": "Ei kuvausta",
   "panel.expandLabel": "Laajenna: {title}",
-
   "panel.electricity.title": "Sähkönhinta",
   "panel.electricity.unavailable": "Hinta ei saatavilla",
   "panel.electricity.loading": "Ladataan…",
@@ -20,7 +18,6 @@
   "panel.electricity.status.normal": "Normaali",
   "panel.electricity.status.expensive": "Kallis",
   "panel.electricity.chartAriaLabel": "Sähkönhinnan tunnit",
-
   "panel.news.title": "Uutiset",
   "panel.news.loading": "Ladataan…",
   "panel.news.empty": "Ei uutisia saatavilla",
@@ -30,14 +27,12 @@
   "panel.news.relativeMin": "{minutes} min sitten",
   "panel.news.relativeHour": "{hours} h sitten",
   "panel.news.relativeDay": "{days} pv sitten",
-
   "panel.weather.title": "Sää",
   "panel.weather.unavailable": "Sää ei saatavilla",
   "panel.weather.loading": "Ladataan…",
   "panel.weather.stat.feels": "Tuntuu",
   "panel.weather.stat.humidity": "Kosteus",
   "panel.weather.stat.wind": "Tuuli",
-
   "panel.transport.title": "Lähtöajat",
   "panel.transport.empty": "Ei tulevia lähtöjä",
   "panel.transport.loading": "Ladataan…",
@@ -47,18 +42,14 @@
   "panel.transport.stopUnknown": "Tuntematon pysäkki",
   "panel.transport.platform": "laituri {platform}",
   "panel.transport.distance": "{meters} m",
-
   "kiosk.adminQr.open": "Avaa hallinnan QR-koodit",
   "kiosk.adminQr.title": "Hallinta puhelimella",
   "kiosk.adminQr.hint": "Skannaa koodi puhelimen kameralla. Osoite: {origin}",
-  "kiosk.adminQr.close": "Sulje",
   "kiosk.adminQr.codeAlt": "QR-koodi: {target}",
   "kiosk.adminQr.target.admin": "Hallinta",
   "kiosk.adminQr.target.newEvent": "Uusi tapahtuma",
   "kiosk.adminQr.target.newTodo": "Uusi tehtävä",
-
   "pagination.label": "Näytön sivut",
-
   "panel.calendar.title": "Kalenteri",
   "panel.calendar.empty": "Ei tulevia tapahtumia",
   "panel.calendar.allDay": "Koko päivä",
@@ -69,7 +60,6 @@
   "panel.calendar.detail.source": "Lähde",
   "panel.calendar.detail.sourceManual": "Lisätty käsin",
   "panel.calendar.detail.sourceHolidays": "Suomen pyhäpäivät",
-
   "panel.todos.title": "Tehtävät",
   "panel.todos.empty": "Ei tehtäviä",
   "panel.todos.done": "Valmis",
@@ -85,7 +75,6 @@
   "panel.todos.detail.statusActive": "Kesken",
   "panel.todos.detail.priority": "Prioriteetti",
   "panel.todos.detail.due": "Deadline",
-
   "rail.label": "Tänään ja pian",
   "rail.empty": "Ei tulevia tapahtumia tai tehtäviä",
   "rail.heading.overdue": "Myöhässä",
@@ -96,17 +85,14 @@
   "rail.item.todo": "Tehtävä",
   "rail.moreOne": "+1 muu",
   "rail.moreMany": "+{count} muuta",
-
   "error.title": "Näyttö kaatui",
   "error.reload": "Lataa uudelleen",
-
   "error.api.ADMIN_DISABLED": "Hallinta ei ole käytössä",
   "error.api.NOT_FOUND": "Kohdetta ei löytynyt",
   "error.api.READ_ONLY_SOURCE": "Tätä kohdetta ei voi muokata (synkronoitu lähde)",
   "error.api.UNAUTHORIZED": "Istunto on vanhentunut, kirjaudu uudelleen",
   "error.api.VALIDATION_ERROR": "Tarkista syötetyt tiedot",
   "error.api.INTERNAL_ERROR": "Palvelinvirhe, yritä uudelleen",
-
   "admin.title": "Hallinta",
   "admin.loading": "Ladataan…",
   "admin.unavailable": "Hallinta ei saatavilla",
@@ -116,20 +102,17 @@
   "admin.nav.todos": "Tehtävät",
   "admin.nav.sleep": "Lepotila",
   "admin.nav.settings": "Asetukset",
-
   "admin.login.title": "Kirjaudu sisään",
   "admin.login.pin": "PIN-koodi",
   "admin.login.submit": "Kirjaudu",
   "admin.login.pending": "Kirjaudutaan…",
   "admin.login.error": "Väärä PIN",
-
   "admin.form.create": "Luo",
   "admin.form.update": "Päivitä",
   "admin.form.saving": "Tallennetaan…",
   "admin.form.cancel": "Peruuta",
   "admin.form.edit": "Muokkaa",
   "admin.form.delete": "Poista",
-
   "admin.events.form.newTitle": "Uusi tapahtuma",
   "admin.events.form.editTitle": "Muokkaa tapahtumaa",
   "admin.events.form.title": "Otsikko",
@@ -145,7 +128,6 @@
   "admin.events.list.empty": "Ei tapahtumia",
   "admin.events.list.allDay": "Koko päivä",
   "admin.events.list.confirmDelete": "Poistetaanko tapahtuma?",
-
   "admin.todos.form.newTitle": "Uusi tehtävä",
   "admin.todos.form.editTitle": "Muokkaa tehtävää",
   "admin.todos.form.title": "Otsikko",
@@ -161,7 +143,6 @@
   "admin.todos.list.done": "valmis",
   "admin.todos.list.due": "deadline {date}",
   "admin.todos.list.confirmDelete": "Poistetaanko tehtävä?",
-
   "admin.settings.title": "Asetukset",
   "admin.settings.hint": "Tyhjät kentät käyttävät palvelimen oletusarvoa. Arvot luetaan jokaisten hakujen yhteydessä uudelleen.",
   "admin.settings.homeLatitude": "Kotipaikan leveysaste",
@@ -171,11 +152,9 @@
   "admin.settings.weatherIntervalMs": "Sään hakuväli (ms)",
   "admin.settings.save": "Tallenna",
   "admin.settings.saved": "Tallennettu",
-
   "admin.events.saved": "Tapahtuma tallennettu",
   "admin.todos.saved": "Tehtävä tallennettu",
   "admin.toast.dismiss": "Sulje ilmoitus",
-
   "admin.sleep.title": "Lepotila",
   "admin.sleep.hint": "Yöllä näyttö himmenee ja näyttää vain kellon. Kosketus herättää hetkeksi. Ajat ovat Helsingin aikaa.",
   "admin.sleep.enabled": "Käytössä",
@@ -192,7 +171,6 @@
   "admin.sleep.status.auto": "Aikataulu käytössä",
   "admin.sleep.status.wake": "Pakotettu hereille klo {time} asti",
   "admin.sleep.status.sleep": "Pakotettu lepotilaan klo {time} asti",
-
   "weather.code.0": "Selkeää",
   "weather.code.1": "Pääosin selkeää",
   "weather.code.2": "Puolipilvistä",

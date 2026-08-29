@@ -81,11 +81,7 @@ export function NewsPanel() {
           hasNews ? <NewsList items={news.data} onOpen={setSelected} now={now} detailed /> : null
         }
       />
-      <QRModal
-        url={selected?.link ?? null}
-        title={selected?.title ?? null}
-        onClose={() => setSelected(null)}
-      />
+      <QRModal item={selected} onClose={() => setSelected(null)} />
     </>
   );
 }

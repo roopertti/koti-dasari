@@ -391,7 +391,7 @@ test.describe('dashboard', () => {
     const origin = new URL(page.url()).origin;
     await expect(modal).toContainText(origin);
 
-    await modal.getByTestId('admin-qr-close').click();
+    await modal.getByTestId('admin-qr-modal-close').click();
     await expect(modal).toBeHidden();
   });
 

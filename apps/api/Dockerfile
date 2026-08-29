@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Build context: repo root (so workspace deps resolve). See docker-compose.yml.
 
-FROM node:24-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS build
+FROM node:24-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS build
 RUN npm install -g corepack@latest && corepack enable
 WORKDIR /repo
 
@@ -29,7 +29,11 @@ RUN pnpm --filter @home-dashboard/shared build \
  && pnpm --filter @home-dashboard/api build \
  && pnpm --filter @home-dashboard/api deploy --legacy --prod /prod/api
 
-FROM node:24-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS runtime
+FROM node:24-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS runtime
+# The runtime only runs `node dist/index.js` — npm is never used here, but its
+# bundled dependencies are a recurring source of HIGH CVEs that fail the Trivy
+# gate in CI. Drop npm so the final image carries no npm dependency tree.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --chown=node:node --from=build /prod/api .

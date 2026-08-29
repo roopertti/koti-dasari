@@ -37,6 +37,13 @@ export const header = style({
   flexWrap: 'wrap',
 });
 
+// Pinned to the end of the header row so it stays in the corner even when the
+// header wraps onto a second line on narrow screens.
+export const headerAction = style({
+  marginLeft: 'auto',
+  alignSelf: 'flex-start',
+});
+
 export const pages = style({
   display: 'flex',
   flexDirection: 'row',

@@ -3,6 +3,7 @@ import { isAsleep } from '@home-dashboard/shared';
 import { type ReactNode, useState } from 'react';
 import { useClock } from '../../hooks/useClock.js';
 import { useDisplaySettings } from '../../hooks/useDisplaySettings.js';
+import { SleepContext } from './sleepContext.js';
 import * as styles from './SleepOverlay.css.js';
 
 // How long a tap keeps the dashboard awake before it fades back to sleep.
@@ -18,6 +19,11 @@ interface SleepOverlayProps {
  * back. The display stays powered the whole time (software dim — see Phase 15).
  * Manual admin overrides are already baked into `isAsleep` via the polled
  * config, so they're handled the same as the schedule.
+ *
+ * The overlay is published on `SleepContext` because it cannot cover everything
+ * on its own: a `<dialog>` opened with `showModal()` lives in the browser's top
+ * layer and paints above any z-index. Those components read `useIsAsleep()` and
+ * close themselves — see `NewsPanel` and `AdminQRButton`.
  */
 export function SleepOverlay({ children }: SleepOverlayProps) {
   const { data } = useDisplaySettings();
@@ -40,7 +46,7 @@ export function SleepOverlay({ children }: SleepOverlayProps) {
 
   return (
     <div className={styles.root} onPointerDown={handlePointerDown}>
-      {children}
+      <SleepContext.Provider value={asleep}>{children}</SleepContext.Provider>
       <div
         className={asleep ? styles.overlayVisible : styles.overlayHidden}
         aria-hidden={!asleep}

@@ -1,3 +1,4 @@
+import { AdminQRButton } from '../AdminQR/AdminQRButton.js';
 import { CalendarPanel } from '../Calendar/CalendarPanel.js';
 import { Clock } from '../Clock/Clock.js';
 import { TodaySoonRail } from '../Clock/TodaySoonRail.js';
@@ -19,6 +20,7 @@ export function KioskApp() {
             <TodaySoonRail />
           </>
         }
+        headerAction={<AdminQRButton />}
         weather={<WeatherPanel />}
         transport={<TransportPanel />}
         calendar={<CalendarPanel />}

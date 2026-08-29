@@ -6,6 +6,7 @@ import { getNews } from '../../api/news.js';
 import { useNow } from '../../hooks/useNow.js';
 import { PanelMessage } from '../common/PanelMessage/PanelMessage.js';
 import { PanelShell } from '../common/PanelShell/PanelShell.js';
+import { useIsAsleep } from '../Sleep/useIsAsleep.js';
 import * as styles from './NewsPanel.css.js';
 import { NewsRow } from './NewsRow/NewsRow.js';
 import { QRModal } from './QRModal/QRModal.js';
@@ -22,6 +23,14 @@ export function NewsPanel() {
   });
   const [selected, setSelected] = useState<NewsItem | null>(null);
   const now = useNow(TICK_MS);
+  const asleep = useIsAsleep();
+
+  // The QR dialog lives in the top layer, above the sleep overlay, so it would
+  // stay lit all night if the sleep window began while it was open. Adjusting
+  // state during render (rather than in an effect) closes it in the same commit.
+  if (asleep && selected) {
+    setSelected(null);
+  }
 
   function renderContent() {
     if (news.isPending) {

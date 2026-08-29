@@ -357,6 +357,7 @@ The kiosk screen burns power overnight while no one's watching. Sleep it on a sc
 - [x] Manual override in admin: "force wake now" / "force sleep now" / "resume schedule" buttons (`POST /api/admin/sleep/override`). _Decision (2026-06-12): an override holds **until the next schedule boundary** (server computes the expiry in Helsinki time), then the schedule auto-resumes; "resume schedule" clears it early._
 
 **Implementation notes:**
+- **Top-layer dialogs (fixed 2026-08-29, during Phase 17).** A `<dialog>` opened with `showModal()` renders in the browser's top layer, above the overlay's `z-index`, so a dialog left open when the sleep window began stayed lit all night. `SleepOverlay` now publishes the effective state on `SleepContext`; `NewsPanel` and `AdminQRButton` read `useIsAsleep()` and clear their open state during render (no `useEffect`). Covered by two E2E tests that drive the 30s display poll via `page.clock`.
 - Settings codec generalized from numeric-only to a type-aware registry (number / boolean / `HH:MM` string) to hold the `sleep_*` keys; no migration needed (the `settings` table is already k/v).
 - The sleep predicate + `SleepSettings` type live in `@home-dashboard/shared` (pure); Helsinki minute-of-day + next-boundary helpers in `@home-dashboard/i18n`; `@home-dashboard/db` composes them into `isAsleepNow()`. This added `i18n` + `shared` as `db` dependencies, which required adding those packages (and a build-order fix) to every backend Dockerfile.
 - The API gained `@home-dashboard/i18n` as a dependency (the "first real use" Phase 10 deferred) to compute override expiry.
@@ -392,11 +393,15 @@ Nice-to-have. Today first-time admin access requires typing the LAN address into
 
 ### Tasks
 
-- [ ] Render small QR codes on the kiosk linking to `/admin/`, `/admin/events/new`, and `/admin/todos/new` — scan from a phone and skip typing the LAN address
-- [ ] Use a tiny build-time-friendly QR lib (e.g. `qrcode-generator`); no network calls
-- [ ] Base URL derived from `window.location.origin` at render time so it Just Works on whatever IP/hostname the kiosk is reached by
-- [ ] Placement TBD in design pass — candidates: small persistent corner widget, behind a long-press on the header, or inside a "help" overlay. Pick one — don't crowd the panels
-- [ ] Verify QR resolves on iOS Camera and Android default camera
+- [x] Render small QR codes on the kiosk linking to `/admin/`, `/admin/events`, and `/admin/todos`. _Deviation: there are no `/admin/events/new` / `/admin/todos/new` routes — both admin pages already render an empty create form at the top, so the plain tab routes are the "new event" / "new todo" targets._
+- [x] Use a tiny build-time-friendly QR lib; no network calls. _Deviation: reused the existing `qrcode` dependency (added in Phase 12 for the news share codes) instead of adding `qrcode-generator` — a second QR lib would be pure duplication. Encoding is local; `common/QRCode/` is now the shared primitive and the news modal was refactored onto it._
+- [x] Base URL derived from `window.location.origin` at render time so it Just Works on whatever IP/hostname the kiosk is reached by. The origin is also printed under the codes as a hand-typing fallback
+- [x] Placement: a small QR icon button pinned to the end of the kiosk header (`headerAction` slot on `DashboardLayout`) opens a dialog with all three labelled codes. _Picked over a persistent corner widget (crowds the panels, fits only one target) and a header long-press (undiscoverable). Verified at 1280×800, 1024×600, and 800×480 — the header doesn't wrap and the dialog doesn't overflow._
+- [ ] **Manual step:** verify the QR resolves on iOS Camera and the Android default camera. _Automated as far as it can be off-device: an E2E test asserts the codes render as local `data:` URIs, and the rendered bitmaps were decoded with `jsQR` and confirmed to carry the exact absolute URLs. Physical camera behaviour still needs a phone against the real Pi._
+
+**Also fixed here:** an open `<dialog>` (news QR *and* the new admin QR) survived into the night-sleep window because the top layer paints above the sleep overlay — see the Phase 15 implementation notes.
+
+**Known limitation:** the codes are only useful if the kiosk browser is pointed at the Pi's LAN address. If it is opened via `http://localhost`, the codes encode `localhost` and won't resolve from a phone. If that ever becomes the setup, the fix is an `admin_base_url` key in the existing `settings` table that overrides the origin.
 
 **Dependency:** None.
 

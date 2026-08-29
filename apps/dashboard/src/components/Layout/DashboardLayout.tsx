@@ -7,6 +7,7 @@ import * as styles from './DashboardLayout.css.js';
 
 interface DashboardLayoutProps {
   header: ReactNode;
+  headerAction: ReactNode;
   weather: ReactNode;
   transport: ReactNode;
   calendar: ReactNode;
@@ -61,7 +62,10 @@ export function DashboardLayout(props: DashboardLayoutProps) {
 
   return (
     <div className={styles.dashboard}>
-      <header className={styles.header}>{props.header}</header>
+      <header className={styles.header}>
+        {props.header}
+        <div className={styles.headerAction}>{props.headerAction}</div>
+      </header>
       <div className={styles.pages} ref={pagesRef}>
         {PAGES.map((page) => (
           <section

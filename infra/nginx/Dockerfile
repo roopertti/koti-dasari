@@ -25,7 +25,7 @@ RUN pnpm --filter @home-dashboard/shared build \
  && pnpm --filter @home-dashboard/i18n build \
  && pnpm --filter @home-dashboard/dashboard build
 
-FROM nginxinc/nginx-unprivileged:alpine@sha256:901e944d1f4fc2bd077e8f5568b98c1f6f8cdacf6b97a87747c43134a339b9a7 AS runtime
+FROM nginxinc/nginx-unprivileged:alpine@sha256:d9083fe47768377ef55dedafd67d4da7c2f2bc2bece7554954f29359deb0dce9 AS runtime
 # Patch openssl for CVE-2026-14456 (libcrypto3/libssl3 < 3.5.8-r0). The Alpine
 # fix is published but the upstream image hasn't been rebuilt to include it.
 # Remove once nginx-unprivileged:alpine ships libcrypto3/libssl3 >= 3.5.8-r0.

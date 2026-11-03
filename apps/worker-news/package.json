@@ -17,7 +17,7 @@
     "@home-dashboard/db": "workspace:*",
     "fast-xml-parser": "5.8.0",
     "kysely": "0.29.1",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@home-dashboard/tsconfig": "workspace:*",

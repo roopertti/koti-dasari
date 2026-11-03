@@ -15,7 +15,7 @@
   "dependencies": {
     "@home-dashboard/db": "workspace:*",
     "kysely": "0.29.1",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@home-dashboard/tsconfig": "workspace:*",
